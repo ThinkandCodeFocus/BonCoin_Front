@@ -1,83 +1,57 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import { Header } from "@/components/header"
 import { BottomNav } from "@/components/bottom-nav"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
-import { Send, ImageIcon, Paperclip } from "lucide-react"
-import { useState } from "react"
-
-const conversations = [
-  {
-    id: 1,
-    user: { name: "Fatou Ndiaye", avatar: "/serene-african-woman.png" },
-    lastMessage: "Est-ce que l'iPhone est toujours disponible ?",
-    time: "10:30",
-    unread: 2,
-    listing: { title: "iPhone 14 Pro Max", image: "/modern-smartphone.png" },
-  },
-  {
-    id: 2,
-    user: { name: "Mamadou Sall", avatar: "/thoughtful-african-man.png" },
-    lastMessage: "D'accord, merci pour les informations",
-    time: "Hier",
-    unread: 0,
-    listing: { title: "MacBook Pro M2", image: "/macbook.jpg" },
-  },
-]
+import { Card } from "@/components/ui/card"
+import { MessageCircle, Loader2 } from "lucide-react"
+import { useAuth } from "@/contexts/AuthContext"
+import { useRouter } from "next/navigation"
 
 export default function MessagesPage() {
-  const [selectedConversation, setSelectedConversation] = useState(conversations[0])
-  const [messageText, setMessageText] = useState("")
+  const { isAuthenticated } = useAuth()
+  const router = useRouter()
+  const [isLoading, setIsLoading] = useState(true)
 
-  const messages = [
-    {
-      id: 1,
-      senderId: selectedConversation.user.name,
-      text: "Bonjour, je suis intéressé par votre iPhone",
-      time: "09:15",
-      isOwn: false,
-    },
-    {
-      id: 2,
-      senderId: "Moi",
-      text: "Bonjour ! Oui il est toujours disponible",
-      time: "09:20",
-      isOwn: true,
-    },
-    {
-      id: 3,
-      senderId: selectedConversation.user.name,
-      text: "Est-ce que l'iPhone est toujours disponible ?",
-      time: "10:30",
-      isOwn: false,
-    },
-  ]
-
-  const handleSendMessage = () => {
-    if (messageText.trim()) {
-      // Send message logic
-      setMessageText("")
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.push("/")
+      return
     }
+    setIsLoading(false)
+  }, [isAuthenticated])
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Header />
+        <main className="flex-1 flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </main>
+        <BottomNav />
+      </div>
+    )
   }
 
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
 
-      <main className="flex-1 pb-20 md:pb-4">
-        <div className="max-w-6xl mx-auto h-[calc(100vh-140px)]">
-          <div className="grid md:grid-cols-3 h-full">
-            {/* Conversations List */}
-            <div className="hidden md:block border-r overflow-y-auto">
-              <div className="p-4 border-b">
-                <h2 className="font-semibold text-lg">Messages</h2>
-              </div>
-              <div className="divide-y">
-                {conversations.map((conv) => (
-                  <div
+      <main className="flex-1 pb-20 md:pb-4 py-8 px-4">
+        <div className="max-w-3xl mx-auto">
+          <h1 className="text-3xl font-bold mb-6">Messages</h1>
+          
+          <Card className="p-8 text-center">
+            <MessageCircle className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+            <p className="text-muted-foreground">Aucun message pour le moment</p>
+            <p className="text-sm text-muted-foreground mt-2">
+              Les conversations avec les acheteurs et vendeurs apparaîtront ici
+            </p>
+          </Card>
+        </div>
+      </main>
                     key={conv.id}
                     className={`p-4 cursor-pointer hover:bg-muted/50 transition-colors ${
                       selectedConversation.id === conv.id ? "bg-muted" : ""

@@ -1,16 +1,30 @@
 "use client"
 
-import { Bell, Heart, MessageSquare, User, Menu } from "lucide-react"
+import { Bell, Heart, MessageSquare, User, Menu, LogOut, LogIn } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 import { useState } from "react"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { LanguageSwitcher } from "@/components/language-switcher"
+import { useAuth } from "@/contexts/AuthContext"
+import { AuthDialog } from "@/components/auth-dialog"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 export function Header() {
+  const { user, isAuthenticated, logout } = useAuth()
   const [notificationCount] = useState(3)
   const [messageCount] = useState(2)
+  const [showAuthDialog, setShowAuthDialog] = useState(false)
+  const [authTab, setAuthTab] = useState<"login" | "register">("login")
 
   return (
     <header className="sticky top-0 z-50 glass-card shadow-sm">
@@ -27,41 +41,93 @@ export function Header() {
 
           <nav className="hidden md:flex items-center gap-2">
             <LanguageSwitcher />
-            <Link href="/messages">
-              <Button variant="ghost" size="icon" className="relative rounded-full hover:bg-muted">
-                <MessageSquare className="w-5 h-5" />
-                {messageCount > 0 && (
-                  <Badge className="absolute -top-1 -right-1 w-5 h-5 flex items-center justify-center p-0 text-xs bg-accent text-accent-foreground border-2 border-background">
-                    {messageCount}
-                  </Badge>
-                )}
-              </Button>
-            </Link>
-            <Link href="/notifications">
-              <Button variant="ghost" size="icon" className="relative rounded-full hover:bg-muted">
-                <Bell className="w-5 h-5" />
-                {notificationCount > 0 && (
-                  <Badge className="absolute -top-1 -right-1 w-5 h-5 flex items-center justify-center p-0 text-xs bg-accent text-accent-foreground border-2 border-background">
-                    {notificationCount}
-                  </Badge>
-                )}
-              </Button>
-            </Link>
-            <Link href="/favorites">
-              <Button variant="ghost" size="icon" className="rounded-full hover:bg-muted">
-                <Heart className="w-5 h-5" />
-              </Button>
-            </Link>
-            <Link href="/profile">
-              <Button variant="ghost" size="icon" className="rounded-full hover:bg-muted">
-                <User className="w-5 h-5" />
-              </Button>
-            </Link>
-            <Link href="/publish">
-              <Button className="font-semibold ml-2 rounded-full px-6 shadow-lg hover:shadow-xl transition-shadow bg-accent text-accent-foreground hover:bg-accent/90">
-                Déposer une annonce
-              </Button>
-            </Link>
+            
+            {isAuthenticated ? (
+              <>
+                <Link href="/messages">
+                  <Button variant="ghost" size="icon" className="relative rounded-full hover:bg-muted">
+                    <MessageSquare className="w-5 h-5" />
+                    {messageCount > 0 && (
+                      <Badge className="absolute -top-1 -right-1 w-5 h-5 flex items-center justify-center p-0 text-xs bg-accent text-accent-foreground border-2 border-background">
+                        {messageCount}
+                      </Badge>
+                    )}
+                  </Button>
+                </Link>
+                <Link href="/notifications">
+                  <Button variant="ghost" size="icon" className="relative rounded-full hover:bg-muted">
+                    <Bell className="w-5 h-5" />
+                    {notificationCount > 0 && (
+                      <Badge className="absolute -top-1 -right-1 w-5 h-5 flex items-center justify-center p-0 text-xs bg-accent text-accent-foreground border-2 border-background">
+                        {notificationCount}
+                      </Badge>
+                    )}
+                  </Button>
+                </Link>
+                <Link href="/favorites">
+                  <Button variant="ghost" size="icon" className="rounded-full hover:bg-muted">
+                    <Heart className="w-5 h-5" />
+                  </Button>
+                </Link>
+                
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="rounded-full hover:bg-muted">
+                      <Avatar className="w-8 h-8">
+                        <AvatarImage 
+                          src={user?.photo ? `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}/storage/${user.photo}` : undefined} 
+                        />
+                        <AvatarFallback>{user?.name?.charAt(0).toUpperCase()}</AvatarFallback>
+                      </Avatar>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>Mon compte</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link href="/profile">Mon profil</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/profile/annonces">Mes annonces</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={logout}>
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Déconnexion
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                
+                <Link href="/publish">
+                  <Button className="font-semibold ml-2 rounded-full px-6 shadow-lg hover:shadow-xl transition-shadow bg-accent text-accent-foreground hover:bg-accent/90">
+                    Déposer une annonce
+                  </Button>
+                </Link>
+              </>
+            ) : (
+              <>
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    setAuthTab("login")
+                    setShowAuthDialog(true)
+                  }}
+                  className="rounded-full"
+                >
+                  <LogIn className="w-4 h-4 mr-2" />
+                  Connexion
+                </Button>
+                <Button
+                  onClick={() => {
+                    setAuthTab("register")
+                    setShowAuthDialog(true)
+                  }}
+                  className="font-semibold rounded-full px-6 shadow-lg hover:shadow-xl transition-shadow bg-accent text-accent-foreground hover:bg-accent/90"
+                >
+                  Inscription
+                </Button>
+              </>
+            )}
           </nav>
 
           {/* Mobile Menu */}
@@ -110,6 +176,8 @@ export function Header() {
           </div>
         </div>
       </div>
+      
+      <AuthDialog open={showAuthDialog} onOpenChange={setShowAuthDialog} defaultTab={authTab} />
     </header>
   )
 }

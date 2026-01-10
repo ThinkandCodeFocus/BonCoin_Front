@@ -1,25 +1,65 @@
-import { Card } from "@/components/ui/card"
-import { Smartphone, Home, Car, Shirt, Sofa, Briefcase, BookOpen, Gift } from "lucide-react"
-import Link from "next/link"
+"use client"
 
-const categories = [
-  { icon: Smartphone, name: "Téléphones", count: 1234, href: "/listings?category=phones" },
-  { icon: Home, name: "Immobilier", count: 856, href: "/listings?category=real-estate" },
-  { icon: Car, name: "Véhicules", count: 645, href: "/listings?category=vehicles" },
-  { icon: Shirt, name: "Mode", count: 2341, href: "/listings?category=fashion" },
-  { icon: Sofa, name: "Maison", count: 987, href: "/listings?category=home" },
-  { icon: Briefcase, name: "Emploi", count: 432, href: "/listings?category=jobs" },
-  { icon: BookOpen, name: "Loisirs", count: 765, href: "/listings?category=leisure" },
-  { icon: Gift, name: "Autres", count: 1543, href: "/listings?category=other" },
-]
+import { useEffect, useState } from "react"
+import { Card } from "@/components/ui/card"
+import { Smartphone, Home, Car, Shirt, Sofa, Briefcase, BookOpen, Gift, Loader2 } from "lucide-react"
+import Link from "next/link"
+import { categoryService } from "@/lib/api"
+
+const iconMap: Record<string, any> = {
+  Smartphone,
+  Home,
+  Car,
+  Shirt,
+  Sofa,
+  Briefcase,
+  BookOpen,
+  Gift,
+}
+
+interface Category {
+  id: number
+  name: string
+  icon?: string
+  annonces_count?: number
+}
 
 export function CategoryGrid() {
+  const [categories, setCategories] = useState<Category[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    loadCategories()
+  }, [])
+
+  const loadCategories = async () => {
+    setIsLoading(true)
+    const result = await categoryService.getAll()
+    if (result.success && result.data) {
+      setCategories(result.data.data || result.data)
+    }
+    setIsLoading(false)
+  }
+
+  const getIcon = (iconName?: string) => {
+    if (!iconName) return Gift
+    return iconMap[iconName] || Gift
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center py-20">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    )
+  }
+
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
       {categories.map((category) => {
-        const Icon = category.icon
+        const Icon = getIcon(category.icon)
         return (
-          <Link key={category.name} href={category.href}>
+          <Link key={category.id} href={`/listings?category=${category.id}`}>
             <Card className="p-6 md:p-8 hover:shadow-2xl transition-all duration-300 cursor-pointer group border-border/50 hover:border-primary/20 hover:-translate-y-1">
               <div className="flex flex-col items-center text-center gap-4">
                 <div className="w-16 h-16 bg-gradient-to-br from-primary/10 to-primary/5 rounded-2xl flex items-center justify-center group-hover:from-primary/20 group-hover:to-primary/10 transition-all duration-300 group-hover:scale-110">
@@ -27,7 +67,11 @@ export function CategoryGrid() {
                 </div>
                 <div>
                   <h3 className="font-semibold text-base mb-1">{category.name}</h3>
-                  <p className="text-sm text-muted-foreground">{category.count.toLocaleString()} annonces</p>
+                  {category.annonces_count !== undefined && (
+                    <p className="text-sm text-muted-foreground">
+                      {category.annonces_count.toLocaleString()} annonces
+                    </p>
+                  )}
                 </div>
               </div>
             </Card>
