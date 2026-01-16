@@ -1,8 +1,22 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Card } from "@/components/ui/card"
-import { Smartphone, Home, Car, Shirt, Sofa, Briefcase, BookOpen, Gift, Loader2 } from "lucide-react"
+import {
+  Smartphone,
+  Home,
+  Car,
+  Shirt,
+  Sofa,
+  Briefcase,
+  BookOpen,
+  Gift,
+  Loader2,
+  PawPrint,
+  Gamepad2,
+  Sparkles,
+  Building2,
+  Leaf,
+} from "lucide-react"
 import Link from "next/link"
 import { categoryService } from "@/lib/api"
 
@@ -41,9 +55,25 @@ export function CategoryGrid() {
     setIsLoading(false)
   }
 
-  const getIcon = (iconName?: string) => {
-    if (!iconName) return Gift
-    return iconMap[iconName] || Gift
+  const getIcon = (iconName?: string, categoryName?: string) => {
+    if (iconName && iconMap[iconName]) return iconMap[iconName]
+    const name = (categoryName || "")
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+    if (name.includes("vehicul") || name.includes("voiture") || name.includes("auto")) return Car
+    if (name.includes("immobilier") || name.includes("habitation")) return Building2
+    if (name.includes("maison")) return Home
+    if (name.includes("jardin")) return Leaf
+    if (name.includes("electron") || name.includes("informat") || name.includes("telephone") || name.includes("mobile"))
+      return Smartphone
+    if (name.includes("meuble")) return Sofa
+    if (name.includes("mode") || name.includes("vetement")) return Shirt
+    if (name.includes("beaute") || name.includes("cosmet")) return Sparkles
+    if (name.includes("emploi") || name.includes("service") || name.includes("job")) return Briefcase
+    if (name.includes("loisir") || name.includes("divert")) return Gamepad2
+    if (name.includes("animaux") || name.includes("animal")) return PawPrint
+    return Gift
   }
 
   if (isLoading) {
@@ -55,26 +85,28 @@ export function CategoryGrid() {
   }
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
       {categories.map((category) => {
-        const Icon = getIcon(category.icon)
+        const Icon = getIcon(category.icon, category.name)
         return (
-          <Link key={category.id} href={`/listings?category=${category.id}`}>
-            <Card className="p-6 md:p-8 hover:shadow-2xl transition-all duration-300 cursor-pointer group border-border/50 hover:border-primary/20 hover:-translate-y-1">
-              <div className="flex flex-col items-center text-center gap-4">
-                <div className="w-16 h-16 bg-gradient-to-br from-primary/10 to-primary/5 rounded-2xl flex items-center justify-center group-hover:from-primary/20 group-hover:to-primary/10 transition-all duration-300 group-hover:scale-110">
-                  <Icon className="w-7 h-7 text-primary" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-base mb-1">{category.name}</h3>
-                  {category.annonces_count !== undefined && (
-                    <p className="text-sm text-muted-foreground">
-                      {category.annonces_count.toLocaleString()} annonces
-                    </p>
-                  )}
+          <Link key={category.id} href={`/listings?category=${category.id}`} className="group">
+            <div className="hex-card">
+              <div className="hex-card-inner">
+                <div className="flex flex-col items-center text-center gap-3">
+                  <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center shadow-[0_10px_24px_rgba(0,0,0,0.12)] group-hover:scale-110 transition-transform">
+                    <Icon className="w-6 h-6 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-sm md:text-base mb-1">{category.name}</h3>
+                    {category.annonces_count !== undefined && (
+                      <p className="text-xs text-muted-foreground">
+                        {category.annonces_count.toLocaleString()} annonces
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
-            </Card>
+            </div>
           </Link>
         )
       })}

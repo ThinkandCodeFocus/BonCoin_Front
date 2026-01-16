@@ -4,74 +4,86 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
+  /* Palette claire plus douce et lumineuse */
+  --background: oklch(0.985 0.02 95); /* blanc légèrement teinté */
+  --foreground: oklch(0.23 0.03 270);
+  --card: oklch(0.99 0.02 95);
+  --card-foreground: oklch(0.23 0.03 270);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
+  --popover-foreground: oklch(0.23 0.03 270);
+
+  /* Bleu profond comme couleur principale */
+  --primary: oklch(0.6 0.14 255);
+  --primary-foreground: oklch(0.99 0.02 95);
+
+  /* Surfaces secondaires légèrement grises / bleutées */
+  --secondary: oklch(0.96 0.03 250);
+  --secondary-foreground: oklch(0.27 0.03 270);
+
+  --muted: oklch(0.95 0.02 250);
+  --muted-foreground: oklch(0.55 0.04 260);
+
+  /* Accent chaud (orangé) pour donner du peps */
+  --accent: oklch(0.78 0.16 55);
+  --accent-foreground: oklch(0.2 0.03 270);
+
+  --destructive: oklch(0.6 0.2 27);
+  --destructive-foreground: oklch(0.99 0.02 95);
+
+  --border: oklch(0.9 0.02 250);
+  --input: oklch(0.9 0.02 250);
+  --ring: oklch(0.68 0.12 255);
   --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar: oklch(0.985 0.02 95);
+  --sidebar-foreground: oklch(0.23 0.03 270);
+  --sidebar-primary: oklch(0.6 0.14 255);
+  --sidebar-primary-foreground: oklch(0.99 0.02 95);
+  --sidebar-accent: oklch(0.96 0.03 250);
+  --sidebar-accent-foreground: oklch(0.27 0.03 270);
+  --sidebar-border: oklch(0.9 0.02 250);
+  --sidebar-ring: oklch(0.68 0.12 255);
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.145 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.145 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.985 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.396 0.141 25.723);
-  --destructive-foreground: oklch(0.637 0.237 25.331);
-  --border: oklch(0.269 0 0);
-  --input: oklch(0.269 0 0);
-  --ring: oklch(0.439 0 0);
+  /* Variante sombre douce */
+  --background: oklch(0.19 0.04 260);
+  --foreground: oklch(0.98 0.02 95);
+  --card: oklch(0.22 0.04 260);
+  --card-foreground: oklch(0.98 0.02 95);
+  --popover: oklch(0.19 0.04 260);
+  --popover-foreground: oklch(0.98 0.02 95);
+
+  --primary: oklch(0.78 0.16 55);
+  --primary-foreground: oklch(0.16 0.03 260);
+
+  --secondary: oklch(0.28 0.03 260);
+  --secondary-foreground: oklch(0.96 0.02 95);
+
+  --muted: oklch(0.26 0.03 260);
+  --muted-foreground: oklch(0.74 0.04 260);
+
+  --accent: oklch(0.7 0.13 255);
+  --accent-foreground: oklch(0.16 0.03 260);
+
+  --destructive: oklch(0.48 0.17 25);
+  --destructive-foreground: oklch(0.98 0.02 95);
+
+  --border: oklch(0.28 0.03 260);
+  --input: oklch(0.28 0.03 260);
+  --ring: oklch(0.55 0.11 255);
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(0.269 0 0);
-  --sidebar-ring: oklch(0.439 0 0);
+  --sidebar: oklch(0.19 0.04 260);
+  --sidebar-foreground: oklch(0.98 0.02 95);
+  --sidebar-primary: oklch(0.7 0.13 255);
+  --sidebar-primary-foreground: oklch(0.16 0.03 260);
+  --sidebar-accent: oklch(0.28 0.03 260);
+  --sidebar-accent-foreground: oklch(0.96 0.02 95);
+  --sidebar-border: oklch(0.28 0.03 260);
+  --sidebar-ring: oklch(0.55 0.11 255);
 }
 
 @theme inline {
@@ -120,6 +132,78 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+  }
+}
+
+/* Effet de fond moderne pour le hero */
+.gradient-mesh {
+  position: relative;
+}
+
+.gradient-mesh::before {
+  content: "";
+  position: absolute;
+  inset: -40%;
+  background:
+    radial-gradient(circle at 0% 0%, color-mix(in oklch, var(--accent) 60%, transparent) 0, transparent 55%),
+    radial-gradient(circle at 100% 0%, color-mix(in oklch, var(--primary) 50%, transparent) 0, transparent 55%),
+    radial-gradient(circle at 0% 100%, color-mix(in oklch, var(--chart-2) 40%, transparent) 0, transparent 55%);
+  opacity: 0.6;
+  filter: blur(40px);
+  pointer-events: none;
+  animation: gradient-float 22s ease-in-out infinite alternate;
+}
+
+/* Carte translucide utilisée pour le header collant, etc. */
+.glass-card {
+  background-color: color-mix(in oklch, var(--background) 85%, transparent);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-radius: 999px;
+  box-shadow:
+    0 18px 45px rgba(15, 23, 42, 0.12),
+    0 0 0 1px color-mix(in oklch, var(--border) 80%, transparent);
+}
+
+/* Photo de fond du hero (overlay géré dans la page) */
+.hero-photo {
+  background-image: url("/modern-apartment.jpg");
+  background-size: cover;
+  background-position: center;
+  filter: saturate(1.05) contrast(1.05);
+  transform: scale(1.03);
+}
+
+@keyframes gradient-float {
+  0% {
+    transform: translate3d(-10px, -10px, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(10px, 10px, 0) scale(1.03);
+  }
+  100% {
+    transform: translate3d(-5px, 5px, 0) scale(1.01);
+  }
+}
+
+/* Animation douce pour les cartes (annonces, catégories) */
+.card-animate {
+  animation: card-float 11s ease-in-out infinite alternate;
+}
+
+.card-animate:hover {
+  animation: none;
+}
+
+@keyframes card-float {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+  100% {
+    transform: translateY(0);
   }
 }

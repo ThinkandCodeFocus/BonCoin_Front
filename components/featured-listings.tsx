@@ -117,7 +117,7 @@ export function FeaturedListings() {
 
         return (
           <Link key={listing.id} href={`/listings/${listing.id}`}>
-            <Card className="overflow-hidden hover:shadow-2xl transition-all duration-300 group cursor-pointer border-border/50 hover:border-primary/20 hover:-translate-y-2">
+            <Card className="overflow-hidden group cursor-pointer border-border/60 bg-card/90 card-animate">
               <div className="relative aspect-[4/3] overflow-hidden bg-muted">
                 <img
                   src={photoUrl}
@@ -150,7 +150,7 @@ export function FeaturedListings() {
                 <h3 className="font-semibold text-lg mb-3 line-clamp-2 group-hover:text-primary transition-colors">
                   {listing.title}
                 </h3>
-                <p className="text-2xl font-bold text-primary mb-3">{formatPrice(listing.price)}</p>
+                <p className="text-2xl font-bold text-primary mb-3 tracking-tight">{formatPrice(listing.price)}</p>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <MapPin className="w-4 h-4 flex-shrink-0" />
                   <span>{listing.city}, {listing.district}</span>

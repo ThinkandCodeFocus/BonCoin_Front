@@ -1,14 +1,15 @@
 "use client"
 
-import { Bell, Heart, MessageSquare, User, Menu, LogOut, LogIn } from "lucide-react"
+import { Bell, Heart, MessageSquare, User, Menu, LogOut, LogIn, Moon, Sun } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { useAuth } from "@/contexts/AuthContext"
 import { AuthDialog } from "@/components/auth-dialog"
+import { useTheme } from "next-themes"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,22 +26,41 @@ export function Header() {
   const [messageCount] = useState(2)
   const [showAuthDialog, setShowAuthDialog] = useState(false)
   const [authTab, setAuthTab] = useState<"login" | "register">("login")
+  const { resolvedTheme, setTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   return (
-    <header className="sticky top-0 z-50 glass-card shadow-sm">
+    <header className="sticky top-0 z-50 glass-card border-b border-border/70">
       <div className="max-w-7xl mx-auto px-4 lg:px-6 py-4">
         <div className="flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-11 h-11 bg-gradient-to-br from-primary to-primary/80 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow">
+            <div className="w-11 h-11 bg-gradient-to-br from-primary via-primary/80 to-accent/80 rounded-2xl flex items-center justify-center shadow-lg ring-1 ring-white/30 group-hover:shadow-xl transition-shadow">
               <span className="text-primary-foreground font-bold text-xl">M</span>
             </div>
-            <span className="font-bold text-xl hidden md:block bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
+            <span className="display-font font-bold text-xl hidden md:block bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
               Marketplace
             </span>
           </Link>
 
           <nav className="hidden md:flex items-center gap-2">
             <LanguageSwitcher />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="rounded-full"
+              onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+              aria-label="Basculer le thème"
+            >
+              {mounted && resolvedTheme === "dark" ? (
+                <Sun className="w-5 h-5" />
+              ) : (
+                <Moon className="w-5 h-5" />
+              )}
+            </Button>
             
             {isAuthenticated ? (
               <>
@@ -133,6 +153,19 @@ export function Header() {
           {/* Mobile Menu */}
           <div className="md:hidden flex items-center gap-2">
             <LanguageSwitcher />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="rounded-full"
+              onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+              aria-label="Basculer le thème"
+            >
+              {mounted && resolvedTheme === "dark" ? (
+                <Sun className="w-5 h-5" />
+              ) : (
+                <Moon className="w-5 h-5" />
+              )}
+            </Button>
             <Sheet>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" className="rounded-full">
