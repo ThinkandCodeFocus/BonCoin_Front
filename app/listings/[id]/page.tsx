@@ -50,7 +50,10 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
 
   useEffect(() => {
     loadAnnonce()
-  }, [id])
+    if (isAuthenticated) {
+      loadFavoriteStatus()
+    }
+  }, [id, isAuthenticated])
 
   const loadAnnonce = async () => {
     setIsLoading(true)
@@ -62,6 +65,14 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
       router.push("/")
     }
     setIsLoading(false)
+  }
+
+  const loadFavoriteStatus = async () => {
+    const result = await favoriteService.getAll()
+    if (result.success && result.data) {
+      const favoriteIds = result.data.map((fav: any) => fav.annonce?.id || fav.annonce_id)
+      setIsFavorite(favoriteIds.includes(parseInt(id)))
+    }
   }
 
   const toggleFavorite = async () => {
@@ -135,7 +146,9 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
   }
 
   const photoUrl = annonce.photos?.[currentPhotoIndex]
-    ? `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}/storage/${annonce.photos[currentPhotoIndex]}`
+    ? (annonce.photos[currentPhotoIndex].startsWith('http') 
+        ? annonce.photos[currentPhotoIndex] 
+        : `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}/storage/${annonce.photos[currentPhotoIndex]}`)
     : "/placeholder.svg"
 
   const isOwner = user?.id === annonce.user.id
@@ -194,7 +207,9 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
                       }`}
                     >
                       <img
-                        src={`${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}/storage/${photo}`}
+                        src={photo.startsWith('http') 
+                          ? photo 
+                          : `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}/storage/${photo}`}
                         alt=""
                         className="w-full h-full object-cover"
                       />
@@ -318,96 +333,6 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
                     <span className="text-muted-foreground">Statut</span>
                     <Badge>{annonce.status}</Badge>
                   </div>
-                </div>
-              </Card>
-            </div>
-          </div>
-        </div>
-      </main>
-
-      <BottomNav />
-    </div>
-  )
-}
-
-              <Card className="p-6">
-                <h1 className="text-2xl font-bold mb-4">{listing.title}</h1>
-
-                <div className="flex flex-wrap gap-4 mb-6 text-sm text-muted-foreground">
-                  <div className="flex items-center gap-1">
-                    <MapPin className="w-4 h-4" />
-                    {listing.location}
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Clock className="w-4 h-4" />
-                    {listing.date}
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Eye className="w-4 h-4" />
-                    {listing.views} vues
-                  </div>
-                </div>
-
-                <div className="mb-6">
-                  <h2 className="font-semibold mb-2">Description</h2>
-                  <p className="text-muted-foreground leading-relaxed">{listing.description}</p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4 mb-6">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Catégorie</p>
-                    <p className="font-medium">{listing.category}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">État</p>
-                    <p className="font-medium">{listing.condition}</p>
-                  </div>
-                </div>
-
-                <Button variant="outline" size="sm" onClick={handleReport}>
-                  <Flag className="w-4 h-4 mr-2" />
-                  Signaler cette annonce
-                </Button>
-              </Card>
-            </div>
-
-            {/* Right Column - Price and Seller */}
-            <div className="space-y-6">
-              {/* Price Card */}
-              <Card className="p-6 sticky top-20">
-                <p className="text-3xl font-bold text-primary mb-6">{listing.price.toLocaleString("fr-FR")} FCFA</p>
-
-                <div className="space-y-3 mb-6">
-                  <Button className="w-full" size="lg">
-                    <MessageCircle className="w-5 h-5 mr-2" />
-                    Envoyer un message
-                  </Button>
-                  <Button variant="outline" className="w-full bg-transparent" size="lg">
-                    <Phone className="w-5 h-5 mr-2" />
-                    Afficher le téléphone
-                  </Button>
-                </div>
-
-                {/* Seller Info */}
-                <div className="pt-6 border-t">
-                  <p className="text-sm font-medium mb-3">Vendeur</p>
-                  <div className="flex items-start gap-3">
-                    <Avatar>
-                      <AvatarImage src={listing.seller.avatar || "/placeholder.svg"} />
-                      <AvatarFallback>AD</AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
-                      <p className="font-semibold">{listing.seller.name}</p>
-                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                        <span>⭐ {listing.seller.rating}</span>
-                        <span>({listing.seller.reviewCount} avis)</span>
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-1">{listing.seller.memberSince}</p>
-                    </div>
-                  </div>
-                  <Button variant="outline" className="w-full mt-4 bg-transparent">
-                    Voir le profil
-                  </Button>
                 </div>
               </Card>
             </div>

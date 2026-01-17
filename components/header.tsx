@@ -1,6 +1,6 @@
 "use client"
 
-import { Bell, Heart, MessageSquare, User, Menu, LogOut, LogIn, Moon, Sun } from "lucide-react"
+import { Bell, Heart, MessageSquare, User, Menu, LogOut, LogIn, Moon, Sun, Home } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
@@ -19,11 +19,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { notificationService, messageService } from "@/lib/api"
 
 export function Header() {
   const { user, isAuthenticated, logout } = useAuth()
-  const [notificationCount] = useState(3)
-  const [messageCount] = useState(2)
+  const [notificationCount, setNotificationCount] = useState(0)
+  const [messageCount, setMessageCount] = useState(0)
   const [showAuthDialog, setShowAuthDialog] = useState(false)
   const [authTab, setAuthTab] = useState<"login" | "register">("login")
   const { resolvedTheme, setTheme } = useTheme()
@@ -32,6 +33,33 @@ export function Header() {
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  // Charger les compteurs de notifications et messages
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadCounts()
+      // Recharger toutes les 30 secondes
+      const interval = setInterval(loadCounts, 30000)
+      return () => clearInterval(interval)
+    } else {
+      setNotificationCount(0)
+      setMessageCount(0)
+    }
+  }, [isAuthenticated])
+
+  const loadCounts = async () => {
+    const [notifResult, messageResult] = await Promise.all([
+      notificationService.getUnreadCount(),
+      messageService.getUnreadCount(),
+    ])
+
+    if (notifResult.success) {
+      setNotificationCount(notifResult.data)
+    }
+    if (messageResult.success) {
+      setMessageCount(messageResult.data)
+    }
+  }
 
   return (
     <header className="sticky top-0 z-50 glass-card border-b border-border/70">
@@ -47,6 +75,11 @@ export function Header() {
           </Link>
 
           <nav className="hidden md:flex items-center gap-2">
+            <Link href="/">
+              <Button variant="ghost" size="icon" className="rounded-full hover:bg-muted" title="Accueil">
+                <Home className="w-5 h-5" />
+              </Button>
+            </Link>
             <LanguageSwitcher />
             <Button
               variant="ghost"

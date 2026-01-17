@@ -21,7 +21,7 @@ export function AuthDialog({ open, onOpenChange, defaultTab = "login" }: AuthDia
   const [activeTab, setActiveTab] = useState(defaultTab)
 
   // Login form state
-  const [loginEmail, setLoginEmail] = useState("")
+  const [loginIdentifier, setLoginIdentifier] = useState("")
   const [loginPassword, setLoginPassword] = useState("")
 
   // Register form state
@@ -35,12 +35,12 @@ export function AuthDialog({ open, onOpenChange, defaultTab = "login" }: AuthDia
     e.preventDefault()
     setIsLoading(true)
 
-    const success = await login(loginEmail, loginPassword)
+    const success = await login(loginIdentifier, loginPassword)
     
     setIsLoading(false)
     if (success) {
       onOpenChange(false)
-      setLoginEmail("")
+      setLoginIdentifier("")
       setLoginPassword("")
     }
   }
@@ -89,13 +89,13 @@ export function AuthDialog({ open, onOpenChange, defaultTab = "login" }: AuthDia
           <TabsContent value="login">
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="login-email">Email</Label>
+                <Label htmlFor="login-identifier">Email ou Téléphone</Label>
                 <Input
-                  id="login-email"
-                  type="email"
-                  placeholder="email@example.com"
-                  value={loginEmail}
-                  onChange={(e) => setLoginEmail(e.target.value)}
+                  id="login-identifier"
+                  type="text"
+                  placeholder="email@example.com ou +221771234567"
+                  value={loginIdentifier}
+                  onChange={(e) => setLoginIdentifier(e.target.value)}
                   required
                   disabled={isLoading}
                 />

@@ -8,44 +8,100 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Slider } from "@/components/ui/slider"
-import { Heart, SlidersHorizontal, MapPin, Search } from "lucide-react"
+import { Heart, SlidersHorizontal, MapPin, Search, Loader2 } from "lucide-react"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import Link from "next/link"
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { annonceService, favoriteService } from "@/lib/api"
+import { useAuth } from "@/contexts/AuthContext"
+import { useToast } from "@/hooks/use-toast"
 
-const listings = [
-  {
-    id: 1,
-    title: "iPhone 14 Pro Max 256GB",
-    price: 450000,
-    location: "Dakar, Plateau",
-    image: "/iphone-14-pro.png",
-    isUrgent: true,
-    date: "2024-01-15",
-  },
-  {
-    id: 2,
-    title: "Appartement F3 à louer",
-    price: 250000,
-    location: "Dakar, Almadies",
-    image: "/modern-apartment.jpg",
-    isUrgent: false,
-    date: "2024-01-14",
-  },
-  {
-    id: 3,
-    title: "Toyota Corolla 2019",
-    price: 8500000,
-    location: "Dakar, Liberté",
-    image: "/toyota-corolla.png",
-    isUrgent: false,
-    date: "2024-01-14",
-  },
-  // Add more listings...
-]
+interface Annonce {
+  id: number
+  title: string
+  price: number
+  city: string
+  district: string
+  photos?: string[]
+  created_at: string
+}
 
 export default function ListingsPage() {
   const [priceRange, setPriceRange] = useState([0, 1000000])
+  const [listings, setListings] = useState<Annonce[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [favorites, setFavorites] = useState<number[]>([])
+  const { isAuthenticated } = useAuth()
+  const { toast } = useToast()
+
+  useEffect(() => {
+    loadListings()
+    if (isAuthenticated) {
+      loadFavorites()
+    }
+  }, [isAuthenticated])
+
+  const loadListings = async () => {
+    setIsLoading(true)
+    const result = await annonceService.getAll({ page: 1, search: searchQuery })
+    if (result.success && result.data) {
+      setListings(result.data.data || [])
+    }
+    setIsLoading(false)
+  }
+
+  const loadFavorites = async () => {
+    const result = await favoriteService.getAll()
+    if (result.success && result.data) {
+      const favoriteIds = result.data.map((fav: any) => fav.annonce?.id || fav.annonce_id)
+      setFavorites(favoriteIds)
+    }
+  }
+
+  const toggleFavorite = async (e: React.MouseEvent, annonceId: number) => {
+    e.preventDefault()
+    
+    if (!isAuthenticated) {
+      toast({
+        title: "Connexion requise",
+        description: "Vous devez être connecté pour ajouter aux favoris",
+        variant: "destructive",
+      })
+      return
+    }
+
+    const isFavorite = favorites.includes(annonceId)
+
+    if (isFavorite) {
+      const result = await favoriteService.remove(annonceId)
+      if (result.success) {
+        setFavorites(favorites.filter((id) => id !== annonceId))
+        toast({ title: "Retiré des favoris" })
+      }
+    } else {
+      const result = await favoriteService.add(annonceId)
+      if (result.success) {
+        setFavorites([...favorites, annonceId])
+        toast({ title: "Ajouté aux favoris" })
+      }
+    }
+  }
+
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat("fr-FR").format(price) + " FCFA"
+  }
+
+  const isUrgent = (createdAt: string) => {
+    const created = new Date(createdAt)
+    const now = new Date()
+    const daysDiff = Math.floor((now.getTime() - created.getTime()) / (1000 * 60 * 60 * 24))
+    return daysDiff <= 2
+  }
+
+  const filteredListings = listings.filter(
+    (listing) => listing.price >= priceRange[0] && listing.price <= priceRange[1]
+  )
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -59,6 +115,9 @@ export default function ListingsPage() {
               <Search className="w-5 h-5 text-muted-foreground" />
               <Input
                 placeholder="Rechercher..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && loadListings()}
                 className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
               />
             </div>
@@ -106,45 +165,63 @@ export default function ListingsPage() {
         {/* Listings Grid */}
         <div className="max-w-6xl mx-auto p-4">
           <div className="mb-4 flex items-center justify-between">
-            <p className="text-sm text-muted-foreground">{listings.length} annonces trouvées</p>
+            <p className="text-sm text-muted-foreground">{filteredListings.length} annonces trouvées</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {listings.map((listing) => (
-              <Link key={listing.id} href={`/listings/${listing.id}`}>
-                <Card className="overflow-hidden hover:shadow-xl transition-shadow group cursor-pointer">
-                  <div className="relative aspect-[4/3] overflow-hidden">
-                    <img
-                      src={listing.image || "/placeholder.svg"}
-                      alt={listing.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                    <Button
-                      size="icon"
-                      variant="secondary"
-                      className="absolute top-3 right-3 rounded-full w-9 h-9"
-                      onClick={(e) => {
-                        e.preventDefault()
-                      }}
-                    >
-                      <Heart className="w-4 h-4" />
-                    </Button>
-                    {listing.isUrgent && (
-                      <Badge className="absolute top-3 left-3 bg-destructive text-destructive-foreground">Urgent</Badge>
-                    )}
-                  </div>
-                  <div className="p-4">
-                    <h3 className="font-semibold text-lg mb-2 line-clamp-2">{listing.title}</h3>
-                    <p className="text-2xl font-bold text-primary mb-2">{listing.price.toLocaleString("fr-FR")} FCFA</p>
-                    <div className="flex items-center text-sm text-muted-foreground">
-                      <MapPin className="w-4 h-4 mr-1" />
-                      {listing.location}
-                    </div>
-                  </div>
-                </Card>
-              </Link>
-            ))}
-          </div>
+          {isLoading ? (
+            <div className="flex justify-center items-center py-20">
+              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            </div>
+          ) : filteredListings.length === 0 ? (
+            <div className="text-center py-20">
+              <p className="text-muted-foreground">Aucune annonce trouvée</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredListings.map((listing) => {
+                const photoUrl = listing.photos?.[0]
+                  ? (listing.photos[0].startsWith('http') 
+                      ? listing.photos[0] 
+                      : `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}/storage/${listing.photos[0]}`)
+                  : "/placeholder.svg"
+
+                return (
+                  <Link key={listing.id} href={`/listings/${listing.id}`}>
+                    <Card className="overflow-hidden hover:shadow-xl transition-shadow group cursor-pointer">
+                      <div className="relative aspect-[4/3] overflow-hidden">
+                        <img
+                          src={photoUrl}
+                          alt={listing.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                        <Button
+                          size="icon"
+                          variant="secondary"
+                          className="absolute top-3 right-3 rounded-full w-9 h-9"
+                          onClick={(e) => toggleFavorite(e, listing.id)}
+                        >
+                          <Heart 
+                            className={`w-4 h-4 ${favorites.includes(listing.id) ? 'fill-current text-destructive' : ''}`} 
+                          />
+                        </Button>
+                        {isUrgent(listing.created_at) && (
+                          <Badge className="absolute top-3 left-3 bg-destructive text-destructive-foreground">Urgent</Badge>
+                        )}
+                      </div>
+                      <div className="p-4">
+                        <h3 className="font-semibold text-lg mb-2 line-clamp-2">{listing.title}</h3>
+                        <p className="text-2xl font-bold text-primary mb-2">{formatPrice(listing.price)}</p>
+                        <div className="flex items-center text-sm text-muted-foreground">
+                          <MapPin className="w-4 h-4 mr-1" />
+                          {listing.city}, {listing.district}
+                        </div>
+                      </div>
+                    </Card>
+                  </Link>
+                )
+              })}
+            </div>
+          )}
         </div>
       </main>
 

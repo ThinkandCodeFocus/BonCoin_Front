@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Heart, MessageCircle, Package, Star, Loader2 } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 import { useRouter } from "next/navigation"
-import { toast } from "sonner"
+import { notificationService } from "@/lib/api"
 
 interface Notification {
   id: number
@@ -35,10 +35,21 @@ export default function NotificationsPage() {
 
   const loadNotifications = async () => {
     setIsLoading(true)
-    // TODO: Implémenter l'appel API quand le backend sera prêt
-    // Pour l'instant on affiche un message vide
-    setNotifications([])
+    const result = await notificationService.getAll()
+    if (result.success && result.data) {
+      setNotifications(Array.isArray(result.data) ? result.data : [])
+    }
     setIsLoading(false)
+  }
+
+  const handleNotificationClick = async (notification: Notification) => {
+    if (!notification.read_at) {
+      await notificationService.markAsRead(notification.id)
+      // Mettre à jour localement
+      setNotifications(notifications.map(n => 
+        n.id === notification.id ? { ...n, read_at: new Date().toISOString() } : n
+      ))
+    }
   }
 
   const getIcon = (type: string) => {
@@ -102,6 +113,7 @@ export default function NotificationsPage() {
                     className={`p-4 cursor-pointer hover:shadow-md transition-shadow ${
                       !notification.read_at ? "bg-primary/5 border-primary/20" : ""
                     }`}
+                    onClick={() => handleNotificationClick(notification)}
                   >
                     <div className="flex items-start gap-4">
                       <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center shrink-0">
@@ -121,10 +133,6 @@ export default function NotificationsPage() {
               })}
             </div>
           )}
-                </Card>
-              )
-            })}
-          </div>
         </div>
       </main>
 

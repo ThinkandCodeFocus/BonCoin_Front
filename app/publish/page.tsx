@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Upload, X, Loader2 } from "lucide-react"
+import { Upload, X, Loader2, Mic, StopCircle, Type } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/contexts/AuthContext"
 import { annonceService, categoryService } from "@/lib/api"
@@ -43,6 +43,14 @@ export default function PublishPage() {
   const [city, setCity] = useState("")
   const [district, setDistrict] = useState("")
   const [etat, setEtat] = useState("")
+  
+  // Voice recording state
+  const [descriptionMode, setDescriptionMode] = useState<'text' | 'voice'>('text')
+  const [isRecording, setIsRecording] = useState(false)
+  const [audioBlob, setAudioBlob] = useState<Blob | null>(null)
+  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null)
+  const [recordingTime, setRecordingTime] = useState(0)
+  const [recordingInterval, setRecordingInterval] = useState<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -114,6 +122,74 @@ export default function PublishPage() {
     setImagePreviews(imagePreviews.filter((_, i) => i !== index))
   }
 
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      const recorder = new MediaRecorder(stream)
+      const chunks: BlobPart[] = []
+
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+          chunks.push(e.data)
+        }
+      }
+
+      recorder.onstop = () => {
+        const blob = new Blob(chunks, { type: 'audio/webm' })
+        setAudioBlob(blob)
+        stream.getTracks().forEach(track => track.stop())
+      }
+
+      recorder.start()
+      setMediaRecorder(recorder)
+      setIsRecording(true)
+      setRecordingTime(0)
+
+      // Démarrer le compteur
+      const interval = setInterval(() => {
+        setRecordingTime(prev => prev + 1)
+      }, 1000)
+      setRecordingInterval(interval)
+
+      toast({
+        title: "Enregistrement démarré",
+        description: "Parlez maintenant pour décrire votre annonce",
+      })
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible d'accéder au microphone",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const stopRecording = () => {
+    if (mediaRecorder && isRecording) {
+      mediaRecorder.stop()
+      setIsRecording(false)
+      if (recordingInterval) {
+        clearInterval(recordingInterval)
+        setRecordingInterval(null)
+      }
+      toast({
+        title: "Enregistrement terminé",
+        description: `Durée: ${recordingTime}s`,
+      })
+    }
+  }
+
+  const deleteRecording = () => {
+    setAudioBlob(null)
+    setRecordingTime(0)
+  }
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60)
+    const secs = seconds % 60
+    return `${mins}:${secs.toString().padStart(2, '0')}`
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
@@ -145,7 +221,7 @@ export default function PublishPage() {
       // Créer l'annonce
       const annonceData = {
         title,
-        description,
+        description: descriptionMode === 'text' ? description : (audioBlob ? 'Description vocale enregistrée - Écoutez l\'audio pour plus de détails' : ''),
         price: parseFloat(price),
         negotiable,
         category_id: parseInt(categoryId),
@@ -183,6 +259,29 @@ export default function PublishPage() {
             description: "Annonce créée mais erreur lors de l'upload des photos",
             variant: "destructive",
           })
+        }
+      }
+
+      // Upload de l'audio vocal si présent
+      if (audioBlob && annonceId) {
+        const audioFile = new File([audioBlob], `description_${annonceId}.webm`, { type: 'audio/webm' })
+        const formData = new FormData()
+        formData.append('audio', audioFile)
+        
+        try {
+          // Pour l'instant, on stocke juste l'audio. 
+          // Plus tard, on pourra ajouter une API de transcription (speech-to-text)
+          const audioUploadResult = await annonceService.uploadAudio(annonceId, formData)
+          
+          if (!audioUploadResult.success) {
+            toast({
+              title: "Avertissement",
+              description: "Annonce créée mais erreur lors de l'upload de l'audio",
+              variant: "destructive",
+            })
+          }
+        } catch (error) {
+          console.error("Erreur upload audio:", error)
         }
       }
 
@@ -293,15 +392,106 @@ export default function PublishPage() {
 
               {/* Description */}
               <div>
-                <Label htmlFor="description">Description (optionnel)</Label>
-                <Textarea
-                  id="description"
-                  placeholder="Décrivez votre article en détail... (optionnel)"
-                  rows={6}
-                  className="mt-2"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                />
+                <div className="flex items-center justify-between mb-2">
+                  <Label htmlFor="description">Description (optionnel)</Label>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant={descriptionMode === 'text' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setDescriptionMode('text')}
+                    >
+                      <Type className="w-4 h-4 mr-2" />
+                      Texte
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={descriptionMode === 'voice' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setDescriptionMode('voice')}
+                    >
+                      <Mic className="w-4 h-4 mr-2" />
+                      Vocal
+                    </Button>
+                  </div>
+                </div>
+
+                {descriptionMode === 'text' ? (
+                  <Textarea
+                    id="description"
+                    placeholder="Décrivez votre article en détail... (optionnel)"
+                    rows={6}
+                    className="mt-2"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                  />
+                ) : (
+                  <div className="mt-2 p-4 border rounded-lg">
+                    {!audioBlob ? (
+                      <div className="flex flex-col items-center justify-center py-8">
+                        {!isRecording ? (
+                          <>
+                            <Button
+                              type="button"
+                              onClick={startRecording}
+                              className="w-20 h-20 rounded-full"
+                            >
+                              <Mic className="w-8 h-8" />
+                            </Button>
+                            <p className="text-sm text-muted-foreground mt-4">
+                              Cliquez pour enregistrer votre description
+                            </p>
+                          </>
+                        ) : (
+                          <>
+                            <Button
+                              type="button"
+                              onClick={stopRecording}
+                              variant="destructive"
+                              className="w-20 h-20 rounded-full animate-pulse"
+                            >
+                              <StopCircle className="w-8 h-8" />
+                            </Button>
+                            <p className="text-sm text-muted-foreground mt-4">
+                              Enregistrement en cours... {formatTime(recordingTime)}
+                            </p>
+                          </>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                              <Mic className="w-6 h-6 text-primary" />
+                            </div>
+                            <div>
+                              <p className="font-medium">Audio enregistré</p>
+                              <p className="text-sm text-muted-foreground">
+                                Durée: {formatTime(recordingTime)}
+                              </p>
+                            </div>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="icon"
+                            onClick={deleteRecording}
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
+                        </div>
+                        <audio 
+                          controls 
+                          className="w-full" 
+                          src={audioBlob ? URL.createObjectURL(audioBlob) : undefined}
+                        >
+                          Votre navigateur ne supporte pas la lecture audio.
+                        </audio>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Price */}

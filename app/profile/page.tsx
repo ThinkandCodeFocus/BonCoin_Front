@@ -159,7 +159,9 @@ export default function ProfilePage() {
               ) : (
                 userAnnonces.map((listing) => {
                   const photoUrl = listing.photos?.[0] 
-                    ? `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}/storage/${listing.photos[0]}`
+                    ? (listing.photos[0].startsWith('http') 
+                        ? listing.photos[0] 
+                        : `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}/storage/${listing.photos[0]}`)
                     : "/placeholder.svg"
 
                   return (
@@ -222,7 +224,9 @@ export default function ProfilePage() {
                   {favorites.map((item) => {
                     const annonce = item.annonce
                     const photoUrl = annonce.photos?.[0] 
-                      ? `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}/storage/${annonce.photos[0]}`
+                      ? (annonce.photos[0].startsWith('http') 
+                          ? annonce.photos[0] 
+                          : `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}/storage/${annonce.photos[0]}`)
                       : "/placeholder.svg"
 
                     return (

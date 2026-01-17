@@ -47,7 +47,7 @@ export function FeaturedListings() {
   const loadFavorites = async () => {
     const result = await favoriteService.getAll()
     if (result.success && result.data) {
-      const favoriteIds = result.data.map((fav: any) => fav.annonce_id)
+      const favoriteIds = result.data.map((fav: any) => fav.annonce?.id || fav.annonce_id)
       setFavorites(favoriteIds)
     }
   }
@@ -112,7 +112,9 @@ export function FeaturedListings() {
       {listings.map((listing) => {
         const isFavorited = favorites.includes(listing.id)
         const photoUrl = listing.photos?.[0] 
-          ? `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}/storage/${listing.photos[0]}`
+          ? (listing.photos[0].startsWith('http') 
+              ? listing.photos[0] 
+              : `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}/storage/${listing.photos[0]}`)
           : "/placeholder.svg"
 
         return (

@@ -97,14 +97,14 @@ export const authService = {
   },
 
   /**
-   * Connexion
+   * Connexion avec email ou téléphone
    */
-  async login(email: string, password: string) {
+  async login(login: string, password: string) {
     try {
       const response = await fetch(`${API_CONFIG.baseURL}/auth/login`, {
         method: 'POST',
         headers: getHeaders(false),
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ login, password }),
       })
       const result = await response.json()
       
@@ -352,6 +352,32 @@ export const annonceService = {
       return handleError(error)
     }
   },
+
+  /**
+   * Upload audio pour la description d'une annonce
+   */
+  async uploadAudio(id: number, formData: FormData) {
+    try {
+      const token = localStorage.getItem('auth_token')
+      const response = await fetch(`${API_CONFIG.baseURL}/annonces/${id}/audio`, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : '',
+        },
+        body: formData,
+      })
+      const result = await response.json()
+      
+      if (!response.ok) {
+        throw { response: { data: result, status: response.status } }
+      }
+
+      return { success: true, data: result }
+    } catch (error) {
+      return handleError(error)
+    }
+  },
 }
 
 /**
@@ -399,7 +425,8 @@ export const favoriteService = {
         throw { response: { data: result, status: response.status } }
       }
 
-      return { success: true, data: result }
+      // FavoriteResource::collection retourne { data: [...] }
+      return { success: true, data: result.data || result }
     } catch (error) {
       return handleError(error)
     }
@@ -556,7 +583,169 @@ export const profileService = {
         throw { response: { data: result, status: response.status } }
       }
 
+      // AnnonceResource::collection retourne { data: [...] }
+      return { success: true, data: result.data || result }
+    } catch (error) {
+      return handleError(error)
+    }
+  },
+}
+
+/**
+ * Service des notifications
+ */
+export const notificationService = {
+  /**
+   * Récupérer toutes les notifications
+   */
+  async getAll() {
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/notifications`, {
+        method: 'GET',
+        headers: getHeaders(),
+      })
+      const result = await response.json()
+      
+      if (!response.ok) {
+        throw { response: { data: result, status: response.status } }
+      }
+
       return { success: true, data: result }
+    } catch (error) {
+      return handleError(error)
+    }
+  },
+
+  /**
+   * Marquer une notification comme lue
+   */
+  async markAsRead(id: number) {
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/notifications/${id}/read`, {
+        method: 'POST',
+        headers: getHeaders(),
+      })
+      const result = await response.json()
+      
+      if (!response.ok) {
+        throw { response: { data: result, status: response.status } }
+      }
+
+      return { success: true, data: result }
+    } catch (error) {
+      return handleError(error)
+    }
+  },
+
+  /**
+   * Compter les notifications non lues
+   */
+  async getUnreadCount() {
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/notifications`, {
+        method: 'GET',
+        headers: getHeaders(),
+      })
+      const result = await response.json()
+      
+      if (!response.ok) {
+        throw { response: { data: result, status: response.status } }
+      }
+
+      const unreadCount = Array.isArray(result) ? result.filter((n: any) => !n.read_at).length : 0
+      return { success: true, data: unreadCount }
+    } catch (error) {
+      return handleError(error)
+    }
+  },
+}
+
+/**
+ * Service des conversations et messages
+ */
+export const messageService = {
+  /**
+   * Récupérer toutes les conversations
+   */
+  async getConversations() {
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/conversations`, {
+        method: 'GET',
+        headers: getHeaders(),
+      })
+      const result = await response.json()
+      
+      if (!response.ok) {
+        throw { response: { data: result, status: response.status } }
+      }
+
+      return { success: true, data: result }
+    } catch (error) {
+      return handleError(error)
+    }
+  },
+
+  /**
+   * Récupérer les messages d'une conversation
+   */
+  async getMessages(conversationId: number) {
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/conversations/${conversationId}/messages`, {
+        method: 'GET',
+        headers: getHeaders(),
+      })
+      const result = await response.json()
+      
+      if (!response.ok) {
+        throw { response: { data: result, status: response.status } }
+      }
+
+      return { success: true, data: result }
+    } catch (error) {
+      return handleError(error)
+    }
+  },
+
+  /**
+   * Envoyer un message
+   */
+  async sendMessage(conversationId: number, content: string, type: 'text' | 'audio' = 'text') {
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/conversations/${conversationId}/messages`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({ type, content }),
+      })
+      const result = await response.json()
+      
+      if (!response.ok) {
+        throw { response: { data: result, status: response.status } }
+      }
+
+      return { success: true, data: result }
+    } catch (error) {
+      return handleError(error)
+    }
+  },
+
+  /**
+   * Compter les conversations non lues
+   */
+  async getUnreadCount() {
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/conversations`, {
+        method: 'GET',
+        headers: getHeaders(),
+      })
+      const result = await response.json()
+      
+      if (!response.ok) {
+        throw { response: { data: result, status: response.status } }
+      }
+
+      // TODO: Ajuster selon la structure exacte de la réponse du backend
+      const unreadCount = Array.isArray(result) ? result.filter((c: any) => c.unread_count > 0).length : 0
+      return { success: true, data: unreadCount }
     } catch (error) {
       return handleError(error)
     }
