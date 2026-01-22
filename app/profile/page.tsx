@@ -178,8 +178,8 @@ export default function ProfilePage() {
                               <h3 className="font-semibold text-lg">{listing.title}</h3>
                               <p className="text-xl font-bold text-primary">{formatPrice(listing.price)}</p>
                             </div>
-                            <Badge variant={listing.status === "active" ? "default" : "secondary"}>
-                              {listing.status === "active" ? "Active" : "Inactive"}
+                            <Badge variant={listing.status === "Disponible" ? "default" : "secondary"}>
+                              {listing.status}
                             </Badge>
                           </div>
                           <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">

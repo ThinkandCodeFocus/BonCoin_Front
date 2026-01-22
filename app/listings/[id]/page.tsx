@@ -57,14 +57,25 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
 
   const loadAnnonce = async () => {
     setIsLoading(true)
-    const result = await annonceService.getById(parseInt(id))
-    if (result.success && result.data) {
-      setAnnonce(result.data.data || result.data)
-    } else {
-      toast.error("Annonce introuvable")
-      router.push("/")
+    console.log('Loading annonce with ID:', id)
+    try {
+      const result = await annonceService.getById(parseInt(id))
+      console.log('API Result:', result)
+      if (result.success && result.data) {
+        const annonceData = result.data.data || result.data
+        console.log('Annonce data:', annonceData)
+        console.log('Photos:', annonceData.photos)
+        setAnnonce(annonceData)
+      } else {
+        console.error('Failed to load annonce:', result)
+        toast.error(result.message || "Annonce introuvable")
+      }
+    } catch (error) {
+      console.error('Error loading annonce:', error)
+      toast.error("Erreur lors du chargement de l'annonce")
+    } finally {
+      setIsLoading(false)
     }
-    setIsLoading(false)
   }
 
   const loadFavoriteStatus = async () => {
@@ -145,11 +156,14 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
     )
   }
 
-  const photoUrl = annonce.photos?.[currentPhotoIndex]
+  const photoUrl = annonce.photos && annonce.photos.length > 0 && annonce.photos[currentPhotoIndex]
     ? (annonce.photos[currentPhotoIndex].startsWith('http') 
         ? annonce.photos[currentPhotoIndex] 
-        : `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}/storage/${annonce.photos[currentPhotoIndex]}`)
+        : `http://localhost:8000/storage/${annonce.photos[currentPhotoIndex]}`)
     : "/placeholder.svg"
+
+  console.log('Current photo URL:', photoUrl)
+  console.log('All photos:', annonce.photos)
 
   const isOwner = user?.id === annonce.user.id
 

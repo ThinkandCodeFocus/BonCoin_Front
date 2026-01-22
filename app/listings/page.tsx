@@ -12,6 +12,7 @@ import { Heart, SlidersHorizontal, MapPin, Search, Loader2 } from "lucide-react"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import Link from "next/link"
 import { useState, useEffect } from "react"
+import { useSearchParams } from "next/navigation"
 import { annonceService, favoriteService } from "@/lib/api"
 import { useAuth } from "@/contexts/AuthContext"
 import { useToast } from "@/hooks/use-toast"
@@ -27,6 +28,7 @@ interface Annonce {
 }
 
 export default function ListingsPage() {
+  const searchParams = useSearchParams()
   const [priceRange, setPriceRange] = useState([0, 1000000])
   const [listings, setListings] = useState<Annonce[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -35,18 +37,41 @@ export default function ListingsPage() {
   const { isAuthenticated } = useAuth()
   const { toast } = useToast()
 
+  // Récupérer la catégorie depuis l'URL
+  const selectedCategory = searchParams.get('category') || ''
+
   useEffect(() => {
+    console.log('Selected category:', selectedCategory)
     loadListings()
     if (isAuthenticated) {
       loadFavorites()
     }
-  }, [isAuthenticated])
+  }, [isAuthenticated, selectedCategory, searchQuery])
 
   const loadListings = async () => {
     setIsLoading(true)
-    const result = await annonceService.getAll({ page: 1, search: searchQuery })
+    const params: any = { page: 1 }
+    
+    if (searchQuery) {
+      params.search = searchQuery
+    }
+    
+    if (selectedCategory) {
+      params.category = selectedCategory
+      console.log('Filtering by category:', selectedCategory)
+    }
+    
+    console.log('API params:', params)
+    const result = await annonceService.getAll(params)
+    console.log('Listings API result:', result)
     if (result.success && result.data) {
-      setListings(result.data.data || [])
+      const listingsData = result.data.data || []
+      console.log('Listings data:', listingsData)
+      console.log('Number of listings:', listingsData.length)
+      if (listingsData.length > 0) {
+        console.log('First listing photos:', listingsData[0].photos)
+      }
+      setListings(listingsData)
     }
     setIsLoading(false)
   }
@@ -95,8 +120,8 @@ export default function ListingsPage() {
   const isUrgent = (createdAt: string) => {
     const created = new Date(createdAt)
     const now = new Date()
-    const daysDiff = Math.floor((now.getTime() - created.getTime()) / (1000 * 60 * 60 * 24))
-    return daysDiff <= 2
+    const hoursDiff = Math.floor((now.getTime() - created.getTime()) / (1000 * 60 * 60))
+    return hoursDiff <= 48
   }
 
   const filteredListings = listings.filter(
@@ -165,7 +190,21 @@ export default function ListingsPage() {
         {/* Listings Grid */}
         <div className="max-w-6xl mx-auto p-4">
           <div className="mb-4 flex items-center justify-between">
-            <p className="text-sm text-muted-foreground">{filteredListings.length} annonces trouvées</p>
+            <div>
+              <p className="text-sm text-muted-foreground">
+                {filteredListings.length} annonces trouvées
+                {selectedCategory && " dans la catégorie sélectionnée"}
+              </p>
+              {selectedCategory && (
+                <div className="mt-2">
+                  <Link href="/listings">
+                    <Badge variant="secondary" className="cursor-pointer">
+                      Catégorie filtrée ✕
+                    </Badge>
+                  </Link>
+                </div>
+              )}
+            </div>
           </div>
 
           {isLoading ? (
@@ -179,11 +218,13 @@ export default function ListingsPage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredListings.map((listing) => {
-                const photoUrl = listing.photos?.[0]
+                const photoUrl = listing.photos && listing.photos.length > 0 && listing.photos[0]
                   ? (listing.photos[0].startsWith('http') 
                       ? listing.photos[0] 
-                      : `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}/storage/${listing.photos[0]}`)
+                      : `http://localhost:8000/storage/${listing.photos[0]}`)
                   : "/placeholder.svg"
+                
+                console.log('Listing:', listing.title, 'Photo URL:', photoUrl)
 
                 return (
                   <Link key={listing.id} href={`/listings/${listing.id}`}>
