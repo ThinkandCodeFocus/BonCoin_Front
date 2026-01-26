@@ -5,6 +5,7 @@ import { FeaturedListings } from "@/components/featured-listings"
 import { BottomNav } from "@/components/bottom-nav"
 import { Footer } from "@/components/footer"
 import { LocationSelector } from "@/components/location-selector"
+import { LocationBar } from "@/components/location-bar"
 import { Sparkles } from "lucide-react"
 
 export default function HomePage() {
@@ -17,6 +18,7 @@ export default function HomePage() {
         <div className="sticky top-[76px] z-40 px-4 md:px-6 pt-3">
           <div className="max-w-6xl mx-auto">
             <SearchBar variant="top" />
+            <LocationBar />
           </div>
         </div>
 
