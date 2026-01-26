@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Upload, X, Loader2, Mic, StopCircle, Type } from "lucide-react"
+import { Upload, X, Loader2, Mic, StopCircle, Type, Video } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/contexts/AuthContext"
 import { annonceService, categoryService } from "@/lib/api"
@@ -27,13 +27,13 @@ interface Category {
 export default function PublishPage() {
   const [imageFiles, setImageFiles] = useState<File[]>([])
   const [imagePreviews, setImagePreviews] = useState<string[]>([])
+  const [videoFile, setVideoFile] = useState<File | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [categories, setCategories] = useState<Category[]>([])
   const { toast } = useToast()
   const { isAuthenticated } = useAuth()
   const router = useRouter()
 
-  // Form state
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
   const [price, setPrice] = useState("")
@@ -44,8 +44,7 @@ export default function PublishPage() {
   const [district, setDistrict] = useState("")
   const [etat, setEtat] = useState("")
   
-  // Voice recording state
-  const [descriptionMode, setDescriptionMode] = useState<'text' | 'voice'>('text')
+  const [descriptionMode, setDescriptionMode] = useState<"text" | "voice">("text")
   const [isRecording, setIsRecording] = useState(false)
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null)
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null)
@@ -69,34 +68,24 @@ export default function PublishPage() {
   const loadCategories = async () => {
     try {
       const result = await categoryService.getAll()
-      console.log('API result:', result)
       
       if (result.success && result.data) {
-        // Les catégories sont dans result.data.data (ResourceCollection wrapper)
         let categoriesData = result.data.data || result.data
-        
-        // Si c'est encore un objet avec data, extraire
         if (categoriesData.data && Array.isArray(categoriesData.data)) {
           categoriesData = categoriesData.data
         }
-        
-        // S'assurer que c'est un tableau
         if (!Array.isArray(categoriesData)) {
           categoriesData = []
         }
-        
-        console.log('Categories loaded:', categoriesData)
         setCategories(categoriesData)
       } else {
-        console.error('Failed to load categories:', result)
         toast({
           title: "Erreur",
           description: "Impossible de charger les catégories",
           variant: "destructive",
         })
       }
-    } catch (error) {
-      console.error('Error loading categories:', error)
+    } catch {
       toast({
         title: "Erreur",
         description: "Erreur lors du chargement des catégories",
@@ -114,6 +103,11 @@ export default function PublishPage() {
       setImageFiles([...imageFiles, ...newFiles])
       setImagePreviews([...imagePreviews, ...newPreviews])
     }
+  }
+
+  const handleVideoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null
+    setVideoFile(file)
   }
 
   const removeImage = (index: number) => {
@@ -135,7 +129,7 @@ export default function PublishPage() {
       }
 
       recorder.onstop = () => {
-        const blob = new Blob(chunks, { type: 'audio/webm' })
+        const blob = new Blob(chunks, { type: "audio/webm" })
         setAudioBlob(blob)
         stream.getTracks().forEach(track => track.stop())
       }
@@ -145,7 +139,6 @@ export default function PublishPage() {
       setIsRecording(true)
       setRecordingTime(0)
 
-      // Démarrer le compteur
       const interval = setInterval(() => {
         setRecordingTime(prev => prev + 1)
       }, 1000)
@@ -155,7 +148,7 @@ export default function PublishPage() {
         title: "Enregistrement démarré",
         description: "Parlez maintenant pour décrire votre annonce",
       })
-    } catch (error) {
+    } catch {
       toast({
         title: "Erreur",
         description: "Impossible d'accéder au microphone",
@@ -187,13 +180,12 @@ export default function PublishPage() {
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60)
     const secs = seconds % 60
-    return `${mins}:${secs.toString().padStart(2, '0')}`
+    return `${mins}:${secs.toString().padStart(2, "0")}`
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    // Vérifier si Autre est sélectionné et que le champ personnalisé est vide
     const selectedCategory = categories.find(c => c.id.toString() === categoryId)
     const isAutreCategory = selectedCategory?.name === "Autre" || selectedCategory?.name === "Yeneen"
     
@@ -201,6 +193,33 @@ export default function PublishPage() {
       toast({
         title: "Champs manquants",
         description: "Veuillez remplir tous les champs obligatoires",
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (imageFiles.length < 2) {
+      toast({
+        title: "Photos obligatoires",
+        description: "Veuillez ajouter au moins 2 photos",
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (descriptionMode === "text") {
+      if (!description.trim() || description.trim().length < 20) {
+        toast({
+          title: "Description obligatoire",
+          description: "La description doit contenir au moins 20 caractères",
+          variant: "destructive",
+        })
+        return
+      }
+    } else if (!audioBlob) {
+      toast({
+        title: "Description obligatoire",
+        description: "Veuillez enregistrer une description vocale",
         variant: "destructive",
       })
       return
@@ -218,10 +237,11 @@ export default function PublishPage() {
     setIsLoading(true)
 
     try {
-      // Créer l'annonce
       const annonceData = {
         title,
-        description: descriptionMode === 'text' ? description : (audioBlob ? 'Description vocale enregistrée - Écoutez l\'audio pour plus de détails' : ''),
+        description: descriptionMode === "text"
+          ? description.trim()
+          : "Description vocale enregistrée - Écoutez l'audio pour plus de détails",
         price: parseFloat(price),
         negotiable,
         category_id: parseInt(categoryId),
@@ -235,7 +255,7 @@ export default function PublishPage() {
       
       if (!result.success) {
         const errorMessage = result.errors 
-          ? Object.values(result.errors).flat().join(', ')
+          ? Object.values(result.errors).flat().join(", ")
           : result.message || "Erreur lors de la création"
         
         toast({
@@ -249,10 +269,8 @@ export default function PublishPage() {
 
       const annonceId = result.data.data?.id || result.data.id
 
-      // Upload des photos si présentes
       if (imageFiles.length > 0 && annonceId) {
         const uploadResult = await annonceService.uploadPhotos(annonceId, imageFiles)
-        
         if (!uploadResult.success) {
           toast({
             title: "Avertissement",
@@ -262,26 +280,30 @@ export default function PublishPage() {
         }
       }
 
-      // Upload de l'audio vocal si présent
       if (audioBlob && annonceId) {
-        const audioFile = new File([audioBlob], `description_${annonceId}.webm`, { type: 'audio/webm' })
+        const audioFile = new File([audioBlob], `description_${annonceId}.webm`, { type: "audio/webm" })
         const formData = new FormData()
-        formData.append('audio', audioFile)
-        
-        try {
-          // Pour l'instant, on stocke juste l'audio. 
-          // Plus tard, on pourra ajouter une API de transcription (speech-to-text)
-          const audioUploadResult = await annonceService.uploadAudio(annonceId, formData)
-          
-          if (!audioUploadResult.success) {
-            toast({
-              title: "Avertissement",
-              description: "Annonce créée mais erreur lors de l'upload de l'audio",
-              variant: "destructive",
-            })
-          }
-        } catch (error) {
-          console.error("Erreur upload audio:", error)
+        formData.append("audio", audioFile)
+        const audioUploadResult = await annonceService.uploadAudio(annonceId, formData)
+        if (!audioUploadResult.success) {
+          toast({
+            title: "Avertissement",
+            description: "Annonce créée mais erreur lors de l'upload de l'audio",
+            variant: "destructive",
+          })
+        }
+      }
+
+      if (videoFile && annonceId) {
+        const videoForm = new FormData()
+        videoForm.append("video", videoFile)
+        const videoResult = await annonceService.uploadVideo(annonceId, videoForm)
+        if (!videoResult.success) {
+          toast({
+            title: "Avertissement",
+            description: "Annonce créée mais erreur lors de l'upload de la vidéo",
+            variant: "destructive",
+          })
         }
       }
 
@@ -290,8 +312,8 @@ export default function PublishPage() {
         description: "Votre annonce est maintenant en ligne",
       })
 
-      router.push(`/listings/${annonceId}`)
-    } catch (error) {
+      router.push("/")
+    } catch {
       toast({
         title: "Erreur",
         description: "Une erreur est survenue lors de la publication",
@@ -312,9 +334,8 @@ export default function PublishPage() {
 
           <form onSubmit={handleSubmit}>
             <Card className="p-6 space-y-6">
-              {/* Images */}
               <div>
-                <Label>Photos (max 5)</Label>
+                <Label>Photos (min 2, max 5)</Label>
                 <div className="mt-2 grid grid-cols-3 md:grid-cols-5 gap-4">
                   {imagePreviews.map((img, idx) => (
                     <div key={idx} className="relative aspect-square rounded-lg overflow-hidden">
@@ -339,7 +360,18 @@ export default function PublishPage() {
                 </div>
               </div>
 
-              {/* Category */}
+              <div>
+                <Label>Vidéo (optionnel)</Label>
+                <div className="mt-2 flex items-center gap-3">
+                  <label className="inline-flex items-center gap-2 text-sm cursor-pointer">
+                    <Video className="w-4 h-4" />
+                    Choisir une vidéo
+                    <input type="file" accept="video/*" className="hidden" onChange={handleVideoUpload} />
+                  </label>
+                  {videoFile && <span className="text-sm text-muted-foreground">{videoFile.name}</span>}
+                </div>
+              </div>
+
               <div>
                 <Label htmlFor="category">Catégorie *</Label>
                 <Select value={categoryId} onValueChange={setCategoryId}>
@@ -360,7 +392,6 @@ export default function PublishPage() {
                 </Select>
               </div>
 
-              {/* Custom Category - Shown only when Autre is selected */}
               {categoryId && categories.find(c => c.id.toString() === categoryId)?.name === "Autre" && (
                 <div>
                   <Label htmlFor="customCategory">Précisez la catégorie *</Label>
@@ -375,7 +406,6 @@ export default function PublishPage() {
                 </div>
               )}
 
-              {/* Title */}
               <div>
                 <Label htmlFor="title">Titre de l'annonce * (10-100 caractères)</Label>
                 <Input
@@ -390,25 +420,24 @@ export default function PublishPage() {
                 />
               </div>
 
-              {/* Description */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <Label htmlFor="description">Description (optionnel)</Label>
+                  <Label htmlFor="description">Description *</Label>
                   <div className="flex gap-2">
                     <Button
                       type="button"
-                      variant={descriptionMode === 'text' ? 'default' : 'outline'}
+                      variant={descriptionMode === "text" ? "default" : "outline"}
                       size="sm"
-                      onClick={() => setDescriptionMode('text')}
+                      onClick={() => setDescriptionMode("text")}
                     >
                       <Type className="w-4 h-4 mr-2" />
                       Texte
                     </Button>
                     <Button
                       type="button"
-                      variant={descriptionMode === 'voice' ? 'default' : 'outline'}
+                      variant={descriptionMode === "voice" ? "default" : "outline"}
                       size="sm"
-                      onClick={() => setDescriptionMode('voice')}
+                      onClick={() => setDescriptionMode("voice")}
                     >
                       <Mic className="w-4 h-4 mr-2" />
                       Vocal
@@ -416,10 +445,10 @@ export default function PublishPage() {
                   </div>
                 </div>
 
-                {descriptionMode === 'text' ? (
+                {descriptionMode === "text" ? (
                   <Textarea
                     id="description"
-                    placeholder="Décrivez votre article en détail... (optionnel)"
+                    placeholder="Décrivez votre article en détail..."
                     rows={6}
                     className="mt-2"
                     value={description}
@@ -494,7 +523,6 @@ export default function PublishPage() {
                 )}
               </div>
 
-              {/* Price */}
               <div>
                 <Label htmlFor="price">Prix (FCFA) *</Label>
                 <Input
@@ -522,7 +550,6 @@ export default function PublishPage() {
                 </div>
               </div>
 
-              {/* Location */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="city">Ville *</Label>
@@ -548,7 +575,6 @@ export default function PublishPage() {
                 </div>
               </div>
 
-              {/* Condition */}
               <div>
                 <Label htmlFor="condition">État *</Label>
                 <Select required value={etat} onValueChange={setEtat}>

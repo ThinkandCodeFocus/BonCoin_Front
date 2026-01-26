@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Slider } from "@/components/ui/slider"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Heart, SlidersHorizontal, MapPin, Search, Loader2 } from "lucide-react"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import Link from "next/link"
@@ -29,49 +30,63 @@ interface Annonce {
 
 export default function ListingsPage() {
   const searchParams = useSearchParams()
-  const [priceRange, setPriceRange] = useState([0, 1000000])
+  const selectedCategory = searchParams.get("category") || ""
+  const initialSearch = searchParams.get("search") || ""
+
+  const [priceRange, setPriceRange] = useState([0, 10000000])
   const [listings, setListings] = useState<Annonce[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [searchQuery, setSearchQuery] = useState("")
+  const [searchQuery, setSearchQuery] = useState(initialSearch)
   const [favorites, setFavorites] = useState<number[]>([])
+  const [cityFilter, setCityFilter] = useState(searchParams.get("city") || "")
+  const [districtFilter, setDistrictFilter] = useState(searchParams.get("district") || "")
+  const [etatFilter, setEtatFilter] = useState("")
+  const [statusFilter, setStatusFilter] = useState("")
+  const [dateFrom, setDateFrom] = useState("")
+  const [dateTo, setDateTo] = useState("")
+  const [distanceKm, setDistanceKm] = useState(5)
+  const [filtersVersion, setFiltersVersion] = useState(0)
   const { isAuthenticated } = useAuth()
   const { toast } = useToast()
 
-  // Récupérer la catégorie depuis l'URL
-  const selectedCategory = searchParams.get('category') || ''
+  useEffect(() => {
+    setSearchQuery(initialSearch)
+  }, [initialSearch])
 
   useEffect(() => {
-    console.log('Selected category:', selectedCategory)
+    setCityFilter(searchParams.get("city") || "")
+    setDistrictFilter(searchParams.get("district") || "")
+  }, [searchParams])
+
+  useEffect(() => {
     loadListings()
     if (isAuthenticated) {
       loadFavorites()
     }
-  }, [isAuthenticated, selectedCategory, searchQuery])
+  }, [isAuthenticated, selectedCategory, filtersVersion])
+
+  const applyFilters = () => setFiltersVersion((v) => v + 1)
 
   const loadListings = async () => {
     setIsLoading(true)
     const params: any = { page: 1 }
-    
-    if (searchQuery) {
-      params.search = searchQuery
-    }
-    
-    if (selectedCategory) {
-      params.category = selectedCategory
-      console.log('Filtering by category:', selectedCategory)
-    }
-    
-    console.log('API params:', params)
+
+    if (searchQuery.trim()) params.search = searchQuery.trim()
+    if (selectedCategory) params.category = selectedCategory
+
+    params.min_price = priceRange[0]
+    params.max_price = priceRange[1]
+    if (etatFilter) params.etat = etatFilter
+    if (statusFilter) params.status = statusFilter
+    if (cityFilter) params.city = cityFilter
+    if (districtFilter) params.district = districtFilter
+    if (dateFrom) params.date_from = dateFrom
+    if (dateTo) params.date_to = dateTo
+    if (distanceKm) params.distance_km = distanceKm
+
     const result = await annonceService.getAll(params)
-    console.log('Listings API result:', result)
     if (result.success && result.data) {
-      const listingsData = result.data.data || []
-      console.log('Listings data:', listingsData)
-      console.log('Number of listings:', listingsData.length)
-      if (listingsData.length > 0) {
-        console.log('First listing photos:', listingsData[0].photos)
-      }
-      setListings(listingsData)
+      setListings(result.data.data || [])
     }
     setIsLoading(false)
   }
@@ -86,7 +101,7 @@ export default function ListingsPage() {
 
   const toggleFavorite = async (e: React.MouseEvent, annonceId: number) => {
     e.preventDefault()
-    
+
     if (!isAuthenticated) {
       toast({
         title: "Connexion requise",
@@ -124,16 +139,11 @@ export default function ListingsPage() {
     return hoursDiff <= 48
   }
 
-  const filteredListings = listings.filter(
-    (listing) => listing.price >= priceRange[0] && listing.price <= priceRange[1]
-  )
-
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
 
       <main className="flex-1 pb-20 md:pb-4">
-        {/* Search Bar */}
         <div className="bg-card border-b p-4">
           <div className="max-w-6xl mx-auto flex gap-3">
             <div className="flex-1 flex items-center gap-2 bg-muted rounded-md px-3 py-2">
@@ -142,7 +152,7 @@ export default function ListingsPage() {
                 placeholder="Rechercher..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && loadListings()}
+                onKeyDown={(e) => e.key === "Enter" && applyFilters()}
                 className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
               />
             </div>
@@ -176,30 +186,95 @@ export default function ListingsPage() {
                   </div>
 
                   <div>
-                    <Label htmlFor="location">Localisation</Label>
-                    <Input id="location" placeholder="Ville ou région" className="mt-2" />
+                    <Label>Localisation</Label>
+                    <div className="grid gap-2 mt-2">
+                      <Input
+                        placeholder="Ville (ex: Dakar)"
+                        value={cityFilter}
+                        onChange={(e) => setCityFilter(e.target.value)}
+                      />
+                      <Input
+                        placeholder="Quartier (ex: Ouakam)"
+                        value={districtFilter}
+                        onChange={(e) => setDistrictFilter(e.target.value)}
+                      />
+                    </div>
                   </div>
 
-                  <Button className="w-full">Appliquer les filtres</Button>
+                  <div>
+                    <Label>Etat</Label>
+                    <Select value={etatFilter} onValueChange={setEtatFilter}>
+                      <SelectTrigger className="mt-2">
+                        <SelectValue placeholder="Tous les etats" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Neuf">Neuf</SelectItem>
+                        <SelectItem value="Bon état">Bon état</SelectItem>
+                        <SelectItem value="Usagé">Usagé</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label>Disponibilite</Label>
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                      <SelectTrigger className="mt-2">
+                        <SelectValue placeholder="Toutes" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Disponible">Disponible</SelectItem>
+                        <SelectItem value="Réservé">Réservé</SelectItem>
+                        <SelectItem value="Vendu">Vendu</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label>Date de publication</Label>
+                    <div className="grid gap-2 mt-2">
+                      <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
+                      <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label>Distance (km)</Label>
+                    <div className="mt-4">
+                      <Slider
+                        value={[distanceKm]}
+                        onValueChange={(value) => setDistanceKm(value[0])}
+                        max={50}
+                        step={1}
+                        className="mb-2"
+                      />
+                      <div className="flex justify-between text-sm text-muted-foreground">
+                        <span>0 km</span>
+                        <span>{distanceKm} km</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <Button className="w-full" onClick={applyFilters}>
+                    Appliquer les filtres
+                  </Button>
                 </div>
               </SheetContent>
             </Sheet>
           </div>
         </div>
 
-        {/* Listings Grid */}
         <div className="max-w-6xl mx-auto p-4">
           <div className="mb-4 flex items-center justify-between">
             <div>
               <p className="text-sm text-muted-foreground">
-                {filteredListings.length} annonces trouvées
+                {listings.length} annonces trouvées
                 {selectedCategory && " dans la catégorie sélectionnée"}
               </p>
               {selectedCategory && (
                 <div className="mt-2">
                   <Link href="/listings">
                     <Badge variant="secondary" className="cursor-pointer">
-                      Catégorie filtrée ✕
+                      Catégorie filtrée ✖
                     </Badge>
                   </Link>
                 </div>
@@ -211,20 +286,20 @@ export default function ListingsPage() {
             <div className="flex justify-center items-center py-20">
               <Loader2 className="w-8 h-8 animate-spin text-primary" />
             </div>
-          ) : filteredListings.length === 0 ? (
+          ) : listings.length === 0 ? (
             <div className="text-center py-20">
               <p className="text-muted-foreground">Aucune annonce trouvée</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredListings.map((listing) => {
-                const photoUrl = listing.photos && listing.photos.length > 0 && listing.photos[0]
-                  ? (listing.photos[0].startsWith('http') 
-                      ? listing.photos[0] 
-                      : `http://localhost:8000/storage/${listing.photos[0]}`)
-                  : "/placeholder.svg"
-                
-                console.log('Listing:', listing.title, 'Photo URL:', photoUrl)
+              {listings.map((listing) => {
+                const apiBase = process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") || "http://localhost:8000"
+                const photoUrl =
+                  listing.photos && listing.photos.length > 0 && listing.photos[0]
+                    ? listing.photos[0].startsWith("http")
+                      ? listing.photos[0]
+                      : `${apiBase}/storage/${listing.photos[0]}`
+                    : "/placeholder.svg"
 
                 return (
                   <Link key={listing.id} href={`/listings/${listing.id}`}>
@@ -241,12 +316,14 @@ export default function ListingsPage() {
                           className="absolute top-3 right-3 rounded-full w-9 h-9"
                           onClick={(e) => toggleFavorite(e, listing.id)}
                         >
-                          <Heart 
-                            className={`w-4 h-4 ${favorites.includes(listing.id) ? 'fill-current text-destructive' : ''}`} 
+                          <Heart
+                            className={`w-4 h-4 ${favorites.includes(listing.id) ? "fill-current text-destructive" : ""}`}
                           />
                         </Button>
                         {isUrgent(listing.created_at) && (
-                          <Badge className="absolute top-3 left-3 bg-destructive text-destructive-foreground">Urgent</Badge>
+                          <Badge className="absolute top-3 left-3 bg-destructive text-destructive-foreground">
+                            Urgent
+                          </Badge>
                         )}
                       </div>
                       <div className="p-4">

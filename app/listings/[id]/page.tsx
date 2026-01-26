@@ -1,6 +1,6 @@
 "use client"
 
-import { use, useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { Header } from "@/components/header"
 import { BottomNav } from "@/components/bottom-nav"
 import { Card } from "@/components/ui/card"
@@ -10,7 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Heart, Share2, Flag, MapPin, Phone, MessageCircle, Loader2, ChevronLeft, ChevronRight } from "lucide-react"
 import { annonceService, favoriteService } from "@/lib/api"
 import { useAuth } from "@/contexts/AuthContext"
-import { useRouter } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import { toast } from "sonner"
 import Link from "next/link"
 
@@ -39,8 +39,9 @@ interface Annonce {
   }
 }
 
-export default function ListingDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params)
+export default function ListingDetailPage() {
+  const params = useParams<{ id: string }>()
+  const id = params?.id
   const { isAuthenticated, user } = useAuth()
   const router = useRouter()
   const [annonce, setAnnonce] = useState<Annonce | null>(null)
@@ -49,6 +50,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0)
 
   useEffect(() => {
+    if (!id) return
     loadAnnonce()
     if (isAuthenticated) {
       loadFavoriteStatus()
@@ -59,7 +61,12 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
     setIsLoading(true)
     console.log('Loading annonce with ID:', id)
     try {
-      const result = await annonceService.getById(parseInt(id))
+      const parsedId = Number.parseInt(id as string, 10)
+      if (Number.isNaN(parsedId)) {
+        toast.error("Annonce introuvable")
+        return
+      }
+      const result = await annonceService.getById(parsedId)
       console.log('API Result:', result)
       if (result.success && result.data) {
         const annonceData = result.data.data || result.data
@@ -82,7 +89,8 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
     const result = await favoriteService.getAll()
     if (result.success && result.data) {
       const favoriteIds = result.data.map((fav: any) => fav.annonce?.id || fav.annonce_id)
-      setIsFavorite(favoriteIds.includes(parseInt(id)))
+      const parsedId = Number.parseInt(id as string, 10)
+      setIsFavorite(favoriteIds.includes(parsedId))
     }
   }
 
@@ -156,10 +164,11 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
     )
   }
 
+  const apiBase = process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") || "http://localhost:8000"
   const photoUrl = annonce.photos && annonce.photos.length > 0 && annonce.photos[currentPhotoIndex]
     ? (annonce.photos[currentPhotoIndex].startsWith('http') 
         ? annonce.photos[currentPhotoIndex] 
-        : `http://localhost:8000/storage/${annonce.photos[currentPhotoIndex]}`)
+        : `${apiBase}/storage/${annonce.photos[currentPhotoIndex]}`)
     : "/placeholder.svg"
 
   console.log('Current photo URL:', photoUrl)

@@ -1,5 +1,7 @@
 "use client"
 
+import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 import { Search, MapPin } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -7,6 +9,39 @@ import { Button } from "@/components/ui/button"
 type SearchBarVariant = "hero" | "top"
 
 export function SearchBar({ variant = "hero" }: { variant?: SearchBarVariant }) {
+  const router = useRouter()
+  const [query, setQuery] = useState("")
+  const [city, setCity] = useState("")
+
+  useEffect(() => {
+    const savedCity = localStorage.getItem("location_city") || ""
+    const savedDistrict = localStorage.getItem("location_district") || ""
+    const fullCity = savedDistrict ? `${savedCity} - ${savedDistrict}` : savedCity
+    setCity(fullCity)
+  }, [])
+
+  const runSearch = () => {
+    const params = new URLSearchParams()
+    if (query.trim()) params.set("search", query.trim())
+
+    const savedCity = localStorage.getItem("location_city") || ""
+    const savedDistrict = localStorage.getItem("location_district") || ""
+    const typedCity = city.replace(/\s+-\s+.+$/, "").trim()
+
+    if (typedCity) {
+      localStorage.setItem("location_city", typedCity)
+      localStorage.setItem("location_district", "")
+    }
+
+    const finalCity = typedCity || savedCity
+    const finalDistrict = typedCity ? "" : savedDistrict
+    if (finalCity) params.set("city", finalCity)
+    if (finalDistrict) params.set("district", finalDistrict)
+
+    const qs = params.toString()
+    router.push(qs ? `/listings?${qs}` : "/listings")
+  }
+
   const wrapperClassName =
     variant === "top"
       ? "w-full rounded-3xl p-3 md:p-4 bg-card/90 border border-border/60 backdrop-blur-xl shadow-[0_18px_50px_rgba(15,23,42,0.12)]"
@@ -18,19 +53,25 @@ export function SearchBar({ variant = "hero" }: { variant?: SearchBarVariant }) 
         <Search className="w-5 h-5 text-muted-foreground flex-shrink-0" />
         <Input
           placeholder="Que recherchez-vous ?"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && runSearch()}
           className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-base"
         />
       </div>
       <div className="flex-1 flex items-center gap-3 bg-background/75 rounded-2xl px-4 py-3.5 border border-border/50 focus-within:border-primary/50 focus-within:shadow-[0_0_0_4px_rgba(15,118,110,0.08)] transition-all">
         <MapPin className="w-5 h-5 text-muted-foreground flex-shrink-0" />
         <Input
-          placeholder="Ville ou région"
+          placeholder="Ville ou region"
+          value={city}
+          onChange={(e) => setCity(e.target.value)}
           className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-base"
         />
       </div>
       <Button
         size="lg"
         className="md:w-auto rounded-2xl px-8 font-semibold shadow-lg hover:shadow-xl transition-shadow bg-accent text-accent-foreground hover:bg-accent/90"
+        onClick={runSearch}
       >
         Rechercher
       </Button>
