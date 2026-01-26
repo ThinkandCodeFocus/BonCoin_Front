@@ -25,19 +25,31 @@ export function FeaturedListings() {
   const [listings, setListings] = useState<Annonce[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [favorites, setFavorites] = useState<number[]>([])
+  const [cityFilter, setCityFilter] = useState("")
+  const [districtFilter, setDistrictFilter] = useState("")
   const { isAuthenticated } = useAuth()
   const { toast } = useToast()
+
+  useEffect(() => {
+    const savedCity = localStorage.getItem("location_city") || ""
+    const savedDistrict = localStorage.getItem("location_district") || ""
+    setCityFilter(savedCity)
+    setDistrictFilter(savedDistrict)
+  }, [])
 
   useEffect(() => {
     loadAnnonces()
     if (isAuthenticated) {
       loadFavorites()
     }
-  }, [isAuthenticated])
+  }, [isAuthenticated, cityFilter, districtFilter])
 
   const loadAnnonces = async () => {
     setIsLoading(true)
-    const result = await annonceService.getAll({ page: 1 })
+    const params: any = { page: 1 }
+    if (cityFilter) params.city = cityFilter
+    if (districtFilter) params.district = districtFilter
+    const result = await annonceService.getAll(params)
     if (result.success && result.data) {
       setListings(result.data.data || [])
     }

@@ -1,30 +1,45 @@
 "use client"
 
+import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 import { Search, MapPin } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { useState } from "react"
-import { useRouter } from "next/navigation"
 
 type SearchBarVariant = "hero" | "top"
 
 export function SearchBar({ variant = "hero" }: { variant?: SearchBarVariant }) {
-  const [searchQuery, setSearchQuery] = useState("")
-  const [location, setLocation] = useState("")
   const router = useRouter()
+  const [query, setQuery] = useState("")
+  const [city, setCity] = useState("")
 
-  const handleSearch = () => {
+  useEffect(() => {
+    const savedCity = localStorage.getItem("location_city") || ""
+    const savedDistrict = localStorage.getItem("location_district") || ""
+    const fullCity = savedDistrict ? `${savedCity} - ${savedDistrict}` : savedCity
+    setCity(fullCity)
+  }, [])
+
+  const runSearch = () => {
     const params = new URLSearchParams()
-    if (searchQuery) params.append('search', searchQuery)
-    if (location) params.append('location', location)
-    
-    router.push(`/listings?${params.toString()}`)
-  }
+    if (query.trim()) params.set("search", query.trim())
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleSearch()
+    const savedCity = localStorage.getItem("location_city") || ""
+    const savedDistrict = localStorage.getItem("location_district") || ""
+    const typedCity = city.replace(/\s+-\s+.+$/, "").trim()
+
+    if (typedCity) {
+      localStorage.setItem("location_city", typedCity)
+      localStorage.setItem("location_district", "")
     }
+
+    const finalCity = typedCity || savedCity
+    const finalDistrict = typedCity ? "" : savedDistrict
+    if (finalCity) params.set("city", finalCity)
+    if (finalDistrict) params.set("district", finalDistrict)
+
+    const qs = params.toString()
+    router.push(qs ? `/listings?${qs}` : "/listings")
   }
 
   const wrapperClassName =
@@ -38,26 +53,36 @@ export function SearchBar({ variant = "hero" }: { variant?: SearchBarVariant }) 
         <Search className="w-5 h-5 text-muted-foreground flex-shrink-0" />
         <Input
           placeholder="Que recherchez-vous ?"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && runSearch()}
           className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-base"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          onKeyPress={handleKeyPress}
         />
       </div>
       <div className="flex-1 flex items-center gap-3 bg-background/75 rounded-2xl px-4 py-3.5 border border-border/50 focus-within:border-primary/50 focus-within:shadow-[0_0_0_4px_rgba(15,118,110,0.08)] transition-all">
         <MapPin className="w-5 h-5 text-muted-foreground flex-shrink-0" />
         <Input
-          placeholder="Ville ou région"
+          placeholder="Ville ou region"
+          value={city}
+          onChange={(e) => setCity(e.target.value)}
           className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-base"
-          value={location}
-          onChange={(e) => setLocation(e.target.value)}
-          onKeyPress={handleKeyPress}
         />
       </div>
       <Button
         size="lg"
         className="md:w-auto rounded-2xl px-8 font-semibold shadow-lg hover:shadow-xl transition-shadow bg-accent text-accent-foreground hover:bg-accent/90"
+        onClick={runSearch}
+      >
+        Rechercher
+      </Button>
+    </div>
+  )
+}
+<<<<<<< HEAD
         onClick={handleSearch}
+=======
+        onClick={runSearch}
+>>>>>>> 43722dc548f8250567f019d3477c9adbb6b89aa3
       >
         Rechercher
       </Button>

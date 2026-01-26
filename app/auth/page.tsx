@@ -9,42 +9,50 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Mail, Phone } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
+import { useAuth } from "@/contexts/AuthContext"
+import { useRouter } from "next/navigation"
+import { Loader2 } from "lucide-react"
 
 export default function AuthPage() {
+  const { login, register } = useAuth()
+  const router = useRouter()
+  const [activeTab, setActiveTab] = useState<"login" | "register">("login")
   const [isLoading, setIsLoading] = useState(false)
-  const [otpSent, setOtpSent] = useState(false)
-  const [authMethod, setAuthMethod] = useState<"email" | "sms">("email")
-  const { toast } = useToast()
 
-  const handleSendOTP = async (e: React.FormEvent) => {
+  const [loginIdentifier, setLoginIdentifier] = useState("")
+  const [loginPassword, setLoginPassword] = useState("")
+
+  const [registerName, setRegisterName] = useState("")
+  const [registerEmail, setRegisterEmail] = useState("")
+  const [registerPhone, setRegisterPhone] = useState("")
+  const [registerPassword, setRegisterPassword] = useState("")
+  const [registerPasswordConfirmation, setRegisterPasswordConfirmation] = useState("")
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false)
-      setOtpSent(true)
-      toast({
-        title: "Code envoyé",
-        description: `Un code de vérification a été envoyé à votre ${authMethod === "email" ? "email" : "téléphone"}.`,
-      })
-    }, 1500)
+    const success = await login(loginIdentifier, loginPassword)
+    setIsLoading(false)
+    if (success) {
+      router.push("/")
+    }
   }
 
-  const handleVerifyOTP = async (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false)
-      toast({
-        title: "Connexion réussie",
-        description: "Vous êtes maintenant connecté.",
-      })
-    }, 1500)
+    const success = await register({
+      name: registerName,
+      email: registerEmail,
+      phone: registerPhone,
+      password: registerPassword,
+      password_confirmation: registerPasswordConfirmation,
+      language: "fr",
+    })
+    setIsLoading(false)
+    if (success) {
+      router.push("/")
+    }
   }
 
   return (
@@ -54,69 +62,123 @@ export default function AuthPage() {
       <main className="flex-1 py-12 px-4 bg-muted/30">
         <div className="max-w-md mx-auto">
           <Card className="p-6">
-            <h1 className="text-2xl font-bold mb-6 text-center">{otpSent ? "Vérification" : "Connexion"}</h1>
+            <h1 className="text-2xl font-bold mb-6 text-center">Connexion</h1>
 
-            {!otpSent ? (
-              <Tabs value={authMethod} onValueChange={(v) => setAuthMethod(v as "email" | "sms")}>
-                <TabsList className="grid w-full grid-cols-2 mb-6">
-                  <TabsTrigger value="email">
-                    <Mail className="w-4 h-4 mr-2" />
-                    Email
-                  </TabsTrigger>
-                  <TabsTrigger value="sms">
-                    <Phone className="w-4 h-4 mr-2" />
-                    SMS
-                  </TabsTrigger>
-                </TabsList>
+            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "login" | "register")}>
+              <TabsList className="grid w-full grid-cols-2 mb-6">
+                <TabsTrigger value="login">Connexion</TabsTrigger>
+                <TabsTrigger value="register">Inscription</TabsTrigger>
+              </TabsList>
 
-                <TabsContent value="email">
-                  <form onSubmit={handleSendOTP} className="space-y-4">
-                    <div>
-                      <Label htmlFor="email">Adresse email</Label>
-                      <Input id="email" type="email" placeholder="votre@email.com" required />
-                    </div>
-                    <Button type="submit" className="w-full" disabled={isLoading}>
-                      {isLoading ? "Envoi..." : "Envoyer le code"}
-                    </Button>
-                  </form>
-                </TabsContent>
+              <TabsContent value="login">
+                <form onSubmit={handleLogin} className="space-y-4">
+                  <div>
+                    <Label htmlFor="login-identifier">Email ou Téléphone</Label>
+                    <Input
+                      id="login-identifier"
+                      type="text"
+                      placeholder="email@example.com ou +221771234567"
+                      value={loginIdentifier}
+                      onChange={(e) => setLoginIdentifier(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="login-password">Mot de passe</Label>
+                    <Input
+                      id="login-password"
+                      type="password"
+                      placeholder="••••••••"
+                      value={loginPassword}
+                      onChange={(e) => setLoginPassword(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <Button type="submit" className="w-full" disabled={isLoading}>
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Connexion...
+                      </>
+                    ) : (
+                      "Se connecter"
+                    )}
+                  </Button>
+                </form>
+              </TabsContent>
 
-                <TabsContent value="sms">
-                  <form onSubmit={handleSendOTP} className="space-y-4">
-                    <div>
-                      <Label htmlFor="phone">Numéro de téléphone</Label>
-                      <Input id="phone" type="tel" placeholder="+221 77 123 45 67" required />
-                    </div>
-                    <Button type="submit" className="w-full" disabled={isLoading}>
-                      {isLoading ? "Envoi..." : "Envoyer le code"}
-                    </Button>
-                  </form>
-                </TabsContent>
-              </Tabs>
-            ) : (
-              <form onSubmit={handleVerifyOTP} className="space-y-4">
-                <div>
-                  <Label htmlFor="otp">Code de vérification</Label>
-                  <Input
-                    id="otp"
-                    type="text"
-                    placeholder="123456"
-                    maxLength={6}
-                    className="text-center text-2xl tracking-widest"
-                    required
-                  />
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Entrez le code à 6 chiffres envoyé à votre {authMethod === "email" ? "email" : "téléphone"}
-                  </p>
-                </div>
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? "Vérification..." : "Vérifier"}
-                </Button>
-                <Button type="button" variant="ghost" className="w-full" onClick={() => setOtpSent(false)}>
-                  Changer de méthode
-                </Button>
-              </form>
-            )}
+              <TabsContent value="register">
+                <form onSubmit={handleRegister} className="space-y-4">
+                  <div>
+                    <Label htmlFor="register-name">Nom complet</Label>
+                    <Input
+                      id="register-name"
+                      type="text"
+                      placeholder="John Doe"
+                      value={registerName}
+                      onChange={(e) => setRegisterName(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="register-email">Email</Label>
+                    <Input
+                      id="register-email"
+                      type="email"
+                      placeholder="email@example.com"
+                      value={registerEmail}
+                      onChange={(e) => setRegisterEmail(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="register-phone">Téléphone</Label>
+                    <Input
+                      id="register-phone"
+                      type="tel"
+                      placeholder="+221771234567"
+                      value={registerPhone}
+                      onChange={(e) => setRegisterPhone(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="register-password">Mot de passe</Label>
+                    <Input
+                      id="register-password"
+                      type="password"
+                      placeholder="••••••••"
+                      value={registerPassword}
+                      onChange={(e) => setRegisterPassword(e.target.value)}
+                      required
+                      minLength={6}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="register-password-confirmation">Confirmer le mot de passe</Label>
+                    <Input
+                      id="register-password-confirmation"
+                      type="password"
+                      placeholder="••••••••"
+                      value={registerPasswordConfirmation}
+                      onChange={(e) => setRegisterPasswordConfirmation(e.target.value)}
+                      required
+                      minLength={6}
+                    />
+                  </div>
+                  <Button type="submit" className="w-full" disabled={isLoading}>
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Inscription...
+                      </>
+                    ) : (
+                      "S'inscrire"
+                    )}
+                  </Button>
+                </form>
+              </TabsContent>
+            </Tabs>
           </Card>
         </div>
       </main>

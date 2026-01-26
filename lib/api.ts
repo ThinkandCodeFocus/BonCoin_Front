@@ -192,12 +192,34 @@ export const annonceService = {
   /**
    * Récupérer toutes les annonces (avec pagination)
    */
-  async getAll(params?: { page?: number; category?: string; search?: string }) {
+  async getAll(params?: {
+    page?: number
+    category?: string
+    search?: string
+    min_price?: number
+    max_price?: number
+    etat?: string
+    city?: string
+    district?: string
+    date_from?: string
+    date_to?: string
+    status?: string
+    distance_km?: number
+  }) {
     try {
       const queryParams = new URLSearchParams()
       if (params?.page) queryParams.append('page', params.page.toString())
       if (params?.category) queryParams.append('category', params.category)
       if (params?.search) queryParams.append('search', params.search)
+      if (params?.min_price !== undefined) queryParams.append('min_price', params.min_price.toString())
+      if (params?.max_price !== undefined) queryParams.append('max_price', params.max_price.toString())
+      if (params?.etat) queryParams.append('etat', params.etat)
+      if (params?.city) queryParams.append('city', params.city)
+      if (params?.district) queryParams.append('district', params.district)
+      if (params?.date_from) queryParams.append('date_from', params.date_from)
+      if (params?.date_to) queryParams.append('date_to', params.date_to)
+      if (params?.status) queryParams.append('status', params.status)
+      if (params?.distance_km !== undefined) queryParams.append('distance_km', params.distance_km.toString())
 
       const response = await fetch(
         `${API_CONFIG.baseURL}/annonces?${queryParams.toString()}`,
@@ -360,6 +382,32 @@ export const annonceService = {
     try {
       const token = localStorage.getItem('auth_token')
       const response = await fetch(`${API_CONFIG.baseURL}/annonces/${id}/audio`, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : '',
+        },
+        body: formData,
+      })
+      const result = await response.json()
+      
+      if (!response.ok) {
+        throw { response: { data: result, status: response.status } }
+      }
+
+      return { success: true, data: result }
+    } catch (error) {
+      return handleError(error)
+    }
+  },
+
+  /**
+   * Upload video pour une annonce
+   */
+  async uploadVideo(id: number, formData: FormData) {
+    try {
+      const token = localStorage.getItem('auth_token')
+      const response = await fetch(`${API_CONFIG.baseURL}/annonces/${id}/video`, {
         method: 'POST',
         headers: {
           'Accept': 'application/json',
