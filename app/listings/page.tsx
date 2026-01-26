@@ -23,22 +23,33 @@ interface Annonce {
   price: number
   city: string
   district: string
+  etat: string
   photos?: string[]
   created_at: string
 }
 
 export default function ListingsPage() {
   const searchParams = useSearchParams()
-  const [priceRange, setPriceRange] = useState([0, 1000000])
+  const [priceRange, setPriceRange] = useState([0, 10000000])
   const [listings, setListings] = useState<Annonce[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
+  const [locationFilter, setLocationFilter] = useState("")
+  const [etatFilter, setEtatFilter] = useState("")
   const [favorites, setFavorites] = useState<number[]>([])
   const { isAuthenticated } = useAuth()
   const { toast } = useToast()
 
   // Récupérer la catégorie depuis l'URL
   const selectedCategory = searchParams.get('category') || ''
+  const urlLocation = searchParams.get('location') || ''
+  const urlSearch = searchParams.get('search') || ''
+
+  // Initialiser les valeurs depuis l'URL
+  useEffect(() => {
+    if (urlLocation) setLocationFilter(urlLocation)
+    if (urlSearch) setSearchQuery(urlSearch)
+  }, [urlLocation, urlSearch])
 
   useEffect(() => {
     console.log('Selected category:', selectedCategory)
@@ -46,7 +57,18 @@ export default function ListingsPage() {
     if (isAuthenticated) {
       loadFavorites()
     }
-  }, [isAuthenticated, selectedCategory, searchQuery])
+  }, [isAuthenticated, selectedCategory])
+
+  // Effet séparé pour la recherche avec délai
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      if (searchQuery !== undefined) {
+        loadListings()
+      }
+    }, 500)
+
+    return () => clearTimeout(delayDebounceFn)
+  }, [searchQuery])
 
   const loadListings = async () => {
     setIsLoading(true)
@@ -59,6 +81,15 @@ export default function ListingsPage() {
     if (selectedCategory) {
       params.category = selectedCategory
       console.log('Filtering by category:', selectedCategory)
+    }
+
+    // Ajouter la localisation de l'utilisateur
+    const savedLocation = localStorage.getItem('userLocation')
+    if (savedLocation) {
+      const location = JSON.parse(savedLocation)
+      params.city = location.city
+      params.district = location.district
+      console.log('Filtering by location:', location)
     }
     
     console.log('API params:', params)
@@ -124,9 +155,29 @@ export default function ListingsPage() {
     return hoursDiff <= 48
   }
 
-  const filteredListings = listings.filter(
-    (listing) => listing.price >= priceRange[0] && listing.price <= priceRange[1]
-  )
+  const filteredListings = listings.filter((listing) => {
+    // Filtre par prix
+    if (listing.price < priceRange[0] || listing.price > priceRange[1]) {
+      return false
+    }
+    
+    // Filtre par localisation
+    if (locationFilter) {
+      const location = locationFilter.toLowerCase()
+      const cityMatch = listing.city?.toLowerCase().includes(location)
+      const districtMatch = listing.district?.toLowerCase().includes(location)
+      if (!cityMatch && !districtMatch) {
+        return false
+      }
+    }
+    
+    // Filtre par état
+    if (etatFilter && listing.etat !== etatFilter) {
+      return false
+    }
+    
+    return true
+  })
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -177,10 +228,46 @@ export default function ListingsPage() {
 
                   <div>
                     <Label htmlFor="location">Localisation</Label>
-                    <Input id="location" placeholder="Ville ou région" className="mt-2" />
+                    <Input 
+                      id="location" 
+                      placeholder="Ville ou quartier" 
+                      className="mt-2"
+                      value={locationFilter}
+                      onChange={(e) => setLocationFilter(e.target.value)}
+                    />
                   </div>
 
-                  <Button className="w-full">Appliquer les filtres</Button>
+                  <div>
+                    <Label htmlFor="etat">État</Label>
+                    <select
+                      id="etat"
+                      className="w-full mt-2 flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                      value={etatFilter}
+                      onChange={(e) => setEtatFilter(e.target.value)}
+                    >
+                      <option value="">Tous les états</option>
+                      <option value="Neuf">Neuf</option>
+                      <option value="Bon état">Bon état</option>
+                      <option value="Usagé">Usagé</option>
+                    </select>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="outline" 
+                      className="flex-1"
+                      onClick={() => {
+                        setPriceRange([0, 10000000])
+                        setLocationFilter("")
+                        setEtatFilter("")
+                      }}
+                    >
+                      Réinitialiser
+                    </Button>
+                    <Button className="flex-1">
+                      {filteredListings.length} résultats
+                    </Button>
+                  </div>
                 </div>
               </SheetContent>
             </Sheet>

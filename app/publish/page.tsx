@@ -221,7 +221,7 @@ export default function PublishPage() {
       // Créer l'annonce
       const annonceData = {
         title,
-        description: descriptionMode === 'text' ? description : (audioBlob ? 'Description vocale enregistrée - Écoutez l\'audio pour plus de détails' : ''),
+        description: descriptionMode === 'text' ? (description || 'Pas de description') : (audioBlob ? 'Description vocale enregistrée - Écoutez l\'audio pour plus de détails' : 'Pas de description'),
         price: parseFloat(price),
         negotiable,
         category_id: parseInt(categoryId),
@@ -231,15 +231,20 @@ export default function PublishPage() {
         etat,
       }
 
+      console.log('Creating annonce with data:', annonceData)
       const result = await annonceService.create(annonceData)
+      console.log('Create result:', result)
       
       if (!result.success) {
         const errorMessage = result.errors 
-          ? Object.values(result.errors).flat().join(', ')
+          ? Object.entries(result.errors).map(([field, messages]) => {
+              return `${field}: ${Array.isArray(messages) ? messages.join(', ') : messages}`
+            }).join('\n')
           : result.message || "Erreur lors de la création"
         
+        console.error('Creation error:', errorMessage)
         toast({
-          title: "Erreur",
+          title: "Erreur de création",
           description: errorMessage,
           variant: "destructive",
         })
@@ -248,17 +253,22 @@ export default function PublishPage() {
       }
 
       const annonceId = result.data.data?.id || result.data.id
+      console.log('Annonce created with ID:', annonceId)
 
       // Upload des photos si présentes
       if (imageFiles.length > 0 && annonceId) {
+        console.log('Uploading', imageFiles.length, 'photos...')
         const uploadResult = await annonceService.uploadPhotos(annonceId, imageFiles)
+        console.log('Photos upload result:', uploadResult)
         
         if (!uploadResult.success) {
           toast({
             title: "Avertissement",
-            description: "Annonce créée mais erreur lors de l'upload des photos",
+            description: "Annonce créée mais erreur lors de l'upload des photos: " + (uploadResult.message || 'Erreur inconnue'),
             variant: "destructive",
           })
+        } else {
+          console.log('Photos uploaded successfully')
         }
       }
 

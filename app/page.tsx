@@ -4,6 +4,7 @@ import { SearchBar } from "@/components/search-bar"
 import { FeaturedListings } from "@/components/featured-listings"
 import { BottomNav } from "@/components/bottom-nav"
 import { Footer } from "@/components/footer"
+import { LocationSelector } from "@/components/location-selector"
 import { Sparkles } from "lucide-react"
 
 export default function HomePage() {
@@ -30,14 +31,9 @@ export default function HomePage() {
               <div className="relative grid gap-10 md:gap-12 lg:gap-16 items-center p-7 md:p-12 lg:p-14 lg:grid-cols-2">
                 {/* Colonne texte */}
                 <div>
-                  <div className="inline-flex items-center gap-2 bg-background/10 backdrop-blur-sm px-4 py-2 rounded-full mb-6 border border-background/15">
-                    <Sparkles className="w-4 h-4 text-accent" />
-                    <span className="text-sm font-semibold text-background/95">
-                      Trouvez la meilleure affaire près de chez vous
-                    </span>
-                  </div>
+                  <LocationSelector />
 
-                  <h1 className="display-font text-3xl md:text-5xl lg:text-6xl font-extrabold leading-tight tracking-tight text-balance">
+                  <h1 className="display-font text-3xl md:text-5xl lg:text-6xl font-extrabold leading-tight tracking-tight text-balance mt-6">
                     Achetez et vendez{" "}
                     <span className="text-accent drop-shadow-sm">en toute simplicité</span>
                   </h1>
