@@ -17,6 +17,7 @@ import { useAuth } from "@/contexts/AuthContext"
 import { annonceService, categoryService } from "@/lib/api"
 import { useRouter } from "next/navigation"
 import { Checkbox } from "@/components/ui/checkbox"
+import { getUserLocation, getCityCoordinates } from "@/lib/geolocation"
 
 interface Category {
   id: number
@@ -218,8 +219,26 @@ export default function PublishPage() {
     setIsLoading(true)
 
     try {
+      // Essayer d'obtenir les coordonnées
+      let latitude: number | undefined
+      let longitude: number | undefined
+
+      // Essayer d'abord la géolocalisation du navigateur
+      const userLocation = await getUserLocation()
+      if (userLocation) {
+        latitude = userLocation.lat
+        longitude = userLocation.lng
+      } else {
+        // Sinon, utiliser les coordonnées de la ville
+        const cityCoords = getCityCoordinates(city)
+        if (cityCoords) {
+          latitude = cityCoords.lat
+          longitude = cityCoords.lng
+        }
+      }
+
       // Créer l'annonce
-      const annonceData = {
+      const annonceData: any = {
         title,
         description: descriptionMode === 'text' ? (description || 'Pas de description') : (audioBlob ? 'Description vocale enregistrée - Écoutez l\'audio pour plus de détails' : 'Pas de description'),
         price: parseFloat(price),
@@ -229,6 +248,12 @@ export default function PublishPage() {
         city,
         district,
         etat,
+      }
+
+      // Ajouter les coordonnées si disponibles
+      if (latitude !== undefined && longitude !== undefined) {
+        annonceData.latitude = latitude
+        annonceData.longitude = longitude
       }
 
       console.log('Creating annonce with data:', annonceData)

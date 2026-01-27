@@ -16,6 +16,7 @@ import { useSearchParams } from "next/navigation"
 import { annonceService, favoriteService } from "@/lib/api"
 import { useAuth } from "@/contexts/AuthContext"
 import { useToast } from "@/hooks/use-toast"
+import { getUserLocation, getCityCoordinates } from "@/lib/geolocation"
 
 interface Annonce {
   id: number
@@ -83,13 +84,29 @@ export default function ListingsPage() {
       console.log('Filtering by category:', selectedCategory)
     }
 
-    // Ajouter la localisation de l'utilisateur
-    const savedLocation = localStorage.getItem('userLocation')
-    if (savedLocation) {
-      const location = JSON.parse(savedLocation)
-      params.city = location.city
-      params.district = location.district
-      console.log('Filtering by location:', location)
+    // Ajouter la géolocalisation pour le filtrage par distance
+    try {
+      const userLocation = await getUserLocation()
+      if (userLocation) {
+        params.user_lat = userLocation.lat
+        params.user_lng = userLocation.lng
+        params.distance_km = 10 // 10 km par défaut
+        console.log('Using GPS location:', userLocation)
+      } else {
+        // Si pas de GPS, essayer d'utiliser la ville sauvegardée
+        const savedCity = localStorage.getItem('location_city')
+        if (savedCity) {
+          const cityCoords = getCityCoordinates(savedCity)
+          if (cityCoords) {
+            params.user_lat = cityCoords.lat
+            params.user_lng = cityCoords.lng
+            params.distance_km = 20 // 20 km pour les villes
+            console.log('Using city coords:', cityCoords)
+          }
+        }
+      }
+    } catch (error) {
+      console.warn('Could not get location:', error)
     }
     
     console.log('API params:', params)

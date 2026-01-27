@@ -78,14 +78,4 @@ export function SearchBar({ variant = "hero" }: { variant?: SearchBarVariant }) 
     </div>
   )
 }
-<<<<<<< HEAD
-        onClick={handleSearch}
-=======
-        onClick={runSearch}
->>>>>>> 43722dc548f8250567f019d3477c9adbb6b89aa3
-      >
-        Rechercher
-      </Button>
-    </div>
-  )
-}
+

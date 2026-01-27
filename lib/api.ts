@@ -204,6 +204,8 @@ export const annonceService = {
     date_from?: string
     date_to?: string
     status?: string
+    user_lat?: number
+    user_lng?: number
     distance_km?: number
   }) {
     try {
@@ -219,6 +221,8 @@ export const annonceService = {
       if (params?.date_from) queryParams.append('date_from', params.date_from)
       if (params?.date_to) queryParams.append('date_to', params.date_to)
       if (params?.status) queryParams.append('status', params.status)
+      if (params?.user_lat !== undefined) queryParams.append('user_lat', params.user_lat.toString())
+      if (params?.user_lng !== undefined) queryParams.append('user_lng', params.user_lng.toString())
       if (params?.distance_km !== undefined) queryParams.append('distance_km', params.distance_km.toString())
 
       const response = await fetch(
@@ -270,8 +274,11 @@ export const annonceService = {
     price: number
     negotiable?: boolean
     category_id: number
+    custom_category?: string | null
     city: string
     district: string
+    latitude?: number
+    longitude?: number
     etat: string
   }) {
     try {

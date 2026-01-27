@@ -27,6 +27,8 @@ interface Annonce {
   custom_category: string | null
   created_at: string
   photos?: string[]
+  videos?: string[]
+  audios?: string[]
   user: {
     id: number
     name: string
@@ -164,7 +166,7 @@ export default function ListingDetailPage() {
     )
   }
 
-  const apiBase = process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") || "http://localhost:8000"
+  const apiBase = "http://localhost:8000"
   const photoUrl = annonce.photos && annonce.photos.length > 0 && annonce.photos[currentPhotoIndex]
     ? (annonce.photos[currentPhotoIndex].startsWith('http') 
         ? annonce.photos[currentPhotoIndex] 
@@ -173,6 +175,8 @@ export default function ListingDetailPage() {
 
   console.log('Current photo URL:', photoUrl)
   console.log('All photos:', annonce.photos)
+  console.log('Audios:', annonce.audios)
+  console.log('Videos:', annonce.videos)
 
   const isOwner = user?.id === annonce.user.id
 
@@ -232,11 +236,28 @@ export default function ListingDetailPage() {
                       <img
                         src={photo.startsWith('http') 
                           ? photo 
-                          : `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}/storage/${photo}`}
+                          : `${apiBase}/storage/${photo}`}
                         alt=""
                         className="w-full h-full object-cover"
                       />
                     </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Vidéos */}
+              {annonce.videos && annonce.videos.length > 0 && (
+                <div className="mt-4 space-y-3">
+                  <h3 className="font-semibold">Vidéos</h3>
+                  {annonce.videos.map((video: string, index: number) => (
+                    <video
+                      key={index}
+                      controls
+                      className="w-full rounded-lg"
+                      src={video.startsWith('http') ? video : `${apiBase}/storage/${video}`}
+                    >
+                      Votre navigateur ne supporte pas la lecture de vidéos.
+                    </video>
                   ))}
                 </div>
               )}
@@ -333,9 +354,31 @@ export default function ListingDetailPage() {
               {/* Description */}
               <Card className="p-4">
                 <h2 className="font-semibold text-lg mb-3">Description</h2>
-                <p className="text-muted-foreground whitespace-pre-wrap">
-                  {annonce.description || "Aucune description fournie"}
-                </p>
+                {annonce.description && (
+                  <p className="text-muted-foreground whitespace-pre-wrap mb-4">
+                    {annonce.description}
+                  </p>
+                )}
+                {annonce.audios && annonce.audios.length > 0 && (
+                  <div className="space-y-3">
+                    <p className="text-sm text-muted-foreground">
+                      Description vocale enregistrée - Écoutez l'audio pour plus de détails
+                    </p>
+                    {annonce.audios.map((audio: string, index: number) => (
+                      <audio
+                        key={index}
+                        controls
+                        className="w-full"
+                        src={audio.startsWith('http') ? audio : `${apiBase}/storage/${audio}`}
+                      >
+                        Votre navigateur ne supporte pas l'élément audio.
+                      </audio>
+                    ))}
+                  </div>
+                )}
+                {!annonce.description && (!annonce.audios || annonce.audios.length === 0) && (
+                  <p className="text-muted-foreground">Aucune description fournie</p>
+                )}
               </Card>
 
               {/* Details */}
