@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useAuth } from "@/contexts/AuthContext"
-import { Loader2 } from "lucide-react"
+import { Eye, EyeOff, Loader2 } from "lucide-react"
 
 interface AuthDialogProps {
   open: boolean
@@ -20,23 +20,22 @@ export function AuthDialog({ open, onOpenChange, defaultTab = "login" }: AuthDia
   const [isLoading, setIsLoading] = useState(false)
   const [activeTab, setActiveTab] = useState(defaultTab)
 
-  // Login form state
   const [loginIdentifier, setLoginIdentifier] = useState("")
   const [loginPassword, setLoginPassword] = useState("")
+  const [showLoginPassword, setShowLoginPassword] = useState(false)
 
-  // Register form state
   const [registerName, setRegisterName] = useState("")
   const [registerEmail, setRegisterEmail] = useState("")
   const [registerPhone, setRegisterPhone] = useState("")
   const [registerPassword, setRegisterPassword] = useState("")
   const [registerPasswordConfirmation, setRegisterPasswordConfirmation] = useState("")
+  const [showRegisterPassword, setShowRegisterPassword] = useState(false)
+  const [showRegisterPasswordConfirmation, setShowRegisterPasswordConfirmation] = useState(false)
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-
     const success = await login(loginIdentifier, loginPassword)
-    
     setIsLoading(false)
     if (success) {
       onOpenChange(false)
@@ -48,7 +47,6 @@ export function AuthDialog({ open, onOpenChange, defaultTab = "login" }: AuthDia
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-
     const success = await register({
       name: registerName,
       email: registerEmail,
@@ -57,11 +55,9 @@ export function AuthDialog({ open, onOpenChange, defaultTab = "login" }: AuthDia
       password_confirmation: registerPasswordConfirmation,
       language: "fr",
     })
-
     setIsLoading(false)
     if (success) {
       onOpenChange(false)
-      // Reset form
       setRegisterName("")
       setRegisterEmail("")
       setRegisterPhone("")
@@ -75,9 +71,7 @@ export function AuthDialog({ open, onOpenChange, defaultTab = "login" }: AuthDia
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Connexion / Inscription</DialogTitle>
-          <DialogDescription>
-            Connectez-vous ou créez un compte pour continuer
-          </DialogDescription>
+          <DialogDescription>Connectez-vous ou créez un compte pour continuer</DialogDescription>
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "login" | "register")}>
@@ -102,15 +96,25 @@ export function AuthDialog({ open, onOpenChange, defaultTab = "login" }: AuthDia
               </div>
               <div className="space-y-2">
                 <Label htmlFor="login-password">Mot de passe</Label>
-                <Input
-                  id="login-password"
-                  type="password"
-                  placeholder="••••••••"
-                  value={loginPassword}
-                  onChange={(e) => setLoginPassword(e.target.value)}
-                  required
-                  disabled={isLoading}
-                />
+                <div className="relative">
+                  <Input
+                    id="login-password"
+                    type={showLoginPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    value={loginPassword}
+                    onChange={(e) => setLoginPassword(e.target.value)}
+                    required
+                    disabled={isLoading}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowLoginPassword((v) => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                    aria-label={showLoginPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                  >
+                    {showLoginPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? (
@@ -165,29 +169,51 @@ export function AuthDialog({ open, onOpenChange, defaultTab = "login" }: AuthDia
               </div>
               <div className="space-y-2">
                 <Label htmlFor="register-password">Mot de passe</Label>
-                <Input
-                  id="register-password"
-                  type="password"
-                  placeholder="••••••••"
-                  value={registerPassword}
-                  onChange={(e) => setRegisterPassword(e.target.value)}
-                  required
-                  minLength={6}
-                  disabled={isLoading}
-                />
+                <div className="relative">
+                  <Input
+                    id="register-password"
+                    type={showRegisterPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    value={registerPassword}
+                    onChange={(e) => setRegisterPassword(e.target.value)}
+                    required
+                    minLength={6}
+                    disabled={isLoading}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowRegisterPassword((v) => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                    aria-label={showRegisterPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                  >
+                    {showRegisterPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="register-password-confirmation">Confirmer le mot de passe</Label>
-                <Input
-                  id="register-password-confirmation"
-                  type="password"
-                  placeholder="••••••••"
-                  value={registerPasswordConfirmation}
-                  onChange={(e) => setRegisterPasswordConfirmation(e.target.value)}
-                  required
-                  minLength={6}
-                  disabled={isLoading}
-                />
+                <div className="relative">
+                  <Input
+                    id="register-password-confirmation"
+                    type={showRegisterPasswordConfirmation ? "text" : "password"}
+                    placeholder="••••••••"
+                    value={registerPasswordConfirmation}
+                    onChange={(e) => setRegisterPasswordConfirmation(e.target.value)}
+                    required
+                    minLength={6}
+                    disabled={isLoading}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowRegisterPasswordConfirmation((v) => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                    aria-label={
+                      showRegisterPasswordConfirmation ? "Masquer le mot de passe" : "Afficher le mot de passe"
+                    }
+                  >
+                    {showRegisterPasswordConfirmation ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? (

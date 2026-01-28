@@ -191,6 +191,81 @@ export default function PublishPage() {
     return `${mins}:${secs.toString().padStart(2, '0')}`
   }
 
+  const validateForm = () => {
+    const selectedCategory = categories.find(c => c.id.toString() === categoryId)
+    const isAutreCategory = selectedCategory?.name === "Autre" || selectedCategory?.name === "Yeneen"
+    if (!validateForm()) return
+
+    if (!title || !price || !categoryId || !city || !district || !etat) {
+      toast({
+        title: "Champs manquants",
+        description: "Veuillez remplir tous les champs obligatoires",
+        variant: "destructive",
+      })
+      return false
+    }
+
+    if (imageFiles.length < 2) {
+      toast({
+        title: "Photos obligatoires",
+        description: "Veuillez ajouter au moins 2 photos",
+        variant: "destructive",
+      })
+      return false
+    }
+
+    if (descriptionMode === 'text') {
+      if (!description.trim() || description.trim().length < 20) {
+        toast({
+          title: "Description obligatoire",
+          description: "La description doit contenir au moins 20 caractères",
+          variant: "destructive",
+        })
+        return false
+      }
+    } else if (!audioBlob) {
+      toast({
+        title: "Description obligatoire",
+        description: "Veuillez enregistrer une description vocale",
+        variant: "destructive",
+      })
+      return false
+    }
+
+    if (isAutreCategory && !customCategory.trim()) {
+      toast({
+        title: "CatÃ©gorie manquante",
+        description: "Veuillez prÃ©ciser la catÃ©gorie",
+        variant: "destructive",
+      })
+      return false
+    }
+
+    return true
+  }
+
+  const handlePreview = () => {
+    if (!validateForm()) return
+    const payload = {
+      title,
+      description: descriptionMode === 'text'
+        ? description.trim()
+        : "Description vocale enregistrÃ©e - Ã‰coutez l'audio pour plus de dÃ©tails",
+      price,
+      negotiable,
+      categoryId,
+      customCategory,
+      city,
+      district,
+      etat,
+      photos: imagePreviews,
+      hasVideo: !!videoFile,
+      hasAudio: !!audioBlob,
+    }
+    sessionStorage.setItem("preview_annonce", JSON.stringify(payload))
+    router.push("/publish/preview")
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
@@ -598,7 +673,11 @@ export default function PublishPage() {
                 </Select>
               </div>
 
-              <Button type="submit" className="w-full" size="lg" disabled={isLoading}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <Button type="button" variant="outline" size="lg" onClick={handlePreview} disabled={isLoading}>
+                  Previsualiser
+                </Button>
+                <Button type="submit" className="w-full" size="lg" disabled={isLoading}>
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -607,7 +686,8 @@ export default function PublishPage() {
                 ) : (
                   "Publier l'annonce"
                 )}
-              </Button>
+                </Button>
+              </div>
             </Card>
           </form>
         </div>

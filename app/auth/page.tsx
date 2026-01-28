@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Eye, EyeOff } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 import { useRouter } from "next/navigation"
 import { Loader2 } from "lucide-react"
@@ -21,12 +22,15 @@ export default function AuthPage() {
 
   const [loginIdentifier, setLoginIdentifier] = useState("")
   const [loginPassword, setLoginPassword] = useState("")
+  const [showLoginPassword, setShowLoginPassword] = useState(false)
 
   const [registerName, setRegisterName] = useState("")
   const [registerEmail, setRegisterEmail] = useState("")
   const [registerPhone, setRegisterPhone] = useState("")
   const [registerPassword, setRegisterPassword] = useState("")
   const [registerPasswordConfirmation, setRegisterPasswordConfirmation] = useState("")
+  const [showRegisterPassword, setShowRegisterPassword] = useState(false)
+  const [showRegisterPasswordConfirmation, setShowRegisterPasswordConfirmation] = useState(false)
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -85,14 +89,24 @@ export default function AuthPage() {
                   </div>
                   <div>
                     <Label htmlFor="login-password">Mot de passe</Label>
-                    <Input
-                      id="login-password"
-                      type="password"
-                      placeholder="••••••••"
-                      value={loginPassword}
-                      onChange={(e) => setLoginPassword(e.target.value)}
-                      required
-                    />
+                    <div className="relative">
+                      <Input
+                        id="login-password"
+                        type={showLoginPassword ? "text" : "password"}
+                        placeholder="••••••••"
+                        value={loginPassword}
+                        onChange={(e) => setLoginPassword(e.target.value)}
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowLoginPassword((v) => !v)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                        aria-label={showLoginPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                      >
+                        {showLoginPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
                   </div>
                   <Button type="submit" className="w-full" disabled={isLoading}>
                     {isLoading ? (
@@ -144,27 +158,49 @@ export default function AuthPage() {
                   </div>
                   <div>
                     <Label htmlFor="register-password">Mot de passe</Label>
-                    <Input
-                      id="register-password"
-                      type="password"
-                      placeholder="••••••••"
-                      value={registerPassword}
-                      onChange={(e) => setRegisterPassword(e.target.value)}
-                      required
-                      minLength={6}
-                    />
+                    <div className="relative">
+                      <Input
+                        id="register-password"
+                        type={showRegisterPassword ? "text" : "password"}
+                        placeholder="••••••••"
+                        value={registerPassword}
+                        onChange={(e) => setRegisterPassword(e.target.value)}
+                        required
+                        minLength={6}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowRegisterPassword((v) => !v)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                        aria-label={showRegisterPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                      >
+                        {showRegisterPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
                   </div>
                   <div>
                     <Label htmlFor="register-password-confirmation">Confirmer le mot de passe</Label>
-                    <Input
-                      id="register-password-confirmation"
-                      type="password"
-                      placeholder="••••••••"
-                      value={registerPasswordConfirmation}
-                      onChange={(e) => setRegisterPasswordConfirmation(e.target.value)}
-                      required
-                      minLength={6}
-                    />
+                    <div className="relative">
+                      <Input
+                        id="register-password-confirmation"
+                        type={showRegisterPasswordConfirmation ? "text" : "password"}
+                        placeholder="••••••••"
+                        value={registerPasswordConfirmation}
+                        onChange={(e) => setRegisterPasswordConfirmation(e.target.value)}
+                        required
+                        minLength={6}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowRegisterPasswordConfirmation((v) => !v)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                        aria-label={
+                          showRegisterPasswordConfirmation ? "Masquer le mot de passe" : "Afficher le mot de passe"
+                        }
+                      >
+                        {showRegisterPasswordConfirmation ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
                   </div>
                   <Button type="submit" className="w-full" disabled={isLoading}>
                     {isLoading ? (

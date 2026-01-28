@@ -337,6 +337,9 @@ export default function ListingsPage() {
                         <img
                           src={photoUrl}
                           alt={listing.title}
+                          onError={(e) => {
+                            e.currentTarget.src = "/placeholder.svg"
+                          }}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         />
                         <Button

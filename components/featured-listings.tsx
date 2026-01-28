@@ -123,10 +123,11 @@ export function FeaturedListings() {
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
       {listings.map((listing) => {
         const isFavorited = favorites.includes(listing.id)
+        const apiBase = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || "http://127.0.0.1:8000"
         const photoUrl = listing.photos?.[0] 
           ? (listing.photos[0].startsWith('http') 
               ? listing.photos[0] 
-              : `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}/storage/${listing.photos[0]}`)
+              : `${apiBase}/storage/${listing.photos[0]}`)
           : "/placeholder.svg"
 
         return (
@@ -136,6 +137,9 @@ export function FeaturedListings() {
                 <img
                   src={photoUrl}
                   alt={listing.title}
+                  onError={(e) => {
+                    e.currentTarget.src = "/placeholder.svg"
+                  }}
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />

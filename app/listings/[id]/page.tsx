@@ -190,7 +190,14 @@ export default function ListingDetailPage() {
             {/* Photos */}
             <div>
               <div className="relative aspect-square rounded-lg overflow-hidden bg-muted mb-4">
-                <img src={photoUrl} alt={annonce.title} className="w-full h-full object-cover" />
+                <img
+                  src={photoUrl}
+                  alt={annonce.title}
+                  onError={(e) => {
+                    e.currentTarget.src = "/placeholder.svg"
+                  }}
+                  className="w-full h-full object-cover"
+                />
                 {annonce.photos && annonce.photos.length > 1 && (
                   <>
                     <Button
@@ -238,6 +245,9 @@ export default function ListingDetailPage() {
                           ? photo 
                           : `${apiBase}/storage/${photo}`}
                         alt=""
+                        onError={(e) => {
+                          e.currentTarget.src = "/placeholder.svg"
+                        }}
                         className="w-full h-full object-cover"
                       />
                     </button>
