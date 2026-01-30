@@ -8,12 +8,23 @@ import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Settings, Star, Package, Heart, LogOut, Loader2, MapPin } from "lucide-react"
+import { Settings, Star, Package, Heart, LogOut, Loader2, MapPin, Trash2, Edit3 } from "lucide-react"
 import Link from "next/link"
 import { useAuth } from "@/contexts/AuthContext"
 import { resolveStorageUrl } from "@/lib/media"
-import { profileService, favoriteService } from "@/lib/api"
+import { profileService, favoriteService, annonceService } from "@/lib/api"
 import { useRouter } from "next/navigation"
+import { useToast } from "@/hooks/use-toast"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 interface Annonce {
   id: number
@@ -38,6 +49,8 @@ export default function ProfilePage() {
   const [favorites, setFavorites] = useState<Favorite[]>([])
   const [isLoadingAnnonces, setIsLoadingAnnonces] = useState(true)
   const [isLoadingFavorites, setIsLoadingFavorites] = useState(true)
+  const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null)
+  const { toast } = useToast()
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -82,6 +95,37 @@ export default function ProfilePage() {
   const handleLogout = async () => {
     await logout()
     router.push("/")
+  }
+
+  const handleSwitchAccount = async () => {
+    await logout()
+    router.push("/auth")
+  }
+
+  const removeFavorite = async (annonceId: number) => {
+    const result = await favoriteService.remove(annonceId)
+    if (result.success) {
+      setFavorites((prev) => prev.filter((fav) => fav.annonce?.id !== annonceId))
+      toast({ title: "Favori retire" })
+    } else {
+      toast({ title: "Erreur", description: result.message || "Impossible de retirer le favori", variant: "destructive" })
+    }
+  }
+
+  const confirmDeleteAnnonce = (annonceId: number) => {
+    setDeleteTargetId(annonceId)
+  }
+
+  const deleteAnnonce = async () => {
+    if (!deleteTargetId) return
+    const result = await annonceService.delete(deleteTargetId)
+    if (result.success) {
+      setUserAnnonces((prev) => prev.filter((a) => a.id !== deleteTargetId))
+      toast({ title: "Annonce supprimee" })
+    } else {
+      toast({ title: "Erreur", description: result.message || "Suppression echouee", variant: "destructive" })
+    }
+    setDeleteTargetId(null)
   }
 
   if (!user) {
@@ -195,10 +239,14 @@ export default function ProfilePage() {
                                 Voir
                               </Button>
                             </Link>
-                            <Button size="sm" variant="outline">
-                              Modifier
-                            </Button>
-                            <Button size="sm" variant="outline" className="text-destructive bg-transparent">
+                            <Link href={`/publish?edit=${listing.id}`}>
+                              <Button size="sm" variant="outline">
+                                <Edit3 className="w-4 h-4 mr-1" />
+                                Modifier
+                              </Button>
+                            </Link>
+                            <Button size="sm" variant="outline" className="text-destructive bg-transparent" onClick={() => confirmDeleteAnnonce(listing.id)}>
+                              <Trash2 className="w-4 h-4 mr-1" />
                               Supprimer
                             </Button>
                           </div>
@@ -243,6 +291,18 @@ export default function ProfilePage() {
                               <MapPin className="w-4 h-4 mr-1" />
                               {annonce.city}, {annonce.district}
                             </div>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="mt-3"
+                              onClick={(e) => {
+                                e.preventDefault()
+                                removeFavorite(annonce.id)
+                              }}
+                            >
+                              Retirer
+                            </Button>
                           </div>
                         </Card>
                       </Link>
@@ -254,6 +314,21 @@ export default function ProfilePage() {
           </Tabs>
         </div>
       </main>
+
+      <AlertDialog open={!!deleteTargetId} onOpenChange={(open) => !open && setDeleteTargetId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Supprimer l'annonce</AlertDialogTitle>
+            <AlertDialogDescription>
+              Cette action est definitive. Voulez-vous vraiment supprimer cette annonce ?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction onClick={deleteAnnonce}>Supprimer</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <BottomNav />
     </div>

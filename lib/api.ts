@@ -235,6 +235,11 @@ export const annonceService = {
       const result = await response.json()
       
       if (!response.ok) {
+        // Some backends still return a created resource even with a non-2xx.
+        const maybeId = result?.data?.id || result?.id
+        if (maybeId) {
+          return { success: true, data: result, warning: true }
+        }
         throw { response: { data: result, status: response.status } }
       }
 
