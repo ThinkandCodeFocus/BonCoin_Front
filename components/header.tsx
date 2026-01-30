@@ -10,6 +10,7 @@ import { LanguageSwitcher } from "@/components/language-switcher"
 import { useAuth } from "@/contexts/AuthContext"
 import { AuthDialog } from "@/components/auth-dialog"
 import { useTheme } from "next-themes"
+import { resolveStorageUrl } from "@/lib/media"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -126,9 +127,9 @@ export function Header() {
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon" className="rounded-full hover:bg-muted">
-                      <Avatar className="w-8 h-8">
+                        <Avatar className="w-8 h-8">
                         <AvatarImage 
-                          src={user?.photo ? `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}/storage/${user.photo}` : undefined} 
+                          src={user?.photo ? resolveStorageUrl(user.photo) : undefined} 
                         />
                         <AvatarFallback>{user?.name?.charAt(0).toUpperCase()}</AvatarFallback>
                       </Avatar>

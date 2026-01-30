@@ -11,13 +11,23 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Upload, X, Loader2, Mic, StopCircle, Type } from "lucide-react"
+import { Upload, X, Loader2, Mic, StopCircle, Type, Video } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/contexts/AuthContext"
 import { annonceService, categoryService } from "@/lib/api"
 import { useRouter } from "next/navigation"
 import { Checkbox } from "@/components/ui/checkbox"
 import { getUserLocation, getCityCoordinates } from "@/lib/geolocation"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 interface Category {
   id: number
@@ -35,6 +45,7 @@ export default function PublishPage() {
   const router = useRouter()
 
   // Form state
+  const [showPublishConfirm, setShowPublishConfirm] = useState(false)
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
   const [price, setPrice] = useState("")
@@ -44,6 +55,8 @@ export default function PublishPage() {
   const [city, setCity] = useState("")
   const [district, setDistrict] = useState("")
   const [etat, setEtat] = useState("")
+  const [videoFile, setVideoFile] = useState<File | null>(null)
+  const [videoPreview, setVideoPreview] = useState<string | null>(null)
   
   // Voice recording state
   const [descriptionMode, setDescriptionMode] = useState<'text' | 'voice'>('text')
@@ -123,6 +136,39 @@ export default function PublishPage() {
     setImagePreviews(imagePreviews.filter((_, i) => i !== index))
   }
 
+  const handleVideoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const allowedTypes = ["video/mp4", "video/mpeg"]
+    const maxSizeBytes = 10 * 1024 * 1024
+    if (!allowedTypes.includes(file.type)) {
+      toast({
+        title: "Format video invalide",
+        description: "Veuillez choisir une video MP4 ou MPEG",
+        variant: "destructive",
+      })
+      return
+    }
+    if (file.size > maxSizeBytes) {
+      toast({
+        title: "Video trop lourde",
+        description: "La video ne doit pas depasser 10MB",
+        variant: "destructive",
+      })
+      return
+    }
+    if (videoPreview) URL.revokeObjectURL(videoPreview)
+    const preview = URL.createObjectURL(file)
+    setVideoFile(file)
+    setVideoPreview(preview)
+  }
+
+  const removeVideo = () => {
+    if (videoPreview) URL.revokeObjectURL(videoPreview)
+    setVideoFile(null)
+    setVideoPreview(null)
+  }
+
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
@@ -194,7 +240,6 @@ export default function PublishPage() {
   const validateForm = () => {
     const selectedCategory = categories.find(c => c.id.toString() === categoryId)
     const isAutreCategory = selectedCategory?.name === "Autre" || selectedCategory?.name === "Yeneen"
-    if (!validateForm()) return
 
     if (!title || !price || !categoryId || !city || !district || !etat) {
       toast({
@@ -234,8 +279,8 @@ export default function PublishPage() {
 
     if (isAutreCategory && !customCategory.trim()) {
       toast({
-        title: "CatÃ©gorie manquante",
-        description: "Veuillez prÃ©ciser la catÃ©gorie",
+        title: "Catégorie manquante",
+        description: "Veuillez préciser la catégorie",
         variant: "destructive",
       })
       return false
@@ -246,11 +291,17 @@ export default function PublishPage() {
 
   const handlePreview = () => {
     if (!validateForm()) return
+    ;(window as any).__publishDraft = {
+      imageFiles,
+      videoFile,
+      audioBlob,
+      descriptionMode,
+    }
     const payload = {
       title,
       description: descriptionMode === 'text'
         ? description.trim()
-        : "Description vocale enregistrÃ©e - Ã‰coutez l'audio pour plus de dÃ©tails",
+        : "Description vocale enregistrée - Écoutez l'audio pour plus de détails",
       price,
       negotiable,
       categoryId,
@@ -261,50 +312,37 @@ export default function PublishPage() {
       photos: imagePreviews,
       hasVideo: !!videoFile,
       hasAudio: !!audioBlob,
+      videoPreview: videoPreview || undefined,
     }
     sessionStorage.setItem("preview_annonce", JSON.stringify(payload))
     router.push("/publish/preview")
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    
-    // Vérifier si Autre est sélectionné et que le champ personnalisé est vide
-    const selectedCategory = categories.find(c => c.id.toString() === categoryId)
-    const isAutreCategory = selectedCategory?.name === "Autre" || selectedCategory?.name === "Yeneen"
-    
-    if (!title || !price || !categoryId || !city || !district || !etat) {
-      toast({
-        title: "Champs manquants",
-        description: "Veuillez remplir tous les champs obligatoires",
-        variant: "destructive",
-      })
-      return
-    }
-    
-    if (isAutreCategory && !customCategory.trim()) {
-      toast({
-        title: "Catégorie manquante",
-        description: "Veuillez préciser la catégorie",
-        variant: "destructive",
-      })
-      return
-    }
+    if (!validateForm()) return
+    setShowPublishConfirm(true)
+  }
 
+  const publishAnnonce = async () => {
+    setShowPublishConfirm(false)
     setIsLoading(true)
 
     try {
-      // Essayer d'obtenir les coordonnées
+      const selectedCategory = categories.find(c => c.id.toString() === categoryId)
+      const isAutreCategory = selectedCategory?.name === "Autre" || selectedCategory?.name === "Yeneen"
+
+      // Essayer d'obtenir les coordonnees
       let latitude: number | undefined
       let longitude: number | undefined
 
-      // Essayer d'abord la géolocalisation du navigateur
+      // Essayer d'abord la geolocalisation du navigateur
       const userLocation = await getUserLocation()
       if (userLocation) {
         latitude = userLocation.lat
         longitude = userLocation.lng
       } else {
-        // Sinon, utiliser les coordonnées de la ville
+        // Sinon, utiliser les coordonnees de la ville
         const cityCoords = getCityCoordinates(city)
         if (cityCoords) {
           latitude = cityCoords.lat
@@ -312,10 +350,12 @@ export default function PublishPage() {
         }
       }
 
-      // Créer l'annonce
+      // Creer l'annonce
       const annonceData: any = {
         title,
-        description: descriptionMode === 'text' ? (description || 'Pas de description') : (audioBlob ? 'Description vocale enregistrée - Écoutez l\'audio pour plus de détails' : 'Pas de description'),
+        description: descriptionMode === 'text'
+          ? description.trim()
+          : "Description vocale enregistree - Ecoutez l'audio pour plus de details",
         price: parseFloat(price),
         negotiable,
         category_id: parseInt(categoryId),
@@ -325,7 +365,7 @@ export default function PublishPage() {
         etat,
       }
 
-      // Ajouter les coordonnées si disponibles
+      // Ajouter les coordonnees si disponibles
       if (latitude !== undefined && longitude !== undefined) {
         annonceData.latitude = latitude
         annonceData.longitude = longitude
@@ -335,27 +375,24 @@ export default function PublishPage() {
       const result = await annonceService.create(annonceData)
       console.log('Create result:', result)
       
-      if (!result.success) {
+      const annonceId = result.data?.data?.id || result.data?.id
+      if (!result.success && !annonceId) {
         const errorMessage = result.errors 
           ? Object.entries(result.errors).map(([field, messages]) => {
               return `${field}: ${Array.isArray(messages) ? messages.join(', ') : messages}`
             }).join('\n')
-          : result.message || "Erreur lors de la création"
-        
-        console.error('Creation error:', errorMessage)
+          : result.message || "Erreur lors de la creation"
         toast({
-          title: "Erreur de création",
+          title: "Erreur de creation",
           description: errorMessage,
           variant: "destructive",
         })
         setIsLoading(false)
         return
       }
-
-      const annonceId = result.data.data?.id || result.data.id
       console.log('Annonce created with ID:', annonceId)
 
-      // Upload des photos si présentes
+      // Upload des photos si presentes
       if (imageFiles.length > 0 && annonceId) {
         console.log('Uploading', imageFiles.length, 'photos...')
         const uploadResult = await annonceService.uploadPhotos(annonceId, imageFiles)
@@ -364,15 +401,14 @@ export default function PublishPage() {
         if (!uploadResult.success) {
           toast({
             title: "Avertissement",
-            description: "Annonce créée mais erreur lors de l'upload des photos: " + (uploadResult.message || 'Erreur inconnue'),
-            variant: "destructive",
+            description: "Annonce creee mais erreur lors de l'upload des photos: " + (uploadResult.message || 'Erreur inconnue'),
           })
         } else {
           console.log('Photos uploaded successfully')
         }
       }
 
-      // Upload de l'audio vocal si présent
+      // Upload de l'audio vocal si present
       if (audioBlob && annonceId) {
         const audioFile = new File([audioBlob], `description_${annonceId}.webm`, { type: 'audio/webm' })
         const formData = new FormData()
@@ -386,8 +422,7 @@ export default function PublishPage() {
           if (!audioUploadResult.success) {
             toast({
               title: "Avertissement",
-              description: "Annonce créée mais erreur lors de l'upload de l'audio",
-              variant: "destructive",
+              description: "Annonce creee mais erreur lors de l'upload de l'audio",
             })
           }
         } catch (error) {
@@ -395,8 +430,21 @@ export default function PublishPage() {
         }
       }
 
+      // Upload de la video si presente
+      if (videoFile && annonceId) {
+        const formData = new FormData()
+        formData.append('video', videoFile)
+        const videoUploadResult = await annonceService.uploadVideo(annonceId, formData)
+        if (!videoUploadResult.success) {
+          toast({
+            title: "Avertissement",
+            description: "Annonce creee mais erreur lors de l'upload de la video",
+          })
+        }
+      }
+
       toast({
-        title: "Annonce publiée",
+        title: "Creation avec succes",
         description: "Votre annonce est maintenant en ligne",
       })
 
@@ -412,6 +460,9 @@ export default function PublishPage() {
     }
   }
 
+  const selectedCategory = categories.find(c => c.id.toString() === categoryId)
+  const isCustomCategory = selectedCategory?.name === "Autre" || selectedCategory?.name === "Yeneen"
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
@@ -424,7 +475,7 @@ export default function PublishPage() {
             <Card className="p-6 space-y-6">
               {/* Images */}
               <div>
-                <Label>Photos (max 5)</Label>
+                <Label>Photos (min 2, max 5) *</Label>
                 <div className="mt-2 grid grid-cols-3 md:grid-cols-5 gap-4">
                   {imagePreviews.map((img, idx) => (
                     <div key={idx} className="relative aspect-square rounded-lg overflow-hidden">
@@ -449,6 +500,39 @@ export default function PublishPage() {
                 </div>
               </div>
 
+              {/* Video */}
+              <div>
+                <Label>Video (optionnel)</Label>
+                {!videoFile ? (
+                  <div className="mt-2">
+                    <label className="flex items-center gap-3 w-full rounded-lg border-2 border-dashed border-border p-4 cursor-pointer hover:bg-muted/50 transition-colors">
+                      <Video className="w-6 h-6 text-muted-foreground" />
+                      <span className="text-sm text-muted-foreground">Ajouter une video (mp4/mpeg, max 10MB)</span>
+                      <input
+                        type="file"
+                        accept="video/mp4,video/mpeg"
+                        className="hidden"
+                        onChange={handleVideoUpload}
+                      />
+                    </label>
+                  </div>
+                ) : (
+                  <div className="mt-2 space-y-3">
+                    <video
+                      className="w-full rounded-lg border"
+                      controls
+                      src={videoPreview || undefined}
+                    />
+                    <div className="flex items-center justify-between text-sm text-muted-foreground">
+                      <span>{videoFile.name}</span>
+                      <Button type="button" variant="destructive" size="sm" onClick={removeVideo}>
+                        Retirer la video
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
               {/* Category */}
               <div>
                 <Label htmlFor="category">Catégorie *</Label>
@@ -471,7 +555,7 @@ export default function PublishPage() {
               </div>
 
               {/* Custom Category - Shown only when Autre is selected */}
-              {categoryId && categories.find(c => c.id.toString() === categoryId)?.name === "Autre" && (
+              {categoryId && isCustomCategory && (
                 <div>
                   <Label htmlFor="customCategory">Précisez la catégorie *</Label>
                   <Input
@@ -503,7 +587,7 @@ export default function PublishPage() {
               {/* Description */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <Label htmlFor="description">Description (optionnel)</Label>
+                  <Label htmlFor="description">Description *</Label>
                   <div className="flex gap-2">
                     <Button
                       type="button"
@@ -529,11 +613,13 @@ export default function PublishPage() {
                 {descriptionMode === 'text' ? (
                   <Textarea
                     id="description"
-                    placeholder="Décrivez votre article en détail... (optionnel)"
+                    placeholder="Décrivez votre article en détail..."
                     rows={6}
                     className="mt-2"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
+                    required
+                    minLength={20}
                   />
                 ) : (
                   <div className="mt-2 p-4 border rounded-lg">
@@ -675,7 +761,7 @@ export default function PublishPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <Button type="button" variant="outline" size="lg" onClick={handlePreview} disabled={isLoading}>
-                  Previsualiser
+                  Prévisualiser
                 </Button>
                 <Button type="submit" className="w-full" size="lg" disabled={isLoading}>
                 {isLoading ? (
@@ -692,6 +778,23 @@ export default function PublishPage() {
           </form>
         </div>
       </main>
+
+      <AlertDialog open={showPublishConfirm} onOpenChange={setShowPublishConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmer la publication</AlertDialogTitle>
+            <AlertDialogDescription>
+              Voulez-vous publier cette annonce maintenant ?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isLoading}>Annuler</AlertDialogCancel>
+            <AlertDialogAction onClick={publishAnnonce} disabled={isLoading}>
+              Publier
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <BottomNav />
     </div>

@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Heart, Share2, Flag, MapPin, Phone, MessageCircle, Loader2, ChevronLeft, ChevronRight } from "lucide-react"
 import { annonceService, favoriteService } from "@/lib/api"
+import { resolveStorageUrl } from "@/lib/media"
 import { useAuth } from "@/contexts/AuthContext"
 import { useParams, useRouter } from "next/navigation"
 import { toast } from "sonner"
@@ -166,12 +167,7 @@ export default function ListingDetailPage() {
     )
   }
 
-  const apiBase = "http://localhost:8000"
-  const photoUrl = annonce.photos && annonce.photos.length > 0 && annonce.photos[currentPhotoIndex]
-    ? (annonce.photos[currentPhotoIndex].startsWith('http') 
-        ? annonce.photos[currentPhotoIndex] 
-        : `${apiBase}/storage/${annonce.photos[currentPhotoIndex]}`)
-    : "/placeholder.svg"
+    const photoUrl = resolveStorageUrl(annonce.photos?.[currentPhotoIndex])
 
   console.log('Current photo URL:', photoUrl)
   console.log('All photos:', annonce.photos)
@@ -241,9 +237,7 @@ export default function ListingDetailPage() {
                       }`}
                     >
                       <img
-                        src={photo.startsWith('http') 
-                          ? photo 
-                          : `${apiBase}/storage/${photo}`}
+                        src={resolveStorageUrl(photo)}
                         alt=""
                         onError={(e) => {
                           e.currentTarget.src = "/placeholder.svg"
@@ -264,7 +258,7 @@ export default function ListingDetailPage() {
                       key={index}
                       controls
                       className="w-full rounded-lg"
-                      src={video.startsWith('http') ? video : `${apiBase}/storage/${video}`}
+                      src={resolveStorageUrl(video)}
                     >
                       Votre navigateur ne supporte pas la lecture de vidéos.
                     </video>
@@ -316,7 +310,7 @@ export default function ListingDetailPage() {
                       <AvatarImage
                         src={
                           annonce.user.photo
-                            ? `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}/storage/${annonce.user.photo}`
+                            ? resolveStorageUrl(annonce.user.photo)
                             : undefined
                         }
                       />
@@ -379,7 +373,7 @@ export default function ListingDetailPage() {
                         key={index}
                         controls
                         className="w-full"
-                        src={audio.startsWith('http') ? audio : `${apiBase}/storage/${audio}`}
+                        src={resolveStorageUrl(audio)}
                       >
                         Votre navigateur ne supporte pas l'élément audio.
                       </audio>

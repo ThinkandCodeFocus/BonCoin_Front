@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Settings, Star, Package, Heart, LogOut, Loader2, MapPin } from "lucide-react"
 import Link from "next/link"
 import { useAuth } from "@/contexts/AuthContext"
+import { resolveStorageUrl } from "@/lib/media"
 import { profileService, favoriteService } from "@/lib/api"
 import { useRouter } from "next/navigation"
 
@@ -101,7 +102,7 @@ export default function ProfilePage() {
           <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center gap-6">
             <Avatar className="w-24 h-24">
               <AvatarImage 
-                src={user.photo ? `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || "http://127.0.0.1:8000"}/storage/${user.photo}` : undefined} 
+                src={user.photo ? resolveStorageUrl(user.photo) : undefined} 
               />
               <AvatarFallback className="text-4xl">
                 {user.name?.charAt(0).toUpperCase()}
@@ -158,12 +159,7 @@ export default function ProfilePage() {
                 </Card>
               ) : (
                 userAnnonces.map((listing) => {
-                  const apiBase = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || "http://127.0.0.1:8000"
-                  const photoUrl = listing.photos?.[0] 
-                    ? (listing.photos[0].startsWith('http') 
-                        ? listing.photos[0] 
-                        : `${apiBase}/storage/${listing.photos[0]}`)
-                    : "/placeholder.svg"
+                  const photoUrl = resolveStorageUrl(listing.photos?.[0])
 
                   return (
                     <Card key={listing.id} className="p-4">
@@ -227,12 +223,7 @@ export default function ProfilePage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {favorites.map((item) => {
                     const annonce = item.annonce
-                    const apiBase = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || "http://127.0.0.1:8000"
-                    const photoUrl = annonce.photos?.[0] 
-                      ? (annonce.photos[0].startsWith('http') 
-                          ? annonce.photos[0] 
-                          : `${apiBase}/storage/${annonce.photos[0]}`)
-                      : "/placeholder.svg"
+                    const photoUrl = resolveStorageUrl(annonce.photos?.[0])
 
                     return (
                       <Link key={item.id} href={`/listings/${annonce.id}`}>

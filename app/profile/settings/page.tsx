@@ -14,6 +14,7 @@ import { useAuth } from "@/contexts/AuthContext"
 import { profileService } from "@/lib/api"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
+import { resolveStorageUrl } from "@/lib/media"
 
 export default function ProfileSettingsPage() {
   const { user, refreshUser, isAuthenticated } = useAuth()
@@ -153,7 +154,7 @@ export default function ProfileSettingsPage() {
   }
 
   const photoUrl = user.photo
-    ? `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}/storage/${user.photo}`
+    ? resolveStorageUrl(user.photo)
     : ""
 
   return (

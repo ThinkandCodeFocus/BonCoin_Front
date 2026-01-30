@@ -11,6 +11,7 @@ import { favoriteService } from "@/lib/api"
 import { useAuth } from "@/contexts/AuthContext"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
+import { resolveStorageUrl } from "@/lib/media"
 
 interface Favorite {
   id: number
@@ -84,11 +85,7 @@ export default function FavoritesPage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {favorites.map((item) => {
-                const photoUrl = item.annonce.photos?.[0]
-                  ? (item.annonce.photos[0].startsWith('http') 
-                      ? item.annonce.photos[0] 
-                      : `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}/storage/${item.annonce.photos[0]}`)
-                  : "/placeholder.svg"
+                const photoUrl = resolveStorageUrl(item.annonce.photos?.[0])
 
                 return (
                   <Link key={item.id} href={`/listings/${item.annonce.id}`}>

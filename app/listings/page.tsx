@@ -17,6 +17,7 @@ import { annonceService, favoriteService } from "@/lib/api"
 import { useAuth } from "@/contexts/AuthContext"
 import { useToast } from "@/hooks/use-toast"
 import { getUserLocation, getCityCoordinates } from "@/lib/geolocation"
+import { resolveStorageUrl } from "@/lib/media"
 
 interface Annonce {
   id: number
@@ -34,6 +35,9 @@ export default function ListingsPage() {
   const [priceRange, setPriceRange] = useState([0, 10000000])
   const [listings, setListings] = useState<Annonce[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalItems, setTotalItems] = useState(0)
   const [searchQuery, setSearchQuery] = useState("")
   const [locationFilter, setLocationFilter] = useState("")
   const [etatFilter, setEtatFilter] = useState("")
@@ -54,7 +58,8 @@ export default function ListingsPage() {
 
   useEffect(() => {
     console.log('Selected category:', selectedCategory)
-    loadListings()
+    setCurrentPage(1)
+    loadListings(1)
     if (isAuthenticated) {
       loadFavorites()
     }
@@ -64,16 +69,17 @@ export default function ListingsPage() {
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
       if (searchQuery !== undefined) {
-        loadListings()
+        setCurrentPage(1)
+        loadListings(1)
       }
     }, 500)
 
     return () => clearTimeout(delayDebounceFn)
   }, [searchQuery])
 
-  const loadListings = async () => {
+  const loadListings = async (page = currentPage) => {
     setIsLoading(true)
-    const params: any = { page: 1 }
+    const params: any = { page }
     
     if (searchQuery) {
       params.search = searchQuery
@@ -120,6 +126,16 @@ export default function ListingsPage() {
         console.log('First listing photos:', listingsData[0].photos)
       }
       setListings(listingsData)
+      const meta = result.data.meta || result.data?.data?.meta
+      if (meta) {
+        setCurrentPage(meta.current_page || page)
+        setTotalPages(meta.last_page || 1)
+        setTotalItems(meta.total || listingsData.length)
+      } else {
+        setCurrentPage(page)
+        setTotalPages(1)
+        setTotalItems(listingsData.length)
+      }
     }
     setIsLoading(false)
   }
@@ -165,12 +181,6 @@ export default function ListingsPage() {
     return new Intl.NumberFormat("fr-FR").format(price) + " FCFA"
   }
 
-  const isUrgent = (createdAt: string) => {
-    const created = new Date(createdAt)
-    const now = new Date()
-    const hoursDiff = Math.floor((now.getTime() - created.getTime()) / (1000 * 60 * 60))
-    return hoursDiff <= 48
-  }
 
   const filteredListings = listings.filter((listing) => {
     // Filtre par prix
@@ -317,57 +327,76 @@ export default function ListingsPage() {
             </div>
           ) : filteredListings.length === 0 ? (
             <div className="text-center py-20">
-              <p className="text-muted-foreground">Aucune annonce trouvée</p>
+              <p className="text-muted-foreground">Aucune annonce trouvee</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredListings.map((listing) => {
-                const photoUrl = listing.photos && listing.photos.length > 0 && listing.photos[0]
-                  ? (listing.photos[0].startsWith('http') 
-                      ? listing.photos[0] 
-                      : `http://localhost:8000/storage/${listing.photos[0]}`)
-                  : "/placeholder.svg"
-                
-                console.log('Listing:', listing.title, 'Photo URL:', photoUrl)
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredListings.map((listing) => {
+                  const photoUrl = resolveStorageUrl(listing.photos?.[0])
+                  
+                  console.log('Listing:', listing.title, 'Photo URL:', photoUrl)
 
-                return (
-                  <Link key={listing.id} href={`/listings/${listing.id}`}>
-                    <Card className="overflow-hidden hover:shadow-xl transition-shadow group cursor-pointer">
-                      <div className="relative aspect-[4/3] overflow-hidden">
-                        <img
-                          src={photoUrl}
-                          alt={listing.title}
-                          onError={(e) => {
-                            e.currentTarget.src = "/placeholder.svg"
-                          }}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                        <Button
-                          size="icon"
-                          variant="secondary"
-                          className="absolute top-3 right-3 rounded-full w-9 h-9"
-                          onClick={(e) => toggleFavorite(e, listing.id)}
-                        >
-                          <Heart 
-                            className={`w-4 h-4 ${favorites.includes(listing.id) ? 'fill-current text-destructive' : ''}`} 
+                  return (
+                    <Link key={listing.id} href={`/listings/${listing.id}`}>
+                      <Card className="overflow-hidden hover:shadow-xl transition-shadow group cursor-pointer">
+                        <div className="relative aspect-[4/3] overflow-hidden">
+                          <img
+                            src={photoUrl}
+                            alt={listing.title}
+                            onError={(e) => {
+                              e.currentTarget.src = "/placeholder.svg"
+                            }}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                           />
-                        </Button>
-                        {isUrgent(listing.created_at) && (
-                          <Badge className="absolute top-3 left-3 bg-destructive text-destructive-foreground">Urgent</Badge>
-                        )}
-                      </div>
-                      <div className="p-4">
-                        <h3 className="font-semibold text-lg mb-2 line-clamp-2">{listing.title}</h3>
-                        <p className="text-2xl font-bold text-primary mb-2">{formatPrice(listing.price)}</p>
-                        <div className="flex items-center text-sm text-muted-foreground">
-                          <MapPin className="w-4 h-4 mr-1" />
-                          {listing.city}, {listing.district}
+                          <Button
+                            size="icon"
+                            variant="secondary"
+                            className="absolute top-3 right-3 rounded-full w-9 h-9"
+                            onClick={(e) => toggleFavorite(e, listing.id)}
+                          >
+                            <Heart 
+                              className={`w-4 h-4 ${favorites.includes(listing.id) ? 'fill-current text-destructive' : ''}`} 
+                            />
+                          </Button>
                         </div>
-                      </div>
-                    </Card>
-                  </Link>
-                )
-              })}
+                        <div className="p-4">
+                          <h3 className="font-semibold text-lg mb-2 line-clamp-2">{listing.title}</h3>
+                          <p className="text-2xl font-bold text-primary mb-2">{formatPrice(listing.price)}</p>
+                          <div className="flex items-center text-sm text-muted-foreground">
+                            <MapPin className="w-4 h-4 mr-1" />
+                            {listing.city}, {listing.district}
+                          </div>
+                        </div>
+                      </Card>
+                    </Link>
+                  )
+                })}
+              </div>
+
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between">
+                  <p className="text-sm text-muted-foreground">
+                    Page {currentPage} / {totalPages} - {totalItems} annonces
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      disabled={currentPage <= 1 || isLoading}
+                      onClick={() => loadListings(currentPage - 1)}
+                    >
+                      Precedent
+                    </Button>
+                    <Button
+                      variant="outline"
+                      disabled={currentPage >= totalPages || isLoading}
+                      onClick={() => loadListings(currentPage + 1)}
+                    >
+                      Suivant
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>

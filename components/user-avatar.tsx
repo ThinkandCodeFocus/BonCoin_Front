@@ -1,4 +1,5 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { resolveStorageUrl } from "@/lib/media"
 
 interface UserAvatarProps {
   user?: {
@@ -11,7 +12,7 @@ interface UserAvatarProps {
 
 export function UserAvatar({ user, className = "w-10 h-10", fallbackClassName = "" }: UserAvatarProps) {
   const photoUrl = user?.photo
-    ? `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}/storage/${user.photo}`
+    ? resolveStorageUrl(user.photo)
     : undefined
 
   const initials = user?.name
