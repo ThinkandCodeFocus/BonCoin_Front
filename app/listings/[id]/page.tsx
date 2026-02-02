@@ -107,13 +107,17 @@ export default function ListingDetailPage() {
       const result = await favoriteService.remove(annonce!.id)
       if (result.success) {
         setIsFavorite(false)
-        toast.success("Retiré des favoris")
+        toast.success("Retire des favoris")
+      } else {
+        toast.error(result.message || "Impossible de retirer")
       }
     } else {
       const result = await favoriteService.add(annonce!.id)
       if (result.success) {
         setIsFavorite(true)
-        toast.success("Ajouté aux favoris")
+        toast.success("Ajoute aux favoris")
+      } else {
+        toast.error(result.message || "Impossible d'ajouter")
       }
     }
   }

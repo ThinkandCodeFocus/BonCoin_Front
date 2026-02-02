@@ -1,61 +1,35 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
 import { Header } from "@/components/header"
 import { BottomNav } from "@/components/bottom-nav"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Heart, MapPin, Loader2 } from "lucide-react"
 import Link from "next/link"
-import { favoriteService } from "@/lib/api"
 import { useAuth } from "@/contexts/AuthContext"
+import { useFavorites } from "@/contexts/FavoritesContext"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import { resolveStorageUrl } from "@/lib/media"
 
-interface Favorite {
-  id: number
-  annonce_id: number
-  annonce: {
-    id: number
-    title: string
-    price: number
-    city: string
-    district: string
-    photos?: string[]
-  }
-}
-
 export default function FavoritesPage() {
-  const [favorites, setFavorites] = useState<Favorite[]>([])
-  const [isLoading, setIsLoading] = useState(true)
   const { isAuthenticated } = useAuth()
+  const { favoriteItems, removeFavorite } = useFavorites()
   const router = useRouter()
   const { toast } = useToast()
 
   useEffect(() => {
+    console.log("🎯 FavoritesPage - favoriteItems from context:", favoriteItems)
     if (!isAuthenticated) {
       router.push("/")
       return
     }
-    loadFavorites()
-  }, [isAuthenticated])
+  }, [isAuthenticated, router, favoriteItems])
 
-  const loadFavorites = async () => {
-    setIsLoading(true)
-    const result = await favoriteService.getAll()
-    if (result.success && result.data) {
-      setFavorites(Array.isArray(result.data) ? result.data : [])
-    }
-    setIsLoading(false)
-  }
-
-  const removeFavorite = async (annonceId: number) => {
-    const result = await favoriteService.remove(annonceId)
-    if (result.success) {
-      setFavorites(favorites.filter((fav) => fav.annonce_id !== annonceId))
-      toast({ title: "Retiré des favoris" })
-    }
+  const handleRemoveFavorite = async (annonceId: number) => {
+    await removeFavorite(annonceId)
+    toast({ title: "Retire des favoris" })
   }
 
   const formatPrice = (price: number) => {
@@ -69,11 +43,7 @@ export default function FavoritesPage() {
         <div className="max-w-6xl mx-auto">
           <h1 className="text-3xl font-bold mb-8">Mes Favoris</h1>
 
-          {isLoading ? (
-            <div className="flex justify-center items-center py-20">
-              <Loader2 className="w-8 h-8 animate-spin text-primary" />
-            </div>
-          ) : favorites.length === 0 ? (
+          {favoriteItems.length === 0 ? (
             <Card className="p-12 text-center">
               <Heart className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
               <h2 className="text-xl font-semibold mb-2">Aucun favori</h2>
@@ -84,16 +54,16 @@ export default function FavoritesPage() {
             </Card>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {favorites.map((item) => {
-                const photoUrl = resolveStorageUrl(item.annonce.photos?.[0])
+              {favoriteItems.map((item) => {
+                const photoUrl = resolveStorageUrl(item.annonce?.photos?.[0])
 
                 return (
-                  <Link key={item.id} href={`/listings/${item.annonce.id}`}>
+                  <Link key={item.id} href={`/listings/${item.annonce?.id}`}>
                     <Card className="overflow-hidden hover:shadow-xl transition-shadow group cursor-pointer">
                       <div className="relative aspect-[4/3] overflow-hidden">
                         <img
                           src={photoUrl}
-                          alt={item.annonce.title}
+                          alt={item.annonce?.title}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         />
                         <Button
@@ -102,18 +72,18 @@ export default function FavoritesPage() {
                           className="absolute top-3 right-3 rounded-full w-9 h-9"
                           onClick={(e) => {
                             e.preventDefault()
-                            removeFavorite(item.annonce_id)
+                            handleRemoveFavorite(item.annonce_id)
                           }}
                         >
                           <Heart className="w-4 h-4 fill-current text-destructive" />
                         </Button>
                       </div>
                       <div className="p-4">
-                        <h3 className="font-semibold text-lg mb-2 line-clamp-2">{item.annonce.title}</h3>
-                        <p className="text-2xl font-bold text-primary mb-2">{formatPrice(item.annonce.price)}</p>
+                        <h3 className="font-semibold text-lg mb-2 line-clamp-2">{item.annonce?.title}</h3>
+                        <p className="text-2xl font-bold text-primary mb-2">{formatPrice(item.annonce?.price)}</p>
                         <div className="flex items-center text-sm text-muted-foreground">
                           <MapPin className="w-4 h-4 mr-1" />
-                          {item.annonce.city}, {item.annonce.district}
+                          {item.annonce?.city}, {item.annonce?.district}
                         </div>
                       </div>
                     </Card>

@@ -6,8 +6,9 @@ import { Badge } from "@/components/ui/badge"
 import { Heart, MapPin, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { annonceService, favoriteService } from "@/lib/api"
+import { annonceService } from "@/lib/api"
 import { useAuth } from "@/contexts/AuthContext"
+import { useFavorites } from "@/contexts/FavoritesContext"
 import { useToast } from "@/hooks/use-toast"
 import { resolveStorageUrl } from "@/lib/media"
 
@@ -28,10 +29,10 @@ export function FeaturedListings() {
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [totalItems, setTotalItems] = useState(0)
-  const [favorites, setFavorites] = useState<number[]>([])
   const [cityFilter, setCityFilter] = useState("")
   const [districtFilter, setDistrictFilter] = useState("")
   const { isAuthenticated } = useAuth()
+  const { favorites, isFavorited, addFavorite, removeFavorite } = useFavorites()
   const { toast } = useToast()
 
   useEffect(() => {
@@ -44,9 +45,6 @@ export function FeaturedListings() {
   useEffect(() => {
     setCurrentPage(1)
     loadAnnonces(1)
-    if (isAuthenticated) {
-      loadFavorites()
-    }
   }, [isAuthenticated, cityFilter, districtFilter])
 
   const loadAnnonces = async (page = currentPage) => {
@@ -71,14 +69,6 @@ export function FeaturedListings() {
     setIsLoading(false)
   }
 
-  const loadFavorites = async () => {
-    const result = await favoriteService.getAll()
-    if (result.success && result.data) {
-      const favoriteIds = result.data.map((fav: any) => fav.annonce?.id || fav.annonce_id)
-      setFavorites(favoriteIds)
-    }
-  }
-
   const toggleFavorite = async (e: React.MouseEvent, annonceId: number) => {
     e.preventDefault()
     
@@ -91,20 +81,14 @@ export function FeaturedListings() {
       return
     }
 
-    const isFavorite = favorites.includes(annonceId)
+    const isFavoritedNow = isFavorited(annonceId)
 
-    if (isFavorite) {
-      const result = await favoriteService.remove(annonceId)
-      if (result.success) {
-        setFavorites(favorites.filter((id) => id !== annonceId))
-        toast({ title: "Retiré des favoris" })
-      }
+    if (isFavoritedNow) {
+      await removeFavorite(annonceId)
+      toast({ title: "Retire des favoris" })
     } else {
-      const result = await favoriteService.add(annonceId)
-      if (result.success) {
-        setFavorites([...favorites, annonceId])
-        toast({ title: "Ajouté aux favoris" })
-      }
+      await addFavorite(annonceId)
+      toast({ title: "Ajoute aux favoris" })
     }
   }
 
@@ -132,7 +116,7 @@ export function FeaturedListings() {
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
         {listings.map((listing) => {
-          const isFavorited = favorites.includes(listing.id)
+          const isListingFavorited = isFavorited(listing.id)
           const photoUrl = resolveStorageUrl(listing.photos?.[0])
 
           return (
@@ -152,11 +136,11 @@ export function FeaturedListings() {
                     size="icon"
                     variant="secondary"
                     className={`absolute top-4 right-4 rounded-full w-10 h-10 shadow-lg backdrop-blur-sm hover:bg-background opacity-0 group-hover:opacity-100 transition-all duration-300 ${
-                      isFavorited ? "bg-destructive text-destructive-foreground" : "bg-background/80"
+                      isListingFavorited ? "bg-destructive text-destructive-foreground" : "bg-background/80"
                     }`}
                     onClick={(e) => toggleFavorite(e, listing.id)}
                   >
-                    <Heart className={`w-4 h-4 ${isFavorited ? "fill-current" : ""}`} />
+                    <Heart className={`w-4 h-4 ${isListingFavorited ? "fill-current" : ""}`} />
                   </Button>
                   {listing.boosted_until && new Date(listing.boosted_until) > new Date() && (
                     <Badge className="absolute top-4 left-4 bg-accent text-accent-foreground shadow-lg font-semibold">

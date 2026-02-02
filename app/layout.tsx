@@ -5,6 +5,7 @@ import { Analytics } from "@vercel/analytics/next"
 import "./globals.css"
 import { Toaster } from "@/components/ui/toaster"
 import { AuthProvider } from "@/contexts/AuthContext"
+import { FavoritesProvider } from "@/contexts/FavoritesContext"
 import { ThemeProvider } from "@/components/theme-provider"
 
 const sora = Sora({
@@ -51,8 +52,10 @@ export default function RootLayout({
       <body className={`${sora.variable} ${dmSerif.variable} font-sans antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
           <AuthProvider>
-            {children}
-            <Toaster />
+            <FavoritesProvider>
+              {children}
+              <Toaster />
+            </FavoritesProvider>
           </AuthProvider>
         </ThemeProvider>
         <Analytics />

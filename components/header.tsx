@@ -8,6 +8,7 @@ import { useEffect, useState } from "react"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { useAuth } from "@/contexts/AuthContext"
+import { useFavorites } from "@/contexts/FavoritesContext"
 import { AuthDialog } from "@/components/auth-dialog"
 import { useTheme } from "next-themes"
 import { resolveStorageUrl } from "@/lib/media"
@@ -24,6 +25,7 @@ import { notificationService, messageService } from "@/lib/api"
 
 export function Header() {
   const { user, isAuthenticated, logout } = useAuth()
+  const { favoriteCount } = useFavorites()
   const [notificationCount, setNotificationCount] = useState(0)
   const [messageCount, setMessageCount] = useState(0)
   const [showAuthDialog, setShowAuthDialog] = useState(false)
@@ -119,8 +121,13 @@ export function Header() {
                   </Button>
                 </Link>
                 <Link href="/favorites">
-                  <Button variant="ghost" size="icon" className="rounded-full hover:bg-muted">
+                  <Button variant="ghost" size="icon" className="relative rounded-full hover:bg-muted">
                     <Heart className="w-5 h-5" />
+                    {favoriteCount > 0 && (
+                      <Badge className="absolute -top-1 -right-1 w-5 h-5 flex items-center justify-center p-0 text-xs bg-accent text-accent-foreground border-2 border-background">
+                        {favoriteCount}
+                      </Badge>
+                    )}
                   </Button>
                 </Link>
                 

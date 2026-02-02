@@ -2,7 +2,7 @@
  * Configuration de l'API Backend
  */
 export const API_CONFIG = {
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api',
+  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api',
   timeout: 10000,
 }
 
@@ -475,19 +475,41 @@ export const favoriteService = {
    */
   async getAll() {
     try {
-      const response = await fetch(`${API_CONFIG.baseURL}/favorites`, {
+      const url = `${API_CONFIG.baseURL}/favorites`
+      console.log("🔗 Fetching favorites from:", url)
+      const headers = getHeaders()
+      console.log("📋 Headers:", headers)
+      
+      const response = await fetch(url, {
         method: 'GET',
-        headers: getHeaders(),
+        headers: headers,
       })
+      
+      console.log("📊 Response status:", response.status)
       const result = await response.json()
+      console.log("📦 Raw API response:", result)
       
       if (!response.ok) {
+        console.error("❌ API Error:", response.status, result)
         throw { response: { data: result, status: response.status } }
       }
 
       // FavoriteResource::collection retourne { data: [...] }
-      return { success: true, data: result.data || result }
+      let data = result.data || result
+      console.log("✅ Extracted data:", data)
+      
+      if (Array.isArray(data)) {
+        console.log("✅ Data is array, returning:", data.length, "items")
+        return { success: true, data: data }
+      }
+      if (Array.isArray(result?.data?.data)) {
+        console.log("✅ Data is nested array, returning:", result.data.data.length, "items")
+        return { success: true, data: result.data.data }
+      }
+      console.log("⚠️ Returning raw result")
+      return { success: true, data: data }
     } catch (error) {
+      console.error("❌ favoriteService.getAll() error:", error)
       return handleError(error)
     }
   },

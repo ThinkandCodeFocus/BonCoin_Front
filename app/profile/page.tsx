@@ -15,6 +15,7 @@ import { resolveStorageUrl } from "@/lib/media"
 import { profileService, favoriteService, annonceService } from "@/lib/api"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
+import { useFavorites } from "@/contexts/FavoritesContext"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -45,6 +46,7 @@ interface Favorite {
 export default function ProfilePage() {
   const { user, logout, isAuthenticated } = useAuth()
   const router = useRouter()
+  const { loadFavorites: reloadFavoritesContext } = useFavorites()
   const [userAnnonces, setUserAnnonces] = useState<Annonce[]>([])
   const [favorites, setFavorites] = useState<Favorite[]>([])
   const [isLoadingAnnonces, setIsLoadingAnnonces] = useState(true)
@@ -75,7 +77,7 @@ export default function ProfilePage() {
     setIsLoadingFavorites(true)
     const result = await favoriteService.getAll()
     if (result.success && result.data) {
-      setFavorites(result.data)
+      setFavorites(Array.isArray(result.data) ? result.data : [])
     }
     setIsLoadingFavorites(false)
   }
@@ -107,6 +109,7 @@ export default function ProfilePage() {
     if (result.success) {
       setFavorites((prev) => prev.filter((fav) => fav.annonce?.id !== annonceId))
       toast({ title: "Favori retire" })
+      await reloadFavoritesContext()
     } else {
       toast({ title: "Erreur", description: result.message || "Impossible de retirer le favori", variant: "destructive" })
     }

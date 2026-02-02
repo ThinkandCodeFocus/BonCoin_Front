@@ -154,7 +154,7 @@ export default function ListingsPage() {
     if (!isAuthenticated) {
       toast({
         title: "Connexion requise",
-        description: "Vous devez être connecté pour ajouter aux favoris",
+        description: "Vous devez etre connecte pour ajouter aux favoris",
         variant: "destructive",
       })
       return
@@ -165,14 +165,20 @@ export default function ListingsPage() {
     if (isFavorite) {
       const result = await favoriteService.remove(annonceId)
       if (result.success) {
-        setFavorites(favorites.filter((id) => id !== annonceId))
-        toast({ title: "Retiré des favoris" })
+        setFavorites((prev) => prev.filter((id) => id !== annonceId))
+        toast({ title: "Retire des favoris" })
+        await loadFavorites()
+      } else {
+        toast({ title: "Erreur", description: result.message || "Impossible de retirer", variant: "destructive" })
       }
     } else {
       const result = await favoriteService.add(annonceId)
       if (result.success) {
-        setFavorites([...favorites, annonceId])
-        toast({ title: "Ajouté aux favoris" })
+        setFavorites((prev) => [...prev, annonceId])
+        toast({ title: "Ajoute aux favoris" })
+        await loadFavorites()
+      } else {
+        toast({ title: "Erreur", description: result.message || "Impossible d'ajouter", variant: "destructive" })
       }
     }
   }
