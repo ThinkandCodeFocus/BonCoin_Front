@@ -6,7 +6,8 @@ import { BottomNav } from "@/components/bottom-nav"
 import { Footer } from "@/components/footer"
 import { LocationSelector } from "@/components/location-selector"
 import { LocationBar } from "@/components/location-bar"
-import { Sparkles } from "lucide-react"
+import { Sparkles, ArrowRight, Shield, Zap, Heart } from "lucide-react"
+import Link from "next/link"
 
 export default function HomePage() {
   return (
@@ -24,9 +25,10 @@ export default function HomePage() {
 
         {/* Hero principal avec fond animé + photo à droite */}
         <section className="relative px-4 md:px-6 pt-8 pb-12 md:pt-14 md:pb-16 overflow-hidden reveal-up">
+          <div className="absolute inset-0 hero-gradient" />
           <div className="max-w-6xl mx-auto">
             <div className="relative overflow-hidden rounded-[32px] border border-primary/20 bg-primary text-primary-foreground shadow-[0_32px_90px_rgba(15,23,42,0.35)]">
-              <div className="absolute inset-0 bg-[url('/modern-apartment-interior.jpg')] bg-cover bg-center opacity-30" />
+              <div className="absolute inset-0 bg-[url('/modern-apartment-interior.jpg')] bg-cover bg-center opacity-25" />
               <div className="absolute inset-0 bg-gradient-to-tr from-primary/95 via-primary/85 to-primary/70" />
               <div className="absolute inset-0 gradient-mesh" />
 
@@ -43,16 +45,32 @@ export default function HomePage() {
                     Marketplace rapide, sécurisée et agréable. Des annonces, des catégories, et vos favoris en un clic.
                   </p>
 
-                  <div className="mt-8 flex flex-wrap gap-3 text-sm">
-                    <span className="px-3 py-1.5 rounded-full bg-background/10 border border-background/15">
-                      Paiement & boost (à venir)
-                    </span>
-                    <span className="px-3 py-1.5 rounded-full bg-background/10 border border-background/15">
-                      Messages & favoris
-                    </span>
-                    <span className="px-3 py-1.5 rounded-full bg-background/10 border border-background/15">
-                      Catégories & recherche
-                    </span>
+                  {/* Feature pills avec icônes */}
+                  <div className="mt-8 flex flex-wrap gap-3">
+                    <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-background/10 border border-background/15 backdrop-blur-sm">
+                      <Shield className="w-4 h-4 text-accent" />
+                      <span className="text-sm">Sécurisé</span>
+                    </div>
+                    <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-background/10 border border-background/15 backdrop-blur-sm">
+                      <Zap className="w-4 h-4 text-accent" />
+                      <span className="text-sm">Rapide</span>
+                    </div>
+                    <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-background/10 border border-background/15 backdrop-blur-sm">
+                      <Heart className="w-4 h-4 text-accent" />
+                      <span className="text-sm">Favoris</span>
+                    </div>
+                  </div>
+
+                  {/* CTA Button */}
+                  <div className="mt-8">
+                    <Link 
+                      href="/publish"
+                      className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-background text-primary font-semibold hover:bg-background/90 hover-scale transition-all shadow-lg"
+                    >
+                      <Sparkles className="w-5 h-5" />
+                      Déposer une annonce
+                      <ArrowRight className="w-4 h-4" />
+                    </Link>
                   </div>
                 </div>
 
@@ -81,7 +99,7 @@ export default function HomePage() {
                           <p className="text-xs text-muted-foreground">Proche de vous</p>
                           <p className="font-semibold">Téléphone dernier cri</p>
                         </div>
-                        <span className="text-lg font-bold text-primary">95 000 FCFA</span>
+                        <span className="text-lg font-bold text-primary">95 000FCFA</span>
                       </div>
                     </div>
                   </div>
@@ -118,8 +136,48 @@ export default function HomePage() {
                 <h2 className="text-3xl md:text-4xl font-bold mb-3">Annonces récentes</h2>
                 <p className="text-muted-foreground text-lg">Les dernières opportunités postées</p>
               </div>
+              <Link 
+                href="/listings"
+                className="hidden md:flex items-center gap-2 text-primary font-medium hover:underline hover-scale"
+              >
+                Voir toutes les annonces
+                <ArrowRight className="w-4 h-4" />
+              </Link>
             </div>
             <FeaturedListings />
+            <div className="mt-8 text-center md:hidden">
+              <Link 
+                href="/listings"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-primary text-primary-foreground font-semibold hover:bg-primary/90"
+              >
+                Voir toutes les annonces
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* Section Call to Action */}
+        <section className="py-16 md:py-24 px-4 reveal-up">
+          <div className="max-w-4xl mx-auto">
+            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-primary to-accent p-8 md:p-12 text-center">
+              <div className="absolute inset-0 bg-[url('/placeholder.svg')] opacity-10" />
+              <div className="relative">
+                <h2 className="text-2xl md:text-4xl font-bold text-primary-foreground mb-4">
+                  Prêt à vendre vos articles ?
+                </h2>
+                <p className="text-lg text-primary-foreground/80 mb-8 max-w-xl mx-auto">
+                  Déposez votre première annonce en quelques minutes et rejoignez notre communauté de vendeurs et acheteurs.
+                </p>
+                <Link 
+                  href="/publish"
+                  className="inline-flex items-center gap-2 px-8 py-4 rounded-full bg-background text-primary font-semibold hover:bg-background/90 hover-scale transition-all shadow-xl"
+                >
+                  <Sparkles className="w-5 h-5" />
+                  Déposer une annonce gratuite
+                </Link>
+              </div>
+            </div>
           </div>
         </section>
       </main>

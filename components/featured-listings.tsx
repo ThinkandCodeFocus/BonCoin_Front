@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Heart, MapPin, Loader2 } from "lucide-react"
+import { Heart, MapPin, Loader2, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { annonceService } from "@/lib/api"
@@ -18,6 +18,7 @@ interface Annonce {
   price: number
   city: string
   district: string
+  etat?: string
   boosted_until: string | null
   photos?: string[]
   created_at: string
@@ -85,22 +86,68 @@ export function FeaturedListings() {
 
     if (isFavoritedNow) {
       await removeFavorite(annonceId)
-      toast({ title: "Retire des favoris" })
+      toast({ title: "Retiré des favoris" })
     } else {
       await addFavorite(annonceId)
-      toast({ title: "Ajoute aux favoris" })
+      toast({ title: "Ajouté aux favoris" })
     }
   }
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("fr-FR").format(price) + " FCFA"
+    return new Intl.NumberFormat("fr-FR").format(price) + "FCFA"
   }
 
+  const getRelativeTime = (dateString: string) => {
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffMs = now.getTime() - date.getTime()
+    const diffMins = Math.floor(diffMs / 60000)
+    const diffHours = Math.floor(diffMs / 3600000)
+    const diffDays = Math.floor(diffMs / 86400000)
+
+    if (diffMins < 1) return "À l'instant"
+    if (diffMins < 60) return `Il y a ${diffMins}min`
+    if (diffHours < 24) return `Il y a ${diffHours}h`
+    if (diffDays < 7) return `Il y a ${diffDays}j`
+    return date.toLocaleDateString("fr-FR")
+  }
+
+  const getStatusBadge = (etat?: string) => {
+    if (!etat) return null
+    const statusMap: Record<string, { class: string; label: string }> = {
+      "Neuf": { class: "status-new", label: "Neuf" },
+      "Bon état": { class: "status-good", label: "Bon état" },
+      "Usagé": { class: "status-used", label: "Usagé" },
+    }
+    const status = statusMap[etat] || { class: "bg-muted text-muted-foreground", label: etat }
+    return <span className={`status-badge ${status.class}`}>{status.label}</span>
+  }
+
+  const isRecentlyAdded = (dateString: string) => {
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffHours = (now.getTime() - date.getTime()) / 3600000
+    return diffHours < 24
+  }
+
+  // Skeleton loading component
+  const SkeletonCard = () => (
+    <div className="overflow-hidden group cursor-pointer border-border/60 bg-card/90 rounded-xl">
+      <div className="relative aspect-[4/3] shimmer-card" />
+      <div className="p-5 space-y-3">
+        <div className="h-6 shimmer-card rounded-md w-3/4" />
+        <div className="h-8 shimmer-card rounded-md w-1/2" />
+        <div className="h-4 shimmer-card rounded-md w-2/3" />
+      </div>
+    </div>
+  )
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center py-20">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+        {[...Array(6)].map((_, i) => (
+          <SkeletonCard key={i} />
+        ))}
       </div>
     )
   }
@@ -108,21 +155,27 @@ export function FeaturedListings() {
   if (!listings.length) {
     return (
       <div className="text-center py-20">
-        <p className="text-muted-foreground">Aucune annonce disponible pour le moment</p>
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted mb-4">
+          <MapPin className="w-8 h-8 text-muted-foreground" />
+        </div>
+        <p className="text-muted-foreground text-lg">Aucune annonce disponible pour le moment</p>
+        <p className="text-sm text-muted-foreground mt-2">Revenez plus tard ou déposez une annonce</p>
       </div>
     )
   }
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
         {listings.map((listing) => {
           const isListingFavorited = isFavorited(listing.id)
           const photoUrl = resolveStorageUrl(listing.photos?.[0])
+          const isNew = isRecentlyAdded(listing.created_at)
 
           return (
             <Link key={listing.id} href={`/listings/${listing.id}`}>
-              <Card className="overflow-hidden group cursor-pointer border-border/60 bg-card/90 card-animate">
-                <div className="relative aspect-[4/3] overflow-hidden bg-muted">
+              <Card className="overflow-hidden group cursor-pointer border-border/60 bg-card/90 card-lift card-glow rounded-xl">
+                <div className="relative aspect-[4/3] overflow-hidden bg-muted image-overlay">
                   <img
                     src={photoUrl}
                     alt={listing.title}
@@ -131,31 +184,62 @@ export function FeaturedListings() {
                     }}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  <Button
-                    size="icon"
-                    variant="secondary"
-                    className={`absolute top-4 right-4 rounded-full w-10 h-10 shadow-lg backdrop-blur-sm hover:bg-background opacity-0 group-hover:opacity-100 transition-all duration-300 ${
-                      isListingFavorited ? "bg-destructive text-destructive-foreground" : "bg-background/80"
-                    }`}
-                    onClick={(e) => toggleFavorite(e, listing.id)}
-                  >
-                    <Heart className={`w-4 h-4 ${isListingFavorited ? "fill-current" : ""}`} />
-                  </Button>
-                  {listing.boosted_until && new Date(listing.boosted_until) > new Date() && (
-                    <Badge className="absolute top-4 left-4 bg-accent text-accent-foreground shadow-lg font-semibold">
-                      En vedette
-                    </Badge>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  
+                  {/* Top badges row */}
+                  <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
+                    <div className="flex gap-2">
+                      {listing.boosted_until && new Date(listing.boosted_until) > new Date() && (
+                        <Badge className="bg-accent text-accent-foreground shadow-lg font-semibold flex items-center gap-1">
+                          <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
+                          Vedette
+                        </Badge>
+                      )}
+                      {isNew && !listing.boosted_until && (
+                        <Badge className="bg-emerald-500 text-white shadow-lg font-semibold">
+                          Nouveau
+                        </Badge>
+                      )}
+                    </div>
+                    
+                    <Button
+                      size="icon"
+                      variant="secondary"
+                      className={`rounded-full w-10 h-10 shadow-lg backdrop-blur-sm transition-all duration-300 ${
+                        isListingFavorited 
+                          ? "bg-destructive text-destructive-foreground scale-110" 
+                          : "bg-background/80 hover:bg-background"
+                      }`}
+                      onClick={(e) => toggleFavorite(e, listing.id)}
+                    >
+                      <Heart className={`w-4 h-4 ${isListingFavorited ? "fill-current heart-animate" : ""}`} />
+                    </Button>
+                  </div>
+
+                  {/* Status badge overlay */}
+                  {getStatusBadge(listing.etat) && (
+                    <div className="absolute bottom-4 left-4">
+                      {getStatusBadge(listing.etat)}
+                    </div>
                   )}
                 </div>
+                
                 <div className="p-5">
                   <h3 className="font-semibold text-lg mb-3 line-clamp-2 group-hover:text-primary transition-colors">
                     {listing.title}
                   </h3>
-                  <p className="text-2xl font-bold text-primary mb-3 tracking-tight">{formatPrice(listing.price)}</p>
+                  
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-2xl font-bold text-primary tracking-tight">{formatPrice(listing.price)}</p>
+                    <div className="time-ago">
+                      <Clock className="w-3 h-3" />
+                      <span>{getRelativeTime(listing.created_at)}</span>
+                    </div>
+                  </div>
+                  
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <MapPin className="w-4 h-4 flex-shrink-0" />
-                    <span>{listing.city}, {listing.district}</span>
+                    <MapPin className="w-4 h-4 flex-shrink-0 text-accent" />
+                    <span className="truncate">{listing.city}, {listing.district}</span>
                   </div>
                 </div>
               </Card>
@@ -165,22 +249,24 @@ export function FeaturedListings() {
       </div>
 
       {totalPages > 1 && (
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between pt-8 border-t border-border/60">
           <p className="text-sm text-muted-foreground">
-            Page {currentPage} / {totalPages} - {totalItems} annonces
+            Page <span className="font-semibold text-foreground">{currentPage}</span> / {totalPages} • {totalItems} annonces
           </p>
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
               disabled={currentPage <= 1 || isLoading}
               onClick={() => loadAnnonces(currentPage - 1)}
+              className="hover-scale"
             >
-              Precedent
+              Précédent
             </Button>
             <Button
               variant="outline"
               disabled={currentPage >= totalPages || isLoading}
               onClick={() => loadAnnonces(currentPage + 1)}
+              className="hover-scale"
             >
               Suivant
             </Button>

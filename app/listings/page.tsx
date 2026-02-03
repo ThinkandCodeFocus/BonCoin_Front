@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Slider } from "@/components/ui/slider"
-import { Heart, SlidersHorizontal, MapPin, Search, Loader2 } from "lucide-react"
+import { Heart, SlidersHorizontal, MapPin, Search, Loader2, Clock } from "lucide-react"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import Link from "next/link"
 import { useState, useEffect } from "react"
@@ -25,7 +25,7 @@ interface Annonce {
   price: number
   city: string
   district: string
-  etat: string
+  etat?: string
   photos?: string[]
   created_at: string
 }
@@ -154,7 +154,7 @@ export default function ListingsPage() {
     if (!isAuthenticated) {
       toast({
         title: "Connexion requise",
-        description: "Vous devez etre connecte pour ajouter aux favoris",
+        description: "Vous devez être connecté pour ajouter aux favoris",
         variant: "destructive",
       })
       return
@@ -166,7 +166,7 @@ export default function ListingsPage() {
       const result = await favoriteService.remove(annonceId)
       if (result.success) {
         setFavorites((prev) => prev.filter((id) => id !== annonceId))
-        toast({ title: "Retire des favoris" })
+        toast({ title: "Retiré des favoris" })
         await loadFavorites()
       } else {
         toast({ title: "Erreur", description: result.message || "Impossible de retirer", variant: "destructive" })
@@ -175,7 +175,7 @@ export default function ListingsPage() {
       const result = await favoriteService.add(annonceId)
       if (result.success) {
         setFavorites((prev) => [...prev, annonceId])
-        toast({ title: "Ajoute aux favoris" })
+        toast({ title: "Ajouté aux favoris" })
         await loadFavorites()
       } else {
         toast({ title: "Erreur", description: result.message || "Impossible d'ajouter", variant: "destructive" })
@@ -184,9 +184,53 @@ export default function ListingsPage() {
   }
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("fr-FR").format(price) + " FCFA"
+    return new Intl.NumberFormat("fr-FR").format(price) + "FCFA"
   }
 
+  const getRelativeTime = (dateString: string) => {
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffMs = now.getTime() - date.getTime()
+    const diffMins = Math.floor(diffMs / 60000)
+    const diffHours = Math.floor(diffMs / 3600000)
+    const diffDays = Math.floor(diffMs / 86400000)
+
+    if (diffMins < 1) return "À l'instant"
+    if (diffMins < 60) return `Il y a ${diffMins}min`
+    if (diffHours < 24) return `Il y a ${diffHours}h`
+    if (diffDays < 7) return `Il y a ${diffDays}j`
+    return date.toLocaleDateString("fr-FR")
+  }
+
+  const getStatusBadge = (etat?: string) => {
+    if (!etat) return null
+    const statusMap: Record<string, { class: string; label: string }> = {
+      "Neuf": { class: "status-new", label: "Neuf" },
+      "Bon état": { class: "status-good", label: "Bon état" },
+      "Usagé": { class: "status-used", label: "Usagé" },
+    }
+    const status = statusMap[etat] || { class: "bg-muted text-muted-foreground", label: etat }
+    return <span className={`status-badge ${status.class}`}>{status.label}</span>
+  }
+
+  const isRecentlyAdded = (dateString: string) => {
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffHours = (now.getTime() - date.getTime()) / 3600000
+    return diffHours < 24
+  }
+
+  // Skeleton card for loading state
+  const SkeletonCard = () => (
+    <div className="overflow-hidden group cursor-pointer border-border/60 bg-card/90 rounded-xl">
+      <div className="relative aspect-[4/3] shimmer-card" />
+      <div className="p-5 space-y-3">
+        <div className="h-6 shimmer-card rounded-md w-3/4" />
+        <div className="h-8 shimmer-card rounded-md w-1/2" />
+        <div className="h-4 shimmer-card rounded-md w-2/3" />
+      </div>
+    </div>
+  )
 
   const filteredListings = listings.filter((listing) => {
     // Filtre par prix
@@ -220,7 +264,7 @@ export default function ListingsPage() {
         {/* Search Bar */}
         <div className="bg-card border-b p-4">
           <div className="max-w-6xl mx-auto flex gap-3">
-            <div className="flex-1 flex items-center gap-2 bg-muted rounded-md px-3 py-2">
+            <div className="flex-1 flex items-center gap-2 bg-muted rounded-xl px-4 py-3 transition-all focus-within:ring-2 focus-within:ring-primary/20">
               <Search className="w-5 h-5 text-muted-foreground" />
               <Input
                 placeholder="Rechercher..."
@@ -232,7 +276,7 @@ export default function ListingsPage() {
             </div>
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="outline">
+                <Button variant="outline" className="rounded-xl">
                   <SlidersHorizontal className="w-5 h-5 md:mr-2" />
                   <span className="hidden md:inline">Filtres</span>
                 </Button>
@@ -264,7 +308,7 @@ export default function ListingsPage() {
                     <Input 
                       id="location" 
                       placeholder="Ville ou quartier" 
-                      className="mt-2"
+                      className="mt-2 rounded-xl"
                       value={locationFilter}
                       onChange={(e) => setLocationFilter(e.target.value)}
                     />
@@ -274,7 +318,7 @@ export default function ListingsPage() {
                     <Label htmlFor="etat">État</Label>
                     <select
                       id="etat"
-                      className="w-full mt-2 flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                      className="w-full mt-2 flex h-10 rounded-xl border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                       value={etatFilter}
                       onChange={(e) => setEtatFilter(e.target.value)}
                     >
@@ -288,7 +332,7 @@ export default function ListingsPage() {
                   <div className="flex gap-2">
                     <Button 
                       variant="outline" 
-                      className="flex-1"
+                      className="flex-1 rounded-xl"
                       onClick={() => {
                         setPriceRange([0, 10000000])
                         setLocationFilter("")
@@ -297,7 +341,7 @@ export default function ListingsPage() {
                     >
                       Réinitialiser
                     </Button>
-                    <Button className="flex-1">
+                    <Button className="flex-1 rounded-xl">
                       {filteredListings.length} résultats
                     </Button>
                   </div>
@@ -312,13 +356,13 @@ export default function ListingsPage() {
           <div className="mb-4 flex items-center justify-between">
             <div>
               <p className="text-sm text-muted-foreground">
-                {filteredListings.length} annonces trouvées
+                {isLoading ? "Chargement..." : `${filteredListings.length} annonces trouvées`}
                 {selectedCategory && " dans la catégorie sélectionnée"}
               </p>
               {selectedCategory && (
                 <div className="mt-2">
                   <Link href="/listings">
-                    <Badge variant="secondary" className="cursor-pointer">
+                    <Badge variant="secondary" className="cursor-pointer hover:bg-secondary/80 transition-colors">
                       Catégorie filtrée ✕
                     </Badge>
                   </Link>
@@ -328,50 +372,93 @@ export default function ListingsPage() {
           </div>
 
           {isLoading ? (
-            <div className="flex justify-center items-center py-20">
-              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[...Array(9)].map((_, i) => (
+                <SkeletonCard key={i} />
+              ))}
             </div>
           ) : filteredListings.length === 0 ? (
             <div className="text-center py-20">
-              <p className="text-muted-foreground">Aucune annonce trouvee</p>
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted mb-4">
+                <Search className="w-8 h-8 text-muted-foreground" />
+              </div>
+              <p className="text-muted-foreground text-lg">Aucune annonce trouvée</p>
+              <p className="text-sm text-muted-foreground mt-2">Essayez de modifier vos critères de recherche</p>
             </div>
           ) : (
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredListings.map((listing) => {
                   const photoUrl = resolveStorageUrl(listing.photos?.[0])
+                  const isFavorite = favorites.includes(listing.id)
+                  const isNew = isRecentlyAdded(listing.created_at)
                   
                   console.log('Listing:', listing.title, 'Photo URL:', photoUrl)
 
                   return (
                     <Link key={listing.id} href={`/listings/${listing.id}`}>
-                      <Card className="overflow-hidden hover:shadow-xl transition-shadow group cursor-pointer">
-                        <div className="relative aspect-[4/3] overflow-hidden">
+                      <Card className="overflow-hidden hover:shadow-xl transition-all group cursor-pointer card-lift card-glow rounded-xl">
+                        <div className="relative aspect-[4/3] overflow-hidden bg-muted image-overlay">
                           <img
                             src={photoUrl}
                             alt={listing.title}
                             onError={(e) => {
                               e.currentTarget.src = "/placeholder.svg"
                             }}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                           />
-                          <Button
-                            size="icon"
-                            variant="secondary"
-                            className="absolute top-3 right-3 rounded-full w-9 h-9"
-                            onClick={(e) => toggleFavorite(e, listing.id)}
-                          >
-                            <Heart 
-                              className={`w-4 h-4 ${favorites.includes(listing.id) ? 'fill-current text-destructive' : ''}`} 
-                            />
-                          </Button>
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                          
+                          {/* Badges row */}
+                          <div className="absolute top-3 left-3 right-3 flex items-center justify-between">
+                            <div className="flex gap-2">
+                              {isNew && (
+                                <Badge className="bg-emerald-500 text-white shadow-lg font-semibold">
+                                  Nouveau
+                                </Badge>
+                              )}
+                            </div>
+                            
+                            <Button
+                              size="icon"
+                              variant="secondary"
+                              className={`rounded-full w-9 h-9 transition-all duration-300 ${
+                                isFavorite 
+                                  ? "bg-destructive text-destructive-foreground scale-110" 
+                                  : "bg-background/80 hover:bg-background"
+                              }`}
+                              onClick={(e) => toggleFavorite(e, listing.id)}
+                            >
+                              <Heart 
+                                className={`w-4 h-4 ${isFavorite ? "fill-current heart-animate" : ""}`} 
+                              />
+                            </Button>
+                          </div>
+
+                          {/* Status badge */}
+                          {getStatusBadge(listing.etat) && (
+                            <div className="absolute bottom-3 left-3">
+                              {getStatusBadge(listing.etat)}
+                            </div>
+                          )}
                         </div>
+                        
                         <div className="p-4">
-                          <h3 className="font-semibold text-lg mb-2 line-clamp-2">{listing.title}</h3>
-                          <p className="text-2xl font-bold text-primary mb-2">{formatPrice(listing.price)}</p>
+                          <h3 className="font-semibold text-lg mb-2 line-clamp-2 group-hover:text-primary transition-colors">
+                            {listing.title}
+                          </h3>
+                          
+                          <div className="flex items-center justify-between mb-2">
+                            <p className="text-2xl font-bold text-primary tracking-tight">{formatPrice(listing.price)}</p>
+                            <div className="time-ago flex items-center gap-1">
+                              <Clock className="w-3 h-3" />
+                              <span>{getRelativeTime(listing.created_at)}</span>
+                            </div>
+                          </div>
+                          
                           <div className="flex items-center text-sm text-muted-foreground">
-                            <MapPin className="w-4 h-4 mr-1" />
-                            {listing.city}, {listing.district}
+                            <MapPin className="w-4 h-4 mr-1 text-accent flex-shrink-0" />
+                            <span className="truncate">{listing.city}, {listing.district}</span>
                           </div>
                         </div>
                       </Card>
@@ -381,22 +468,24 @@ export default function ListingsPage() {
               </div>
 
               {totalPages > 1 && (
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between pt-8 border-t border-border/60">
                   <p className="text-sm text-muted-foreground">
-                    Page {currentPage} / {totalPages} - {totalItems} annonces
+                    Page <span className="font-semibold text-foreground">{currentPage}</span> / {totalPages} • {totalItems} annonces
                   </p>
                   <div className="flex items-center gap-2">
                     <Button
                       variant="outline"
                       disabled={currentPage <= 1 || isLoading}
                       onClick={() => loadListings(currentPage - 1)}
+                      className="rounded-xl hover-scale"
                     >
-                      Precedent
+                      Précédent
                     </Button>
                     <Button
                       variant="outline"
                       disabled={currentPage >= totalPages || isLoading}
                       onClick={() => loadListings(currentPage + 1)}
+                      className="rounded-xl hover-scale"
                     >
                       Suivant
                     </Button>

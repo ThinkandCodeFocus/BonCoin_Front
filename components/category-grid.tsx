@@ -1,6 +1,6 @@
+
 "use client"
 
-import { useEffect, useState } from "react"
 import {
   Smartphone,
   Home,
@@ -8,9 +8,7 @@ import {
   Shirt,
   Sofa,
   Briefcase,
-  BookOpen,
   Gift,
-  Loader2,
   PawPrint,
   Gamepad2,
   Sparkles,
@@ -18,18 +16,18 @@ import {
   Leaf,
 } from "lucide-react"
 import Link from "next/link"
-import { categoryService } from "@/lib/api"
 
-const iconMap: Record<string, any> = {
-  Smartphone,
-  Home,
-  Car,
-  Shirt,
-  Sofa,
-  Briefcase,
-  BookOpen,
-  Gift,
-}
+// Default categories
+const defaultCategories = [
+  { id: 1, name: "Téléphones", icon: "Smartphone", annonces_count: 1250 },
+  { id: 2, name: "Immobilier", icon: "Building2", annonces_count: 856 },
+  { id: 3, name: "Véhicules", icon: "Car", annonces_count: 543 },
+  { id: 4, name: "Meubles", icon: "Sofa", annonces_count: 432 },
+  { id: 5, name: "Mode", icon: "Shirt", annonces_count: 1200 },
+  { id: 6, name: "Électronique", icon: "Smartphone", annonces_count: 789 },
+  { id: 7, name: "Services", icon: "Briefcase", annonces_count: 234 },
+  { id: 8, name: "Loisirs", icon: "Gamepad2", annonces_count: 567 },
+]
 
 interface Category {
   id: number
@@ -38,71 +36,67 @@ interface Category {
   annonces_count?: number
 }
 
+// Icon mapping
+const getIconForName = (name: string) => {
+  const n = name.toLowerCase()
+  if (n.includes("vehicul") || n.includes("voiture") || n.includes("auto")) return Car
+  if (n.includes("immobilier") || n.includes("habitation")) return Building2
+  if (n.includes("maison")) return Home
+  if (n.includes("jardin")) return Leaf
+  if (n.includes("electron") || n.includes("informat") || n.includes("telephone") || n.includes("mobile")) return Smartphone
+  if (n.includes("meuble")) return Sofa
+  if (n.includes("mode") || n.includes("vetement")) return Shirt
+  if (n.includes("beaute") || n.includes("cosmet")) return Sparkles
+  if (n.includes("emploi") || n.includes("service") || n.includes("job")) return Briefcase
+  if (n.includes("loisir") || n.includes("divert")) return Gamepad2
+  if (n.includes("animal")) return PawPrint
+  return Gift
+}
+
 export function CategoryGrid() {
-  const [categories, setCategories] = useState<Category[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-
-  useEffect(() => {
-    loadCategories()
-  }, [])
-
-  const loadCategories = async () => {
-    setIsLoading(true)
-    const result = await categoryService.getAll()
-    if (result.success && result.data) {
-      setCategories(result.data.data || result.data)
-    }
-    setIsLoading(false)
-  }
-
-  const getIcon = (iconName?: string, categoryName?: string) => {
-    if (iconName && iconMap[iconName]) return iconMap[iconName]
-    const name = (categoryName || "")
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-    if (name.includes("vehicul") || name.includes("voiture") || name.includes("auto")) return Car
-    if (name.includes("immobilier") || name.includes("habitation")) return Building2
-    if (name.includes("maison")) return Home
-    if (name.includes("jardin")) return Leaf
-    if (name.includes("electron") || name.includes("informat") || name.includes("telephone") || name.includes("mobile"))
-      return Smartphone
-    if (name.includes("meuble")) return Sofa
-    if (name.includes("mode") || name.includes("vetement")) return Shirt
-    if (name.includes("beaute") || name.includes("cosmet")) return Sparkles
-    if (name.includes("emploi") || name.includes("service") || name.includes("job")) return Briefcase
-    if (name.includes("loisir") || name.includes("divert")) return Gamepad2
-    if (name.includes("animaux") || name.includes("animal")) return PawPrint
-    return Gift
-  }
-
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center py-20">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+  // Skeleton loading
+  const SkeletonCategory = () => (
+    <div className="category-card">
+      <div className="hex-card">
+        <div className="hex-card-inner">
+          <div className="flex flex-col items-center text-center gap-3">
+            <div className="w-14 h-14 shimmer-card rounded-2xl" />
+            <div className="space-y-2">
+              <div className="h-4 shimmer-card rounded-md w-20" />
+              <div className="h-3 shimmer-card rounded-md w-16" />
+            </div>
+          </div>
+        </div>
       </div>
-    )
-  }
+    </div>
+  )
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
-      {categories.map((category) => {
-        const Icon = getIcon(category.icon, category.name)
+      {defaultCategories.map((category) => {
+        const Icon = getIconForName(category.name)
+        const count = category.annonces_count || 0
+        
         return (
           <Link key={category.id} href={`/listings?category=${category.id}`} className="group">
-            <div className="hex-card">
-              <div className="hex-card-inner">
-                <div className="flex flex-col items-center text-center gap-3">
-                  <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center shadow-[0_10px_24px_rgba(0,0,0,0.12)] group-hover:scale-110 transition-transform">
-                    <Icon className="w-6 h-6 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-sm md:text-base mb-1">{category.name}</h3>
-                    {category.annonces_count !== undefined && (
-                      <p className="text-xs text-muted-foreground">
-                        {category.annonces_count.toLocaleString()} annonces
+            <div className="category-card">
+              <div className="hex-card">
+                <div className="hex-card-inner">
+                  <div className="flex flex-col items-center text-center gap-3 relative z-10">
+                    <div className="relative">
+                      <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center shadow-[0_10px_24px_rgba(0,0,0,0.12)] group-hover:scale-110 transition-transform duration-300">
+                        <Icon className="w-6 h-6 text-primary" />
+                      </div>
+                      <div className="absolute inset-0 rounded-2xl bg-accent/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-sm md:text-base mb-1 group-hover:text-accent transition-colors">
+                        {category.name}
+                      </h3>
+                      <p className="text-xs text-muted-foreground group-hover:text-foreground/70 transition-colors">
+                        {count.toLocaleString()} annonces
                       </p>
-                    )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -113,3 +107,4 @@ export function CategoryGrid() {
     </div>
   )
 }
+
