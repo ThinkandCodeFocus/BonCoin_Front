@@ -29,6 +29,27 @@
   --chart-4: oklch(0.82 0.12 95);
   --chart-5: oklch(0.55 0.16 10);
   --radius: 1.1rem;
+  /* Green theme colors */
+  --green-50: oklch(0.97 0.02 150);
+  --green-100: oklch(0.93 0.04 150);
+  --green-200: oklch(0.87 0.06 150);
+  --green-300: oklch(0.78 0.08 150);
+  --green-400: oklch(0.68 0.1 150);
+  --green-500: oklch(0.58 0.12 150);
+  --green-600: oklch(0.48 0.1 150);
+  --green-700: oklch(0.38 0.08 150);
+  --green-800: oklch(0.28 0.06 150);
+  --green-900: oklch(0.2 0.04 150);
+  --emerald-50: oklch(0.96 0.02 170);
+  --emerald-100: oklch(0.92 0.04 170);
+  --emerald-200: oklch(0.85 0.06 170);
+  --emerald-300: oklch(0.75 0.08 170);
+  --emerald-400: oklch(0.64 0.1 170);
+  --emerald-500: oklch(0.55 0.12 170);
+  --emerald-600: oklch(0.45 0.1 170);
+  --emerald-700: oklch(0.35 0.08 170);
+  --emerald-800: oklch(0.26 0.06 170);
+  --emerald-900: oklch(0.18 0.04 170);
 }
 
 .dark {
@@ -92,6 +113,27 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  /* Green theme colors */
+  --color-green-50: var(--green-50);
+  --color-green-100: var(--green-100);
+  --color-green-200: var(--green-200);
+  --color-green-300: var(--green-300);
+  --color-green-400: var(--green-400);
+  --color-green-500: var(--green-500);
+  --color-green-600: var(--green-600);
+  --color-green-700: var(--green-700);
+  --color-green-800: var(--green-800);
+  --color-green-900: var(--green-900);
+  --color-emerald-50: var(--emerald-50);
+  --color-emerald-100: var(--emerald-100);
+  --color-emerald-200: var(--emerald-200);
+  --color-emerald-300: var(--emerald-300);
+  --color-emerald-400: var(--emerald-400);
+  --color-emerald-500: var(--emerald-500);
+  --color-emerald-600: var(--emerald-600);
+  --color-emerald-700: var(--emerald-700);
+  --color-emerald-800: var(--emerald-800);
+  --color-emerald-900: var(--emerald-900);
 }
 
 @layer base {
@@ -109,15 +151,15 @@
     position: fixed;
     inset: 0;
     background-image:
-      linear-gradient(120deg, oklch(0.32 0.08 200 / 0.06), transparent 60%),
+      linear-gradient(120deg, oklch(0.32 0.08 200 / 0.04), oklch(0.55 0.12 150 / 0.03) 50%, transparent 80%),
       repeating-linear-gradient(
         135deg,
-        oklch(0.18 0.03 210 / 0.04) 0,
-        oklch(0.18 0.03 210 / 0.04) 1px,
+        oklch(0.18 0.03 210 / 0.03) 0,
+        oklch(0.18 0.03 210 / 0.03) 1px,
         transparent 1px,
         transparent 22px
       );
-    opacity: 0.7;
+    opacity: 0.8;
     animation: drift 18s ease-in-out infinite;
     pointer-events: none;
     z-index: 0;
@@ -150,8 +192,16 @@
   }
 
   .gradient-mesh {
-    background: radial-gradient(at 0% 0%, oklch(0.32 0.08 200 / 0.08) 0px, transparent 50%),
-      radial-gradient(at 100% 100%, oklch(0.78 0.15 45 / 0.06) 0px, transparent 50%);
+    background: radial-gradient(at 0% 0%, oklch(0.32 0.08 200 / 0.06) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, oklch(0.78 0.15 45 / 0.05) 0px, transparent 50%),
+      radial-gradient(at 50% 50%, oklch(0.55 0.12 150 / 0.03) 0px, transparent 60%);
+  }
+
+  /* Green gradient mesh */
+  .green-gradient-mesh {
+    background: radial-gradient(at 0% 0%, oklch(0.55 0.12 150 / 0.15) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, oklch(0.45 0.1 150 / 0.1) 0px, transparent 50%),
+      radial-gradient(at 50% 50%, oklch(0.6 0.12 150 / 0.08) 0px, transparent 60%);
   }
 
   .card-animate {

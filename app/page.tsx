@@ -6,7 +6,7 @@ import { BottomNav } from "@/components/bottom-nav"
 import { Footer } from "@/components/footer"
 import { LocationSelector } from "@/components/location-selector"
 import { LocationBar } from "@/components/location-bar"
-import { Sparkles, ArrowRight, Shield, Zap, Heart } from "lucide-react"
+import { Sparkles, ArrowRight, Shield, Zap, Heart, ShoppingBag, Tag } from "lucide-react"
 import Link from "next/link"
 
 export default function HomePage() {
@@ -23,13 +23,26 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Hero principal avec fond animé + photo à droite */}
+        {/* Hero principal avec fond vert + photo à droite */}
         <section className="relative px-4 md:px-6 pt-8 pb-12 md:pt-14 md:pb-16 overflow-hidden reveal-up">
-          <div className="absolute inset-0 hero-gradient" />
-          <div className="max-w-6xl mx-auto">
-            <div className="relative overflow-hidden rounded-[32px] border border-primary/20 bg-primary text-primary-foreground shadow-[0_32px_90px_rgba(15,23,42,0.35)]">
-              <div className="absolute inset-0 bg-[url('/modern-apartment-interior.jpg')] bg-cover bg-center opacity-25" />
-              <div className="absolute inset-0 bg-gradient-to-tr from-primary/95 via-primary/85 to-primary/70" />
+          {/* Animated green background */}
+          <div className="absolute inset-0 green-hero-bg" />
+          
+          {/* Decorative elements - Left side */}
+          <div className="absolute left-0 top-1/4 w-64 h-64 bg-emerald-400/20 rounded-full blur-3xl animate-float" />
+          <div className="absolute left-10 top-1/3 w-32 h-32 bg-green-400/15 rounded-full blur-2xl animate-float" style={{ animationDelay: '1s' }} />
+          
+          {/* Decorative elements - Right side */}
+          <div className="absolute right-0 bottom-1/4 w-72 h-72 bg-teal-400/20 rounded-full blur-3xl animate-float" style={{ animationDelay: '0.5s' }} />
+          <div className="absolute right-10 bottom-1/3 w-40 h-40 bg-emerald-300/15 rounded-full blur-2xl animate-float" style={{ animationDelay: '1.5s' }} />
+          
+          {/* Center glow */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-emerald-500/5 rounded-full blur-3xl" />
+          
+          <div className="max-w-6xl mx-auto relative">
+            <div className="relative overflow-hidden rounded-[32px] border border-emerald-500/30 bg-emerald-500/10 backdrop-blur-xl shadow-[0_32px_90px_rgba(16,185,129,0.25)]">
+              {/* Inner gradient overlay */}
+              <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/20 via-transparent to-teal-500/20" />
               <div className="absolute inset-0 gradient-mesh" />
 
               <div className="relative grid gap-10 md:gap-12 lg:gap-16 items-center p-7 md:p-12 lg:p-14 lg:grid-cols-2">
@@ -39,25 +52,25 @@ export default function HomePage() {
 
                   <h1 className="display-font text-3xl md:text-5xl lg:text-6xl font-extrabold leading-tight tracking-tight text-balance mt-6">
                     Achetez et vendez{" "}
-                    <span className="text-accent drop-shadow-sm">en toute simplicité</span>
+                    <span className="text-emerald-600 drop-shadow-sm">en toute simplicité</span>
                   </h1>
-                  <p className="mt-4 text-base md:text-lg opacity-95 max-w-2xl text-pretty">
+                  <p className="mt-4 text-base md:text-lg opacity-90 max-w-2xl text-pretty text-emerald-800/80">
                     Marketplace rapide, sécurisée et agréable. Des annonces, des catégories, et vos favoris en un clic.
                   </p>
 
                   {/* Feature pills avec icônes */}
                   <div className="mt-8 flex flex-wrap gap-3">
-                    <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-background/10 border border-background/15 backdrop-blur-sm">
-                      <Shield className="w-4 h-4 text-accent" />
-                      <span className="text-sm">Sécurisé</span>
+                    <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 border border-white/30 backdrop-blur-sm">
+                      <Shield className="w-4 h-4 text-emerald-600" />
+                      <span className="text-sm font-medium text-emerald-800">Sécurisé</span>
                     </div>
-                    <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-background/10 border border-background/15 backdrop-blur-sm">
-                      <Zap className="w-4 h-4 text-accent" />
-                      <span className="text-sm">Rapide</span>
+                    <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 border border-white/30 backdrop-blur-sm">
+                      <Zap className="w-4 h-4 text-emerald-600" />
+                      <span className="text-sm font-medium text-emerald-800">Rapide</span>
                     </div>
-                    <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-background/10 border border-background/15 backdrop-blur-sm">
-                      <Heart className="w-4 h-4 text-accent" />
-                      <span className="text-sm">Favoris</span>
+                    <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 border border-white/30 backdrop-blur-sm">
+                      <Heart className="w-4 h-4 text-emerald-600" />
+                      <span className="text-sm font-medium text-emerald-800">Favoris</span>
                     </div>
                   </div>
 
@@ -65,7 +78,7 @@ export default function HomePage() {
                   <div className="mt-8">
                     <Link 
                       href="/publish"
-                      className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-background text-primary font-semibold hover:bg-background/90 hover-scale transition-all shadow-lg"
+                      className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-emerald-600 text-white font-semibold hover:bg-emerald-700 hover-scale transition-all shadow-lg"
                     >
                       <Sparkles className="w-5 h-5" />
                       Déposer une annonce
@@ -76,33 +89,101 @@ export default function HomePage() {
 
                 {/* Colonne image / mockup d'annonce */}
                 <div className="relative w-full max-w-md mx-auto">
-                  <div className="relative aspect-[4/5] rounded-3xl overflow-hidden border border-background/20 bg-background/10 shadow-[0_24px_80px_rgba(15,23,42,0.55)] hero-photo">
+                  <div className="relative aspect-[4/5] rounded-3xl overflow-hidden border border-white/20 bg-white/10 shadow-[0_24px_80px_rgba(16,185,129,0.3)] hero-photo">
                     <img
                       src="/samsung-galaxy-smartphone.png"
                       alt="Produit vedette"
                       className="absolute inset-0 w-full h-full object-contain p-6 drop-shadow-[0_24px_40px_rgba(0,0,0,0.35)]"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-black/5 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-emerald-900/30 via-transparent to-transparent" />
 
-                    <div className="absolute bottom-4 left-4 right-4 flex flex-col gap-3 text-sm text-background">
+                    <div className="absolute bottom-4 left-4 right-4 flex flex-col gap-3 text-sm">
                       <div className="flex items-center justify-between">
-                        <span className="inline-flex items-center gap-1.5 rounded-full bg-background/10 px-3 py-1 text-xs font-medium backdrop-blur">
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-xs font-medium backdrop-blur text-white">
                           <span className="inline-block h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
                           Annonces en temps réel
                         </span>
-                        <span className="rounded-full bg-background/15 px-3 py-1 text-xs font-medium backdrop-blur">
+                        <span className="rounded-full bg-white/25 px-3 py-1 text-xs font-medium backdrop-blur text-white">
                           +10k annonces
                         </span>
                       </div>
-                      <div className="rounded-2xl bg-background/85 text-foreground px-4 py-3 flex items-center justify-between gap-3 backdrop-blur">
+                      <div className="rounded-2xl bg-white/90 text-foreground px-4 py-3 flex items-center justify-between gap-3 backdrop-blur">
                         <div>
                           <p className="text-xs text-muted-foreground">Proche de vous</p>
                           <p className="font-semibold">Téléphone dernier cri</p>
                         </div>
-                        <span className="text-lg font-bold text-primary">95 000FCFA</span>
+                        <span className="text-lg font-bold text-emerald-700">95 000FCFA</span>
                       </div>
                     </div>
                   </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Section Verte - Featured Categories & Welcome */}
+        <section className="py-12 md:py-16 px-4 reveal-up">
+          <div className="max-w-6xl mx-auto">
+            <div className="relative overflow-hidden rounded-[32px] bg-gradient-to-br from-emerald-500/20 via-green-500/15 to-teal-500/20 border border-emerald-500/30 shadow-[0_20px_60px_rgba(16,185,129,0.2)]">
+              {/* Animated background elements */}
+              <div className="absolute inset-0">
+                <div className="absolute top-4 left-4 w-24 h-24 bg-emerald-400/20 rounded-full blur-2xl animate-pulse" />
+                <div className="absolute bottom-4 right-8 w-32 h-32 bg-green-400/20 rounded-full blur-2xl animate-pulse" style={{ animationDelay: '0.5s' }} />
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-emerald-300/10 rounded-full blur-3xl" />
+              </div>
+              
+              <div className="relative px-8 py-12 md:py-16 md:px-12">
+                {/* Header with icons */}
+                <div className="text-center mb-10">
+                  <div className="inline-flex items-center gap-3 px-5 py-2 rounded-full bg-emerald-500/20 border border-emerald-500/30 mb-6">
+                    <ShoppingBag className="w-5 h-5 text-emerald-600" />
+                    <span className="text-sm font-medium text-emerald-700">Marketplace Premium</span>
+                  </div>
+                  <h2 className="text-3xl md:text-4xl font-bold mb-4 text-emerald-900 dark:text-emerald-100">
+                    Trouvez les meilleures offres
+                  </h2>
+                  <p className="text-emerald-700/80 dark:text-emerald-300/80 text-lg max-w-2xl mx-auto">
+                    Découvrez des milliers d'annonces dans votre région. Achetez et vendez en toute confiance.
+                  </p>
+                </div>
+
+                {/* Quick stats */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-10">
+                  <div className="text-center p-4 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20">
+                    <p className="text-3xl md:text-4xl font-bold text-emerald-700">10K+</p>
+                    <p className="text-sm text-emerald-600/80">Annonces actives</p>
+                  </div>
+                  <div className="text-center p-4 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20">
+                    <p className="text-3xl md:text-4xl font-bold text-emerald-700">5K+</p>
+                    <p className="text-sm text-emerald-600/80">Vendeurs vérifiés</p>
+                  </div>
+                  <div className="text-center p-4 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20">
+                    <p className="text-3xl md:text-4xl font-bold text-emerald-700">50+</p>
+                    <p className="text-sm text-emerald-600/80">Catégories</p>
+                  </div>
+                  <div className="text-center p-4 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20">
+                    <p className="text-3xl md:text-4xl font-bold text-emerald-700">24h</p>
+                    <p className="text-sm text-emerald-600/80">Délai moyen</p>
+                  </div>
+                </div>
+
+                {/* Quick links */}
+                <div className="flex flex-wrap justify-center gap-4">
+                  <Link 
+                    href="/listings"
+                    className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-emerald-600 text-white font-semibold hover:bg-emerald-700 hover-scale transition-all shadow-lg"
+                  >
+                    <Tag className="w-5 h-5" />
+                    Parcourir les annonces
+                  </Link>
+                  <Link 
+                    href="/publish"
+                    className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 text-emerald-800 font-semibold hover:bg-white/30 hover-scale transition-all"
+                  >
+                    <Sparkles className="w-5 h-5" />
+                    Déposer une annonce
+                  </Link>
                 </div>
               </div>
             </div>
