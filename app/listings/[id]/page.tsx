@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Heart, Share2, Flag, MapPin, Phone, MessageCircle, Loader2, ChevronLeft, ChevronRight } from "lucide-react"
-import { annonceService, favoriteService } from "@/lib/api"
+import { annonceService, favoriteService, messageService } from "@/lib/api"
 import { resolveStorageUrl } from "@/lib/media"
 import { useAuth } from "@/contexts/AuthContext"
 import { useParams, useRouter } from "next/navigation"
@@ -119,6 +119,39 @@ export default function ListingDetailPage() {
       } else {
         toast.error(result.message || "Impossible d'ajouter")
       }
+    }
+  }
+
+  const contactSeller = async () => {
+    if (!isAuthenticated) {
+      toast.error("Connexion requise")
+      router.push("/auth")
+      return
+    }
+
+    if (!annonce) return
+
+    try {
+      // Créer ou récupérer la conversation
+      const result = await messageService.createConversation({
+        annonce_id: annonce.id,
+        seller_id: annonce.user.id,
+      })
+
+      if (result.success && result.data) {
+        const conversationId = result.data.conversation?.id || result.data.id
+        if (conversationId) {
+          // Rediriger vers la conversation
+          router.push(`/messages/${conversationId}`)
+        } else {
+          toast.error("Impossible de créer la conversation")
+        }
+      } else {
+        toast.error(result.message || "Erreur lors de la création de la conversation")
+      }
+    } catch (error) {
+      console.error('Error creating conversation:', error)
+      toast.error("Erreur lors de la création de la conversation")
     }
   }
 
@@ -339,7 +372,7 @@ export default function ListingDetailPage() {
                         {annonce.user.phone}
                       </Button>
                     )}
-                    <Button className="w-full" variant="outline">
+                    <Button className="w-full" variant="outline" onClick={contactSeller}>
                       <MessageCircle className="w-4 h-4 mr-2" />
                       Envoyer un message
                     </Button>

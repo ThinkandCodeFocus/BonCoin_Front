@@ -60,7 +60,7 @@ export default function FavoritesPage() {
                 return (
                   <Link key={item.id} href={`/listings/${item.annonce?.id}`}>
                     <Card className="overflow-hidden hover:shadow-xl transition-shadow group cursor-pointer">
-                      <div className="relative aspect-[4/3] overflow-hidden">
+                      <div className="relative aspect-4/3 overflow-hidden">
                         <img
                           src={photoUrl}
                           alt={item.annonce?.title}

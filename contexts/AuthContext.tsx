@@ -32,6 +32,7 @@ interface RegisterData {
   password: string
   password_confirmation: string
   language?: string
+  user_type?: 'buyer' | 'seller' | 'both'
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -52,7 +53,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           // Rafraîchir les données utilisateur
           const result = await authService.getUser()
           if (result.success) {
-            setUser(result.data)
+            const data = (result as any).data
+            if (data) {
+              setUser(data)
+            }
           }
         }
       }
@@ -66,21 +70,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const result = await authService.login(login, password)
       
-      if (result.success && result.data) {
-        setUser(result.data.user)
-        toast({
-          title: "Connexion réussie",
-          description: `Bienvenue ${result.data.user.name}`,
-        })
-        return true
-      } else {
-        toast({
-          title: "Erreur de connexion",
-          description: result.message || "Identifiants invalides",
-          variant: "destructive",
-        })
-        return false
+      if (result.success) {
+        const data = (result as any).data
+        if (data) {
+          setUser(data.user)
+          toast({
+            title: "Connexion réussie",
+            description: `Bienvenue ${data.user.name}`,
+          })
+          return true
+        }
       }
+      const message = (result as any).message
+      toast({
+        title: "Erreur de connexion",
+        description: message || "Identifiants invalides",
+        variant: "destructive",
+      })
+      return false
     } catch (error) {
       toast({
         title: "Erreur",
@@ -95,25 +102,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const result = await authService.register(data)
       
-      if (result.success && result.data) {
-        setUser(result.data.user)
-        toast({
-          title: "Inscription réussie",
-          description: "Votre compte a été créé avec succès",
-        })
-        return true
-      } else {
-        const errorMessage = result.errors 
-          ? Object.values(result.errors).flat().join(', ')
-          : result.message || "Erreur lors de l'inscription"
-        
-        toast({
-          title: "Erreur d'inscription",
-          description: errorMessage,
-          variant: "destructive",
-        })
-        return false
+      if (result.success) {
+        const respData = (result as any).data
+        if (respData) {
+          setUser(respData.user)
+          toast({
+            title: "Inscription réussie",
+            description: "Votre compte a été créé avec succès",
+          })
+          return true
+        }
       }
+      
+      const errors = (result as any).errors
+      const message = (result as any).message
+      const errorMessage = errors 
+        ? Object.values(errors).flat().join(', ')
+        : message || "Erreur lors de l'inscription"
+        
+      toast({
+        title: "Erreur d'inscription",
+        description: errorMessage,
+        variant: "destructive",
+      })
+      return false
     } catch (error) {
       toast({
         title: "Erreur",
@@ -137,7 +149,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const refreshUser = async () => {
     const result = await authService.getUser()
     if (result.success) {
-      setUser(result.data)
+      const data = (result as any).data
+      if (data) {
+        setUser(data)
+      }
     }
   }
 

@@ -285,7 +285,7 @@ export default function ProfilePage() {
                             onError={(e) => {
                               e.currentTarget.src = "/placeholder.svg"
                             }}
-                            className="w-full aspect-[4/3] object-cover"
+                            className="w-full aspect-4/3 object-cover"
                           />
                           <div className="p-4">
                             <h3 className="font-semibold mb-2 line-clamp-2">{annonce.title}</h3>

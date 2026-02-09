@@ -54,17 +54,18 @@ export function FeaturedListings() {
     if (cityFilter) params.city = cityFilter
     if (districtFilter) params.district = districtFilter
     const result = await annonceService.getAll(params)
-    if (result.success && result.data) {
-      setListings(result.data.data || [])
-      const meta = result.data.meta || result.data?.data?.meta
+    if (result.success && (result as any).data) {
+      const data = (result as any).data
+      setListings(data.data || [])
+      const meta = data.meta || data?.data?.meta
       if (meta) {
         setCurrentPage(meta.current_page || page)
         setTotalPages(meta.last_page || 1)
-        setTotalItems(meta.total || (result.data.data || []).length)
+        setTotalItems(meta.total || (data.data || []).length)
       } else {
         setCurrentPage(page)
         setTotalPages(1)
-        setTotalItems((result.data.data || []).length)
+        setTotalItems((data.data || []).length)
       }
     }
     setIsLoading(false)
@@ -133,7 +134,7 @@ export function FeaturedListings() {
   // Skeleton loading component
   const SkeletonCard = () => (
     <div className="overflow-hidden group cursor-pointer border-border/60 bg-card/90 rounded-xl">
-      <div className="relative aspect-[4/3] shimmer-card" />
+      <div className="relative aspect-4/3 shimmer-card" />
       <div className="p-5 space-y-3">
         <div className="h-6 shimmer-card rounded-md w-3/4" />
         <div className="h-8 shimmer-card rounded-md w-1/2" />
@@ -175,7 +176,7 @@ export function FeaturedListings() {
           return (
             <Link key={listing.id} href={`/listings/${listing.id}`}>
               <Card className="overflow-hidden group cursor-pointer border-border/60 bg-card/90 card-lift card-glow rounded-xl">
-                <div className="relative aspect-[4/3] overflow-hidden bg-muted image-overlay">
+                <div className="relative aspect-4/3 overflow-hidden bg-muted image-overlay">
                   <img
                     src={photoUrl}
                     alt={listing.title}
@@ -184,7 +185,7 @@ export function FeaturedListings() {
                     }}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="absolute inset-0 bg-linear-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   
                   {/* Top badges row */}
                   <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
@@ -238,7 +239,7 @@ export function FeaturedListings() {
                   </div>
                   
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <MapPin className="w-4 h-4 flex-shrink-0 text-accent" />
+                    <MapPin className="w-4 h-4 shrink-0 text-accent" />
                     <span className="truncate">{listing.city}, {listing.district}</span>
                   </div>
                 </div>

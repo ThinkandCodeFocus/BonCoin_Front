@@ -747,6 +747,31 @@ export const notificationService = {
  */
 export const messageService = {
   /**
+   * Créer une nouvelle conversation
+   */
+  async createConversation(data: {
+    annonce_id: number
+    seller_id: number
+  }) {
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/conversations`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(data),
+      })
+      const result = await response.json()
+      
+      if (!response.ok) {
+        throw { response: { data: result, status: response.status } }
+      }
+
+      return { success: true, data: result }
+    } catch (error) {
+      return handleError(error)
+    }
+  },
+
+  /**
    * Récupérer toutes les conversations
    */
   async getConversations() {
@@ -789,7 +814,7 @@ export const messageService = {
   },
 
   /**
-   * Envoyer un message
+   * Envoyer un message texte
    */
   async sendMessage(conversationId: number, content: string, type: 'text' | 'audio' = 'text') {
     try {
@@ -797,6 +822,35 @@ export const messageService = {
         method: 'POST',
         headers: getHeaders(),
         body: JSON.stringify({ type, content }),
+      })
+      const result = await response.json()
+      
+      if (!response.ok) {
+        throw { response: { data: result, status: response.status } }
+      }
+
+      return { success: true, data: result }
+    } catch (error) {
+      return handleError(error)
+    }
+  },
+
+  /**
+   * Envoyer un message audio
+   */
+  async sendAudioMessage(conversationId: number, audioFile: File) {
+    try {
+      const formData = new FormData()
+      formData.append('audio', audioFile)
+
+      const token = localStorage.getItem('auth_token')
+      const response = await fetch(`${API_CONFIG.baseURL}/conversations/${conversationId}/audio`, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : '',
+        },
+        body: formData,
       })
       const result = await response.json()
       
@@ -825,9 +879,29 @@ export const messageService = {
         throw { response: { data: result, status: response.status } }
       }
 
-      // TODO: Ajuster selon la structure exacte de la réponse du backend
-      const unreadCount = Array.isArray(result) ? result.filter((c: any) => c.unread_count > 0).length : 0
+  // Compter le total réel de tous les messages non lus
+  const unreadCount = Array.isArray(result) ? result.reduce((total: number, c: any) => total + (c.unread_count || 0), 0) : 0
       return { success: true, data: unreadCount }
+    } catch (error) {
+      return handleError(error)
+    }
+  },
+  /**
+   * Marquer une conversation comme lue (tous les messages)
+   */
+  async markConversationAsRead(conversationId: number) {
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/conversations/${conversationId}/read`, {
+        method: 'POST',
+        headers: getHeaders(),
+      })
+      const result = await response.json()
+      
+      if (!response.ok) {
+        throw { response: { data: result, status: response.status } }
+      }
+
+      return { success: true, data: result }
     } catch (error) {
       return handleError(error)
     }

@@ -22,12 +22,16 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { notificationService, messageService } from "@/lib/api"
+import { useMessageNotifications } from "@/contexts/MessageNotificationContext"
+import { useRouter } from "next/navigation"
 
 export function Header() {
   const { user, isAuthenticated, logout } = useAuth()
   const { favoriteCount } = useFavorites()
+  const { unreadCount: messageCount } = useMessageNotifications()
   const [notificationCount, setNotificationCount] = useState(0)
-  const [messageCount, setMessageCount] = useState(0)
+  const [latestConversationId, setLatestConversationId] = useState<number | null>(null)
+  const router = useRouter()
   const [showAuthDialog, setShowAuthDialog] = useState(false)
   const [authTab, setAuthTab] = useState<"login" | "register">("login")
   const { resolvedTheme, setTheme } = useTheme()
@@ -40,27 +44,38 @@ export function Header() {
   // Charger les compteurs de notifications et messages
   useEffect(() => {
     if (isAuthenticated) {
-      loadCounts()
-      // Recharger toutes les 30 secondes
-      const interval = setInterval(loadCounts, 30000)
+      loadNotifications()
+      // Recharger les notifications toutes les 5 secondes
+      const interval = setInterval(loadNotifications, 5000)
       return () => clearInterval(interval)
     } else {
       setNotificationCount(0)
-      setMessageCount(0)
+      // message count managed by MessageNotificationProvider
     }
   }, [isAuthenticated])
 
-  const loadCounts = async () => {
-    const [notifResult, messageResult] = await Promise.all([
-      notificationService.getUnreadCount(),
-      messageService.getUnreadCount(),
-    ])
+  const loadNotifications = async () => {
+    const notifResult = await notificationService.getUnreadCount()
 
     if (notifResult.success) {
       setNotificationCount(notifResult.data)
     }
-    if (messageResult.success) {
-      setMessageCount(messageResult.data)
+
+    // Récupérer les conversations pour trouver la conversation la plus récente ou non lue
+    try {
+      const convResult = await messageService.getConversations()
+      if (convResult.success && Array.isArray((convResult as any).data)) {
+        const convs = (convResult as any).data as any[]
+        // Prioriser une conversation avec unread_count > 0
+        let target = convs.find((c) => (c.unread_count || 0) > 0)
+        if (!target) {
+          // Sinon prendre la plus récemment mise à jour
+          target = convs.sort((a, b) => new Date(b.updated_at || b.created_at).getTime() - new Date(a.updated_at || a.created_at).getTime())[0]
+        }
+        setLatestConversationId(target ? target.id : null)
+      }
+    } catch (e) {
+      // ignore
     }
   }
 
@@ -69,10 +84,10 @@ export function Header() {
       <div className="max-w-7xl mx-auto px-4 lg:px-6 py-4">
         <div className="flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-11 h-11 bg-gradient-to-br from-primary via-primary/80 to-accent/80 rounded-2xl flex items-center justify-center shadow-lg ring-1 ring-white/30 group-hover:shadow-xl transition-shadow">
+            <div className="w-11 h-11 bg-linear-to-br from-primary via-primary/80 to-accent/80 rounded-2xl flex items-center justify-center shadow-lg ring-1 ring-white/30 group-hover:shadow-xl transition-shadow">
               <span className="text-primary-foreground font-bold text-xl">M</span>
             </div>
-            <span className="display-font font-bold text-xl hidden md:block bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+            <span className="display-font font-bold text-xl hidden md:block bg-linear-to-r from-primary to-accent bg-clip-text text-transparent">
               Marketplace
             </span>
           </Link>
@@ -120,14 +135,18 @@ export function Header() {
                     )}
                   </Button>
                 </Link>
-                <Link href="/favorites">
-                  <Button variant="ghost" size="icon" className="relative rounded-full hover:bg-muted">
+                <Link href={latestConversationId ? `/messages/${latestConversationId}` : (messageCount > 0 ? "/messages" : "/favorites")}>
+                  <Button variant="ghost" size="icon" className="relative rounded-full hover:bg-muted" title={latestConversationId ? "Ouvrir la conversation" : (messageCount > 0 ? "Messages" : "Favoris")}>
                     <Heart className="w-5 h-5" />
-                    {favoriteCount > 0 && (
+                    {(messageCount > 0) ? (
+                      <Badge className="absolute -top-1 -right-1 w-5 h-5 flex items-center justify-center p-0 text-xs bg-accent text-accent-foreground border-2 border-background">
+                        {messageCount}
+                      </Badge>
+                    ) : (favoriteCount > 0 && (
                       <Badge className="absolute -top-1 -right-1 w-5 h-5 flex items-center justify-center p-0 text-xs bg-accent text-accent-foreground border-2 border-background">
                         {favoriteCount}
                       </Badge>
-                    )}
+                    ))}
                   </Button>
                 </Link>
                 

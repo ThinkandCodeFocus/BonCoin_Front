@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useAuth } from "@/contexts/AuthContext"
 import { Eye, EyeOff, Loader2 } from "lucide-react"
 
@@ -31,6 +32,7 @@ export function AuthDialog({ open, onOpenChange, defaultTab = "login" }: AuthDia
   const [registerPasswordConfirmation, setRegisterPasswordConfirmation] = useState("")
   const [showRegisterPassword, setShowRegisterPassword] = useState(false)
   const [showRegisterPasswordConfirmation, setShowRegisterPasswordConfirmation] = useState(false)
+  const [registerUserType, setRegisterUserType] = useState<'buyer' | 'seller' | 'both'>('both')
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -54,6 +56,7 @@ export function AuthDialog({ open, onOpenChange, defaultTab = "login" }: AuthDia
       password: registerPassword,
       password_confirmation: registerPasswordConfirmation,
       language: "fr",
+      user_type: registerUserType,
     })
     setIsLoading(false)
     if (success) {
@@ -166,6 +169,20 @@ export function AuthDialog({ open, onOpenChange, defaultTab = "login" }: AuthDia
                   required
                   disabled={isLoading}
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="register-user-type">Type d'utilisateur</Label>
+                <Select value={registerUserType} onValueChange={(value) => setRegisterUserType(value as 'buyer' | 'seller' | 'both')}>
+                  <SelectTrigger id="register-user-type">
+                    <SelectValue placeholder="Sélectionner un type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="buyer">Acheteur uniquement</SelectItem>
+                    <SelectItem value="seller">Vendeur uniquement</SelectItem>
+                    <SelectItem value="both">Acheteur et Vendeur</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="register-password">Mot de passe</Label>

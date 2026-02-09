@@ -7,6 +7,8 @@ import { Toaster } from "@/components/ui/toaster"
 import { AuthProvider } from "@/contexts/AuthContext"
 import { FavoritesProvider } from "@/contexts/FavoritesContext"
 import { ThemeProvider } from "@/components/theme-provider"
+import { MessageNotificationProvider } from "@/contexts/MessageNotificationContext"
+import { MessageNotificationToast } from "@/components/message-notification-toast"
 
 const sora = Sora({
   subsets: ["latin"],
@@ -53,8 +55,11 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
           <AuthProvider>
             <FavoritesProvider>
+                            <MessageNotificationProvider>
               {children}
+                              <MessageNotificationToast />
               <Toaster />
+                          </MessageNotificationProvider>
             </FavoritesProvider>
           </AuthProvider>
         </ThemeProvider>
