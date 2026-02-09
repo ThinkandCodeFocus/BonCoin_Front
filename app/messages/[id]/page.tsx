@@ -78,9 +78,13 @@ export default function ConversationPage() {
 
   const loadMessages = async (silent = false) => {
     if (!silent) setIsLoading(true)
+    console.log('Loading messages for conversation:', conversationId)
     const result = await messageService.getMessages(conversationId)
+    console.log('Messages API result:', result)
+    
     if (result.success && (result as any).data) {
       const msgs = Array.isArray((result as any).data) ? (result as any).data : []
+      console.log('Loaded messages:', msgs)
       setMessages(msgs)
       // Marquer la conversation comme lue et rafraîchir les compteurs
       try {
@@ -90,6 +94,7 @@ export default function ConversationPage() {
         // ignore
       }
     } else if (!silent) {
+      console.error('Failed to load messages:', result)
       toast.error((result as any).message || "Impossible de charger les messages")
     }
     if (!silent) setIsLoading(false)

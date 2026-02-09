@@ -51,6 +51,7 @@ export default function ListingDetailPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isFavorite, setIsFavorite] = useState(false)
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0)
+  const [isContacting, setIsContacting] = useState(false)
 
   useEffect(() => {
     if (!id) return
@@ -131,6 +132,9 @@ export default function ListingDetailPage() {
 
     if (!annonce) return
 
+    setIsContacting(true)
+    toast.info("Création de la conversation...")
+
     try {
       // Créer ou récupérer la conversation
       const result = await messageService.createConversation({
@@ -138,20 +142,28 @@ export default function ListingDetailPage() {
         seller_id: annonce.user.id,
       })
 
+      console.log('Conversation result:', result)
+
       if (result.success && result.data) {
         const conversationId = result.data.conversation?.id || result.data.id
+        console.log('Conversation ID:', conversationId)
         if (conversationId) {
+          toast.success("Conversation créée !")
           // Rediriger vers la conversation
           router.push(`/messages/${conversationId}`)
-        } else {
-          toast.error("Impossible de créer la conversation")
+          return
         }
-      } else {
-        toast.error(result.message || "Erreur lors de la création de la conversation")
       }
+      
+      // Si on arrive ici, il y a eu une erreur
+      const errorMessage = (result as any).message || (result as any).errors?.annonce_id || "Erreur lors de la création de la conversation"
+      toast.error(errorMessage)
+      
     } catch (error) {
       console.error('Error creating conversation:', error)
       toast.error("Erreur lors de la création de la conversation")
+    } finally {
+      setIsContacting(false)
     }
   }
 
@@ -372,9 +384,18 @@ export default function ListingDetailPage() {
                         {annonce.user.phone}
                       </Button>
                     )}
-                    <Button className="w-full" variant="outline" onClick={contactSeller}>
-                      <MessageCircle className="w-4 h-4 mr-2" />
-                      Envoyer un message
+                    <Button 
+                      className="w-full" 
+                      variant="outline" 
+                      onClick={contactSeller}
+                      disabled={isContacting}
+                    >
+                      {isContacting ? (
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      ) : (
+                        <MessageCircle className="w-4 h-4 mr-2" />
+                      )}
+                      {isContacting ? "Création..." : "Envoyer un message"}
                     </Button>
                   </div>
                 )}
