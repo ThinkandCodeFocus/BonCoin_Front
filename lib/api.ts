@@ -34,11 +34,27 @@ const handleError = (error: any) => {
     const message = error.response.data?.message || 'Une erreur est survenue'
     const errors = error.response.data?.errors || {}
     
+    // Ne pas logger les erreurs 401 (Unauthorized) - c'est normal quand le token expire
+    const is401 = error.response.status === 401
+    
+    // Rediriger vers /auth si 401 (non autorisé)
+    if (is401 && typeof window !== 'undefined') {
+      // Stocker l'URL actuelle pour rediriger après connexion
+      const currentPath = window.location.pathname
+      if (currentPath !== '/auth') {
+        localStorage.setItem('redirect_after_login', currentPath)
+      }
+      // Optionnel: rediriger immédiatement vers /auth
+      // window.location.href = '/auth'
+      // On préfère NOTIFIER plutôt que REDIRIGER automatiquement pour éviter les boucles
+    }
+    
     return {
       success: false,
       message,
       errors,
       status: error.response.status,
+      isUnauthorized: is401,
     }
   } else if (error.request) {
     // Erreur de requête (pas de réponse)
@@ -46,6 +62,7 @@ const handleError = (error: any) => {
       success: false,
       message: 'Impossible de contacter le serveur',
       errors: {},
+      isUnauthorized: false,
     }
   } else {
     // Autre erreur
@@ -53,6 +70,7 @@ const handleError = (error: any) => {
       success: false,
       message: error.message || 'Une erreur inattendue est survenue',
       errors: {},
+      isUnauthorized: false,
     }
   }
 }
@@ -849,6 +867,7 @@ export const messageService = {
         headers: {
           'Accept': 'application/json',
           'Authorization': token ? `Bearer ${token}` : '',
+          // NE PAS définir Content-Type pour les FormData - le navigateur le fait automatiquement
         },
         body: formData,
       })
@@ -894,6 +913,63 @@ export const messageService = {
       const response = await fetch(`${API_CONFIG.baseURL}/conversations/${conversationId}/read`, {
         method: 'POST',
         headers: getHeaders(),
+      })
+      const result = await response.json()
+      
+      if (!response.ok) {
+        throw { response: { data: result, status: response.status } }
+      }
+
+      return { success: true, data: result }
+    } catch (error) {
+      return handleError(error)
+    }
+  },
+}
+
+/**
+ * Service de signalement
+ */
+export const reportService = {
+  /**
+   * Signaler une annonce
+   */
+  async reportAnnonce(data: {
+    annonce_id: number
+    reason: string
+    description?: string | null
+  }) {
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/reports/annonce`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(data),
+      })
+      const result = await response.json()
+      
+      if (!response.ok) {
+        throw { response: { data: result, status: response.status } }
+      }
+
+      return { success: true, data: result }
+    } catch (error) {
+      return handleError(error)
+    }
+  },
+
+  /**
+   * Signaler un utilisateur
+   */
+  async reportUser(data: {
+    user_id: number
+    reason: string
+    description?: string | null
+  }) {
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/reports/user`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(data),
       })
       const result = await response.json()
       

@@ -21,20 +21,20 @@ export function BottomNav() {
     { href: "/profile", icon: User, label: "Profil" },
   ]
 
-  return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-lg border-t z-50 pb-safe">
-      <div className="flex items-center justify-around py-2 px-1">
+return (
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 pb-safe bg-card/95 backdrop-blur-lg border-t border-border/60">
+      <div className="flex items-center justify-around h-16 px-1">
         {navItems.map((item) => {
           const active = isActive(item.href)
           const Icon = item.icon
 
           if (item.isPrimary) {
             return (
-              <Link key={item.href} href={item.href}>
+              <Link key={item.href} href={item.href} className="relative -top-3">
                 <Button
                   variant="default"
                   size="icon"
-                  className="flex flex-col gap-0.5 h-auto py-2 -mt-6 rounded-full w-14 h-14 shadow-xl hover:shadow-2xl transition-all hover-scale"
+                  className="w-14 h-14 rounded-full shadow-xl hover:shadow-2xl transition-all hover-scale flex flex-col items-center justify-center gap-0.5 bg-accent text-accent-foreground"
                 >
                   <Icon className="w-6 h-6" />
                 </Button>
@@ -43,14 +43,13 @@ export function BottomNav() {
           }
 
           return (
-            <Link key={item.href} href={item.href}>
+            <Link key={item.href} href={item.href} className="flex-1">
               <Button
                 variant="ghost"
-                size="icon"
-                className={`flex flex-col gap-0.5 h-auto py-2 px-3 transition-all duration-200 ${
+                className={`w-full h-12 flex flex-col items-center justify-center gap-0.5 rounded-none transition-all duration-200 tap-target ${
                   active 
-                    ? "text-primary" 
-                    : "text-muted-foreground hover:text-foreground"
+                    ? "text-primary bg-primary/5" 
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
                 }`}
               >
                 <div className="relative">

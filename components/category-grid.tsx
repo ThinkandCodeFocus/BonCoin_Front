@@ -1,4 +1,3 @@
-
 "use client"
 
 import {
@@ -16,27 +15,19 @@ import {
   Leaf,
 } from "lucide-react"
 import Link from "next/link"
+import { cn } from "@/lib/utils"
 
-// Default categories
 const defaultCategories = [
-  { id: 1, name: "Téléphones", icon: "Smartphone", annonces_count: 1250 },
+  { id: 1, name: "Telephones", icon: "Smartphone", annonces_count: 1250 },
   { id: 2, name: "Immobilier", icon: "Building2", annonces_count: 856 },
-  { id: 3, name: "Véhicules", icon: "Car", annonces_count: 543 },
+  { id: 3, name: "Vehicules", icon: "Car", annonces_count: 543 },
   { id: 4, name: "Meubles", icon: "Sofa", annonces_count: 432 },
   { id: 5, name: "Mode", icon: "Shirt", annonces_count: 1200 },
-  { id: 6, name: "Électronique", icon: "Smartphone", annonces_count: 789 },
+  { id: 6, name: "Electronique", icon: "Smartphone", annonces_count: 789 },
   { id: 7, name: "Services", icon: "Briefcase", annonces_count: 234 },
   { id: 8, name: "Loisirs", icon: "Gamepad2", annonces_count: 567 },
 ]
 
-interface Category {
-  id: number
-  name: string
-  icon?: string
-  annonces_count?: number
-}
-
-// Icon mapping
 const getIconForName = (name: string) => {
   const n = name.toLowerCase()
   if (n.includes("vehicul") || n.includes("voiture") || n.includes("auto")) return Car
@@ -54,7 +45,6 @@ const getIconForName = (name: string) => {
 }
 
 export function CategoryGrid() {
-  // Skeleton loading
   const SkeletonCategory = () => (
     <div className="category-card">
       <div className="hex-card">
@@ -90,7 +80,10 @@ export function CategoryGrid() {
                       <div className="absolute inset-0 rounded-2xl bg-accent/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-sm md:text-base mb-1 group-hover:text-accent transition-colors">
+                      <h3 className={cn(
+                        "font-semibold text-sm md:text-base mb-1 transition-colors",
+                        "text-foreground group-hover:text-accent"
+                      )}>
                         {category.name}
                       </h3>
                       <p className="text-xs text-muted-foreground group-hover:text-foreground/70 transition-colors">

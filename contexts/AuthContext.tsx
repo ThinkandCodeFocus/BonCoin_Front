@@ -78,6 +78,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             title: "Connexion réussie",
             description: `Bienvenue ${data.user.name}`,
           })
+          
+          // Vérifier s'il y a une URL de redirection enregistrée
+          const redirectUrl = localStorage.getItem('redirect_after_login')
+          if (redirectUrl) {
+            localStorage.removeItem('redirect_after_login')
+            router.push(redirectUrl)
+          } else {
+            router.push("/")
+          }
           return true
         }
       }

@@ -1,16 +1,29 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Card } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Heart, MapPin, Loader2, Clock } from "lucide-react"
-import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { annonceService } from "@/lib/api"
+import { MapPin, Heart, Clock } from "lucide-react"
+import { 
+  Card, 
+  CardListing, 
+  Badge, 
+  Button 
+} from "@/components/ui"
+import { 
+  FavoriteButton, 
+  PriceBadge, 
+  StatusBadge, 
+  BoostedBadge, 
+  TimeAgo,
+  EmptyState,
+  SkeletonCard,
+  SectionHeader
+} from "@/components/design-system"
 import { useAuth } from "@/contexts/AuthContext"
 import { useFavorites } from "@/contexts/FavoritesContext"
 import { useToast } from "@/hooks/use-toast"
 import { resolveStorageUrl } from "@/lib/media"
+import { annonceService } from "@/lib/api"
 
 interface Annonce {
   id: number
@@ -32,8 +45,9 @@ export function FeaturedListings() {
   const [totalItems, setTotalItems] = useState(0)
   const [cityFilter, setCityFilter] = useState("")
   const [districtFilter, setDistrictFilter] = useState("")
+  
   const { isAuthenticated } = useAuth()
-  const { favorites, isFavorited, addFavorite, removeFavorite } = useFavorites()
+  const { isFavorited, addFavorite, removeFavorite } = useFavorites()
   const { toast } = useToast()
 
   useEffect(() => {
@@ -53,6 +67,7 @@ export function FeaturedListings() {
     const params: any = { page }
     if (cityFilter) params.city = cityFilter
     if (districtFilter) params.district = districtFilter
+    
     const result = await annonceService.getAll(params)
     if (result.success && (result as any).data) {
       const data = (result as any).data
@@ -62,17 +77,16 @@ export function FeaturedListings() {
         setCurrentPage(meta.current_page || page)
         setTotalPages(meta.last_page || 1)
         setTotalItems(meta.total || (data.data || []).length)
-      } else {
-        setCurrentPage(page)
-        setTotalPages(1)
-        setTotalItems((data.data || []).length)
       }
+      setIsLoading(false)
+    } else {
+      setIsLoading(false)
     }
-    setIsLoading(false)
   }
 
   const toggleFavorite = async (e: React.MouseEvent, annonceId: number) => {
     e.preventDefault()
+    e.stopPropagation()
     
     if (!isAuthenticated) {
       toast({

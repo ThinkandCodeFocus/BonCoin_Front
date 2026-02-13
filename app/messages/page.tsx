@@ -228,6 +228,7 @@ export default function MessagesPage() {
                           </p>
                           <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center shrink-0">
                             <Send className="w-3 h-3 text-muted-foreground" />
+                          </div>
                         </div>
                       </div>
                     </div>
