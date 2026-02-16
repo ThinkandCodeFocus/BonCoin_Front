@@ -14,6 +14,8 @@ import { useAuth } from "@/contexts/AuthContext"
 import { useParams, useRouter } from "next/navigation"
 import { toast } from "sonner"
 import Link from "next/link"
+import { ReportListingButton } from "@/components/report-listing-button"
+import { ReportUserButton } from "@/components/report-user-button"
 
 interface Annonce {
   id: number
@@ -371,9 +373,14 @@ export default function ListingDetailPage() {
                     </div>
                   </div>
                   {!isOwner && (
-                    <Button size="icon" variant="outline">
-                      <Flag className="w-4 h-4" />
-                    </Button>
+                    <ReportListingButton
+                      annonceId={annonce.id}
+                      annonceTitle={annonce.title}
+                    >
+                      <Button size="icon" variant="outline">
+                        <Flag className="w-4 h-4" />
+                      </Button>
+                    </ReportListingButton>
                   )}
                 </div>
                 {!isOwner && (
