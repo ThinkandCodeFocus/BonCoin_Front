@@ -15,7 +15,6 @@ import { useParams, useRouter } from "next/navigation"
 import { toast } from "sonner"
 import Link from "next/link"
 import { ReportListingButton } from "@/components/report-listing-button"
-import { ReportUserButton } from "@/components/report-user-button"
 
 interface Annonce {
   id: number
@@ -142,11 +141,12 @@ export default function ListingDetailPage() {
       const result = await messageService.createConversation({
         annonce_id: annonce.id,
         seller_id: annonce.user.id,
-      })
+      }) as any
 
       console.log('Conversation result:', result)
 
       if (result.success && result.data) {
+        // Nouvelle structure: result.data.conversation
         const conversationId = result.data.conversation?.id || result.data.id
         console.log('Conversation ID:', conversationId)
         if (conversationId) {
@@ -158,7 +158,7 @@ export default function ListingDetailPage() {
       }
       
       // Si on arrive ici, il y a eu une erreur
-      const errorMessage = (result as any).message || (result as any).errors?.annonce_id || "Erreur lors de la création de la conversation"
+      const errorMessage = result.message || result.errors?.annonce_id || "Erreur lors de la création de la conversation"
       toast.error(errorMessage)
       
     } catch (error) {

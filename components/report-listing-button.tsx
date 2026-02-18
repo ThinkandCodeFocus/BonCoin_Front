@@ -8,6 +8,7 @@ import { reportService } from "@/lib/api"
 import { toast } from "sonner"
 
 interface ReportListingButtonProps {
+  children?: React.ReactNode
   annonceId: number
   annonceTitle?: string
   trigger?: React.ReactNode
@@ -24,7 +25,7 @@ const reportReasons = [
   "Autre raison",
 ]
 
-export function ReportListingButton({ annonceId, annonceTitle, trigger, onReport }: ReportListingButtonProps) {
+export function ReportListingButton({ children, annonceId, annonceTitle, trigger, onReport }: ReportListingButtonProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [selectedReason, setSelectedReason] = useState("")
   const [description, setDescription] = useState("")
