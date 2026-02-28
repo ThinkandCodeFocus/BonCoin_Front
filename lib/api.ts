@@ -3,7 +3,38 @@
  */
 export const API_CONFIG = {
   baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api',
-  timeout: 10000,
+  timeout: 30000, // Augmenté à 30 secondes pour éviter les timeouts
+}
+
+/**
+ * Cache simple pour les requêtes API
+ * Réduit les appels réseau pour les données fréquentes
+ */
+const apiCache = new Map<string, { data: any; timestamp: number }>()
+const CACHE_DURATION = 15 * 60 * 1000 // 15 minutes en millisecondes (augmenté de 5 à 15)
+
+const getCachedData = (key: string): any | null => {
+  if (typeof window === 'undefined') return null
+  const cached = apiCache.get(key)
+  if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+    return cached.data
+  }
+  apiCache.delete(key)
+  return null
+}
+
+const setCachedData = (key: string, data: any): void => {
+  if (typeof window === 'undefined') return
+  apiCache.set(key, { data, timestamp: Date.now() })
+}
+
+const generateCacheKey = (endpoint: string, params?: Record<string, any>): string => {
+  if (!params || Object.keys(params).length === 0) return endpoint
+  const sortedParams = Object.keys(params).sort().reduce((acc, key) => {
+    acc[key] = params[key]
+    return acc
+  }, {} as Record<string, any>)
+  return `${endpoint}?${JSON.stringify(sortedParams)}`
 }
 
 /**
@@ -459,13 +490,23 @@ export const annonceService = {
 }
 
 /**
- * Service des catégories
+ * Service des catégories - avec cache
  */
 export const categoryService = {
   /**
-   * Récupérer toutes les catégories
+   * Récupérer toutes les catégories (avec cache)
    */
-  async getAll() {
+  async getAll(forceRefresh = false) {
+    const cacheKey = generateCacheKey('categories')
+    
+    // Vérifier le cache d'abord si pas de refresh forcé
+    if (!forceRefresh) {
+      const cachedData = getCachedData(cacheKey)
+      if (cachedData) {
+        return { success: true, data: cachedData, fromCache: true }
+      }
+    }
+    
     try {
       const response = await fetch(`${API_CONFIG.baseURL}/categories`, {
         method: 'GET',
@@ -477,6 +518,9 @@ export const categoryService = {
         throw { response: { data: result, status: response.status } }
       }
 
+      // Stocker dans le cache
+      setCachedData(cacheKey, result)
+      
       return { success: true, data: result }
     } catch (error) {
       return handleError(error)

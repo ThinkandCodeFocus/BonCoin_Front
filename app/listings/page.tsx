@@ -402,6 +402,7 @@ export default function ListingsPage() {
                           <img
                             src={photoUrl}
                             alt={listing.title}
+                            loading="lazy"
                             onError={(e) => {
                               e.currentTarget.src = "/placeholder.svg"
                             }}

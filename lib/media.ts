@@ -4,21 +4,22 @@ export function resolveStorageUrl(path?: string | null): string {
   const trimmed = path.trim()
   if (!trimmed) return "/placeholder.svg"
 
+  // Already a full URL
   if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
     return trimmed
   }
 
-  const apiBase = process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") || "http://127.0.0.1:8000"
-
+  // Use relative path for images - let Next.js serve them directly from public folder
+  // This is MUCH faster than going through Laravel/PHP
   if (trimmed.startsWith("/storage/")) {
-    return `${apiBase}${trimmed}`
+    return trimmed  // Return relative path, Next.js will proxy
   }
   if (trimmed.startsWith("storage/")) {
-    return `${apiBase}/${trimmed}`
+    return `/${trimmed}`
   }
   if (trimmed.startsWith("/")) {
-    return `${apiBase}${trimmed}`
+    return trimmed
   }
 
-  return `${apiBase}/storage/${trimmed}`
+  return `/storage/${trimmed}`
 }

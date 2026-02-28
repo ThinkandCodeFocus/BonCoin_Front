@@ -3,9 +3,44 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  images: {
-    unoptimized: true,
+  // Proxy des images vers Laravel pour éviter les problèmes CORS
+  async rewrites() {
+    return [
+      {
+        source: '/storage/:path*',
+        destination: 'http://127.0.0.1:8000/storage/:path*',
+      },
+    ]
   },
+  images: {
+    // Optimisation des images - configuration pour la production
+    unoptimized: false,
+    formats: ['image/avif', 'image/webp'],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    remotePatterns: [
+      {
+        protocol: 'http',
+        hostname: '127.0.0.1',
+        port: '8000',
+        pathname: '/storage/**',
+      },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '8000',
+        pathname: '/storage/**',
+      },
+    ],
+    // Domaines autorisés pour les images
+    domains: ['localhost', '127.0.0.1'],
+  },
+  // Optimisation de la compilation
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production',
+  },
+  // Activer la compression
+  compress: true,
   // Redirections personnalisées
   async redirects() {
     return [
@@ -39,15 +74,9 @@ const nextConfig = {
         destination: '/messages',
         permanent: true,
       },
-      // Suppression des trailing slashes (optionnel - décommenter si nécessaire)
-      // {
-      //   source: '/:path*/',
-      //   destination: '/:path*',
-      //   permanent: true,
-      // },
     ]
   },
-  // Headers de sécurité
+  // Headers de sécurité et performance
   async headers() {
     return [
       {
@@ -64,6 +93,28 @@ const nextConfig = {
           {
             key: 'Referrer-Policy',
             value: 'origin-when-cross-origin',
+          },
+          {
+            key: 'X-DNS-Prefetch-Control',
+            value: 'on',
+          },
+        ],
+      },
+      {
+        source: '/:path*.(js|css|woff|woff2|ttf|eot)$',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      {
+        source: '/:path*.(jpg|jpeg|png|gif|ico|svg|webp|avif)$',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=86400',
           },
         ],
       },
