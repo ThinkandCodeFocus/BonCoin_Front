@@ -9,6 +9,7 @@ import { FavoritesProvider } from "@/contexts/FavoritesContext"
 import { ThemeProvider } from "@/components/theme-provider"
 import { MessageNotificationProvider } from "@/contexts/MessageNotificationContext"
 import { MessageNotificationToast } from "@/components/message-notification-toast"
+import { I18nProvider } from "@/components/I18nProvider"
 
 const sora = Sora({
   subsets: ["latin"],
@@ -53,15 +54,17 @@ export default function RootLayout({
     <html lang="fr">
       <body className={`${sora.variable} ${dmSerif.variable} font-sans antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-          <AuthProvider>
-            <FavoritesProvider>
-                            <MessageNotificationProvider>
-              {children}
-                              <MessageNotificationToast />
-              <Toaster />
-                          </MessageNotificationProvider>
-            </FavoritesProvider>
-          </AuthProvider>
+          <I18nProvider>
+            <AuthProvider>
+              <FavoritesProvider>
+                <MessageNotificationProvider>
+                  {children}
+                  <MessageNotificationToast />
+                  <Toaster />
+                </MessageNotificationProvider>
+              </FavoritesProvider>
+            </AuthProvider>
+          </I18nProvider>
         </ThemeProvider>
         <Analytics />
       </body>

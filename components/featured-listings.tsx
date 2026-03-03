@@ -11,6 +11,7 @@ import { useAuth } from "@/contexts/AuthContext"
 import { useFavorites } from "@/contexts/FavoritesContext"
 import { useToast } from "@/hooks/use-toast"
 import { resolveStorageUrl } from "@/lib/media"
+import { useI18n } from "@/components/I18nProvider"
 
 interface Annonce {
   id: number
@@ -35,6 +36,7 @@ export function FeaturedListings() {
   const { isAuthenticated } = useAuth()
   const { favorites, isFavorited, addFavorite, removeFavorite } = useFavorites()
   const { toast } = useToast()
+  const { t } = useI18n()
 
   useEffect(() => {
     const savedCity = localStorage.getItem("location_city") || ""
@@ -76,8 +78,8 @@ export function FeaturedListings() {
     
     if (!isAuthenticated) {
       toast({
-        title: "Connexion requise",
-        description: "Vous devez être connecté pour ajouter aux favoris",
+        title: t("toast.login_required"),
+        description: t("toast.login_required_desc"),
         variant: "destructive",
       })
       return
@@ -87,10 +89,10 @@ export function FeaturedListings() {
 
     if (isFavoritedNow) {
       await removeFavorite(annonceId)
-      toast({ title: "Retiré des favoris" })
+      toast({ title: t("toast.removed_fav") })
     } else {
       await addFavorite(annonceId)
-      toast({ title: "Ajouté aux favoris" })
+      toast({ title: t("toast.added_fav") })
     }
   }
 
@@ -106,10 +108,10 @@ export function FeaturedListings() {
     const diffHours = Math.floor(diffMs / 3600000)
     const diffDays = Math.floor(diffMs / 86400000)
 
-    if (diffMins < 1) return "À l'instant"
-    if (diffMins < 60) return `Il y a ${diffMins}min`
-    if (diffHours < 24) return `Il y a ${diffHours}h`
-    if (diffDays < 7) return `Il y a ${diffDays}j`
+    if (diffMins < 1) return t("time.just_now") || "À l'instant"
+    if (diffMins < 60) return `${t("time.ago") || "Il y a"} ${diffMins}min`
+    if (diffHours < 24) return `${t("time.ago") || "Il y a"} ${diffHours}h`
+    if (diffDays < 7) return `${t("time.ago") || "Il y a"} ${diffDays}j`
     return date.toLocaleDateString("fr-FR")
   }
 
@@ -153,14 +155,14 @@ export function FeaturedListings() {
     )
   }
 
-  if (!listings.length) {
+    if (!listings.length) {
     return (
       <div className="text-center py-20">
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted mb-4">
           <MapPin className="w-8 h-8 text-muted-foreground" />
         </div>
-        <p className="text-muted-foreground text-lg">Aucune annonce disponible pour le moment</p>
-        <p className="text-sm text-muted-foreground mt-2">Revenez plus tard ou déposez une annonce</p>
+        <p data-i18n="listings.no_results" className="text-muted-foreground text-lg">Aucune annonce disponible pour le moment</p>
+        <p data-i18n="listings.no_results_help" className="text-sm text-muted-foreground mt-2">Revenez plus tard ou déposez une annonce</p>
       </div>
     )
   }
@@ -190,17 +192,17 @@ export function FeaturedListings() {
                   {/* Top badges row */}
                   <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
                     <div className="flex gap-2">
-                      {listing.boosted_until && new Date(listing.boosted_until) > new Date() && (
-                        <Badge className="bg-accent text-accent-foreground shadow-lg font-semibold flex items-center gap-1">
-                          <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
-                          Vedette
-                        </Badge>
-                      )}
-                      {isNew && !listing.boosted_until && (
-                        <Badge className="bg-emerald-500 text-white shadow-lg font-semibold">
-                          Nouveau
-                        </Badge>
-                      )}
+                                {listing.boosted_until && new Date(listing.boosted_until) > new Date() && (
+                                  <Badge className="bg-accent text-accent-foreground shadow-lg font-semibold flex items-center gap-1">
+                                    <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
+                                    <span data-i18n="badge.featured">Vedette</span>
+                                  </Badge>
+                                )}
+                                {isNew && !listing.boosted_until && (
+                                  <Badge className="bg-emerald-500 text-white shadow-lg font-semibold">
+                                    <span data-i18n="badge.new">Nouveau</span>
+                                  </Badge>
+                                )}
                     </div>
                     
                     <Button
@@ -252,7 +254,7 @@ export function FeaturedListings() {
       {totalPages > 1 && (
         <div className="flex items-center justify-between pt-8 border-t border-border/60">
           <p className="text-sm text-muted-foreground">
-            Page <span className="font-semibold text-foreground">{currentPage}</span> / {totalPages} • {totalItems} annonces
+            Page <span className="font-semibold text-foreground">{currentPage}</span> / {totalPages} • {totalItems} <span data-i18n="category.annonces">annonces</span>
           </p>
           <div className="flex items-center gap-2">
             <Button
@@ -261,7 +263,7 @@ export function FeaturedListings() {
               onClick={() => loadAnnonces(currentPage - 1)}
               className="hover-scale"
             >
-              Précédent
+              <span data-i18n="pagination.prev">Précédent</span>
             </Button>
             <Button
               variant="outline"
@@ -269,7 +271,7 @@ export function FeaturedListings() {
               onClick={() => loadAnnonces(currentPage + 1)}
               className="hover-scale"
             >
-              Suivant
+              <span data-i18n="pagination.next">Suivant</span>
             </Button>
           </div>
         </div>

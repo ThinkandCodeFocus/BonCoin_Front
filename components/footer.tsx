@@ -17,13 +17,13 @@ export function Footer() {
                 M
               </div>
               <div>
-                <p className="display-font text-xl font-semibold">Marketplace</p>
-                <p className="text-sm text-background/70 dark:text-muted-foreground">
+                <p data-i18n="brand.title" className="display-font text-xl font-semibold">Marketplace</p>
+                <p data-i18n="brand.tagline" className="text-sm text-background/70 dark:text-muted-foreground">
                   Achetez et vendez localement
                 </p>
               </div>
             </div>
-            <p className="text-sm text-background/70 dark:text-muted-foreground max-w-xs">
+            <p data-i18n="brand.description" className="text-sm text-background/70 dark:text-muted-foreground max-w-xs">
               Une plateforme simple et élégante pour trouver les meilleures offres près de chez vous.
             </p>
             {/* Social links */}
@@ -61,54 +61,54 @@ export function Footer() {
 
           {/* Quick links */}
           <div className="space-y-4">
-            <p className="font-semibold text-lg">Navigation</p>
+            <p data-i18n="footer.navigation" className="font-semibold text-lg">Navigation</p>
             <div className="grid gap-2 text-sm">
               <Link href="/" className="hover:text-accent transition-colors flex items-center gap-2">
                 <span className="w-1 h-1 rounded-full bg-accent" />
-                Accueil
+                <span data-i18n="home">Accueil</span>
               </Link>
               <Link href="/listings" className="hover:text-accent transition-colors flex items-center gap-2">
                 <span className="w-1 h-1 rounded-full bg-accent" />
-                Annonces
+                <span data-i18n="my_listings">Annonces</span>
               </Link>
               <Link href="/publish" className="hover:text-accent transition-colors flex items-center gap-2">
                 <span className="w-1 h-1 rounded-full bg-accent" />
-                Déposer une annonce
+                <span data-i18n="publish">Déposer une annonce</span>
               </Link>
               <Link href="/favorites" className="hover:text-accent transition-colors flex items-center gap-2">
                 <span className="w-1 h-1 rounded-full bg-accent" />
-                Favoris
+                <span data-i18n="favorites">Favoris</span>
               </Link>
               <Link href="/messages" className="hover:text-accent transition-colors flex items-center gap-2">
                 <span className="w-1 h-1 rounded-full bg-accent" />
-                Messages
+                <span data-i18n="messages">Messages</span>
               </Link>
             </div>
           </div>
 
           {/* Categories */}
           <div className="space-y-4">
-            <p className="font-semibold text-lg">Catégories</p>
+            <p data-i18n="footer.categories" className="font-semibold text-lg">Catégories</p>
             <div className="grid gap-2 text-sm">
               <Link href="/listings?category=1" className="hover:text-accent transition-colors flex items-center gap-2">
                 <span className="w-1 h-1 rounded-full bg-accent" />
-                Téléphones
+                <span data-i18n="categories.telephones">Téléphones</span>
               </Link>
               <Link href="/listings?category=2" className="hover:text-accent transition-colors flex items-center gap-2">
                 <span className="w-1 h-1 rounded-full bg-accent" />
-                Immobilier
+                <span data-i18n="categories.immobilier">Immobilier</span>
               </Link>
               <Link href="/listings?category=3" className="hover:text-accent transition-colors flex items-center gap-2">
                 <span className="w-1 h-1 rounded-full bg-accent" />
-                Véhicules
+                <span data-i18n="categories.vehicules">Véhicules</span>
               </Link>
               <Link href="/listings?category=4" className="hover:text-accent transition-colors flex items-center gap-2">
                 <span className="w-1 h-1 rounded-full bg-accent" />
-                Meubles
+                <span data-i18n="categories.meubles">Meubles</span>
               </Link>
               <Link href="/listings?category=5" className="hover:text-accent transition-colors flex items-center gap-2">
                 <span className="w-1 h-1 rounded-full bg-accent" />
-                Mode & Vêtements
+                <span data-i18n="categories.mode">Mode & Vêtements</span>
               </Link>
             </div>
           </div>
@@ -141,16 +141,16 @@ export function Footer() {
         
         <div className="border-t border-background/10 dark:border-border/60">
           <div className="max-w-6xl mx-auto px-6 py-4 text-xs text-background/60 dark:text-muted-foreground flex flex-col md:flex-row items-center justify-between gap-4">
-            <span>© 2024 Marketplace. Tous droits réservés.</span>
+            <span data-i18n="footer.copyright">© 2024 Marketplace. Tous droits réservés.</span>
             <div className="flex items-center gap-6">
               <Link href="#" className="hover:text-accent transition-colors">
-                Confidentialité
+                <span data-i18n="footer.privacy">Confidentialité</span>
               </Link>
               <Link href="#" className="hover:text-accent transition-colors">
-                Conditions générales
+                <span data-i18n="footer.terms">Conditions générales</span>
               </Link>
               <Link href="#" className="hover:text-accent transition-colors">
-                Aide
+                <span data-i18n="footer.help">Aide</span>
               </Link>
             </div>
           </div>

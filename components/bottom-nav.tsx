@@ -14,11 +14,11 @@ export function BottomNav() {
   }
 
   const navItems = [
-    { href: "/", icon: Home, label: "Accueil" },
-    { href: "/listings", icon: Search, label: "Recherche" },
-    { href: "/publish", icon: PlusCircle, label: "Publier", isPrimary: true },
-    { href: "/favorites", icon: Heart, label: "Favoris" },
-    { href: "/profile", icon: User, label: "Profil" },
+    { href: "/", icon: Home, label: "Accueil", key: "bottom.home" },
+    { href: "/listings", icon: Search, label: "Recherche", key: "bottom.search" },
+    { href: "/publish", icon: PlusCircle, label: "Publier", isPrimary: true, key: "bottom.publish" },
+    { href: "/favorites", icon: Heart, label: "Favoris", key: "bottom.favorites" },
+    { href: "/profile", icon: User, label: "Profil", key: "bottom.profile" },
   ]
 
   return (
@@ -59,7 +59,7 @@ export function BottomNav() {
                     <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary" />
                   )}
                 </div>
-                <span className={`text-[10px] font-medium ${active ? "text-primary" : "text-muted-foreground"}`}>
+                <span className={`text-[10px] font-medium ${active ? "text-primary" : "text-muted-foreground"}`} data-i18n={item.key}>
                   {item.label}
                 </span>
               </Button>

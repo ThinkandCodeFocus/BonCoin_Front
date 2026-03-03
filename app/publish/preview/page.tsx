@@ -11,6 +11,7 @@ import { MapPin } from "lucide-react"
 import { annonceService } from "@/lib/api"
 import { useAuth } from "@/contexts/AuthContext"
 import { useToast } from "@/hooks/use-toast"
+import { useI18n } from "@/components/I18nProvider"
 import { getUserLocation, getCityCoordinates } from "@/lib/geolocation"
 
 interface PreviewAnnonce {
@@ -43,6 +44,7 @@ export default function PublishPreviewPage() {
   const [isLoading, setIsLoading] = useState(false)
   const { isAuthenticated } = useAuth()
   const { toast } = useToast()
+  const { t } = useI18n()
 
   useEffect(() => {
     const raw = sessionStorage.getItem("preview_annonce")
@@ -55,8 +57,8 @@ export default function PublishPreviewPage() {
   const handlePublish = async () => {
     if (!data || !draft) {
       toast({
-        title: "Brouillon manquant",
-        description: "Retournez a la publication pour recharger les fichiers.",
+        title: t("publish.error_missing_draft") || "Brouillon manquant",
+        description: t("publish.error_missing_draft_desc") || "Retournez a la publication pour recharger les fichiers.",
         variant: "destructive",
       })
       return
@@ -64,8 +66,8 @@ export default function PublishPreviewPage() {
 
     if (!isAuthenticated) {
       toast({
-        title: "Connexion requise",
-        description: "Vous devez etre connecte pour publier une annonce",
+        title: t("toast.login_required") || "Connexion requise",
+        description: t("toast.login_required_desc") || "Vous devez etre connecte pour publier une annonce",
         variant: "destructive",
       })
       router.push("/")
@@ -74,8 +76,8 @@ export default function PublishPreviewPage() {
 
     if (!draft.imageFiles || draft.imageFiles.length < 2) {
       toast({
-        title: "Photos obligatoires",
-        description: "Veuillez ajouter au moins 2 photos",
+        title: t("publish.photos_required") || "Photos obligatoires",
+        description: t("publish.photos_required_desc") || "Veuillez ajouter au moins 2 photos",
         variant: "destructive",
       })
       router.push("/publish")
@@ -125,7 +127,7 @@ export default function PublishPreviewPage() {
               .join("\n")
           : result.message || "Erreur lors de la creation"
         toast({
-          title: "Erreur de creation",
+          title: t("publish.create_error") || "Erreur de creation",
           description: errorMessage,
           variant: "destructive",
         })
@@ -137,8 +139,8 @@ export default function PublishPreviewPage() {
         const uploadResult = await annonceService.uploadPhotos(annonceId, draft.imageFiles)
         if (!uploadResult.success) {
           toast({
-            title: "Avertissement",
-            description: "Annonce creee mais erreur lors de l'upload des photos",
+            title: t("publish.warning") || "Avertissement",
+            description: t("publish.upload_photos_error") || "Annonce creee mais erreur lors de l'upload des photos",
           })
         }
       }
@@ -150,8 +152,8 @@ export default function PublishPreviewPage() {
         const audioUploadResult = await annonceService.uploadAudio(annonceId, formData)
         if (!audioUploadResult.success) {
           toast({
-            title: "Avertissement",
-            description: "Annonce creee mais erreur lors de l'upload de l'audio",
+            title: t("publish.warning") || "Avertissement",
+            description: t("publish.upload_audio_error") || "Annonce creee mais erreur lors de l'upload de l'audio",
           })
         }
       }
@@ -162,22 +164,22 @@ export default function PublishPreviewPage() {
         const videoUploadResult = await annonceService.uploadVideo(annonceId, formData)
         if (!videoUploadResult.success) {
           toast({
-            title: "Avertissement",
-            description: "Annonce creee mais erreur lors de l'upload de la video",
+            title: t("publish.warning") || "Avertissement",
+            description: t("publish.upload_video_error") || "Annonce creee mais erreur lors de l'upload de la video",
           })
         }
       }
 
       ;(window as any).__publishDraft = null
       toast({
-        title: "Creation avec succes",
-        description: "Votre annonce est maintenant en ligne",
+        title: t("publish.create_success") || "Creation avec succes",
+        description: t("publish.create_success_desc") || "Votre annonce est maintenant en ligne",
       })
       router.push(`/listings/${annonceId}`)
     } catch (error) {
       toast({
-        title: "Erreur",
-        description: "Une erreur est survenue lors de la publication",
+        title: t("toast.error") || "Erreur",
+        description: t("publish.create_exception") || "Une erreur est survenue lors de la publication",
         variant: "destructive",
       })
     } finally {
@@ -203,16 +205,16 @@ export default function PublishPreviewPage() {
       <main className="flex-1 pb-20 md:pb-4">
         <div className="max-w-5xl mx-auto p-4 md:p-6">
           <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl font-bold">Previsualisation</h1>
+            <h1 className="text-2xl font-bold" data-i18n="publish.preview_title">Previsualisation</h1>
             <div className="flex gap-2">
               <Button variant="outline" onClick={() => router.back()}>
-                Retour
+                <span data-i18n="actions.back">Retour</span>
               </Button>
               <Button onClick={() => router.push("/publish")}>
-                Modifier
+                <span data-i18n="actions.edit">Modifier</span>
               </Button>
               <Button onClick={handlePublish} disabled={isLoading || !draft}>
-                {isLoading ? "Publication..." : "Publier"}
+                <span>{isLoading ? (t("publish.publishing") || "Publication...") : (t("publish.publish_button") || "Publier")}</span>
               </Button>
             </div>
           </div>

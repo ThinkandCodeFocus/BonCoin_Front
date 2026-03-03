@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { useState, useEffect } from "react"
+import { useI18n } from "@/components/I18nProvider"
 
 interface Location {
   city: string
@@ -56,6 +57,8 @@ export function LocationSelector() {
     }
   }, [])
 
+  const { t } = useI18n()
+
   const handleSave = () => {
     const newLocation = { city: selectedCity, district: selectedDistrict }
     setLocation(newLocation)
@@ -81,14 +84,14 @@ export function LocationSelector() {
         </DialogTrigger>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Choisir votre localisation</DialogTitle>
-            <DialogDescription>
+            <DialogTitle data-i18n="location.title">Choisir votre localisation</DialogTitle>
+            <DialogDescription data-i18n="location.description">
               Sélectionnez votre ville et votre quartier pour voir les annonces proches
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
-              <Label htmlFor="city">Ville</Label>
+              <Label htmlFor="city" data-i18n="location.city">Ville</Label>
               <select
                 id="city"
                 className="w-full mt-2 flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
@@ -106,7 +109,7 @@ export function LocationSelector() {
               </select>
             </div>
             <div>
-              <Label htmlFor="district">Quartier</Label>
+              <Label htmlFor="district" data-i18n="location.district">Quartier</Label>
               <select
                 id="district"
                 className="w-full mt-2 flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
@@ -120,12 +123,12 @@ export function LocationSelector() {
                     </option>
                   ))
                 ) : (
-                  <option value="">Tous les quartiers</option>
+                  <option value="">{t("location.all_districts")}</option>
                 )}
               </select>
             </div>
             <Button onClick={handleSave} className="w-full">
-              Enregistrer
+              <span data-i18n="location.save">Enregistrer</span>
             </Button>
           </div>
         </DialogContent>

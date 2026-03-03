@@ -83,12 +83,12 @@ export function Header() {
     <header className="sticky top-0 z-50 glass-card border-b border-border/70">
       <div className="max-w-7xl mx-auto px-4 lg:px-6 py-4">
         <div className="flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-3 group">
+            <Link href="/" className="flex items-center gap-3 group">
             <div className="w-11 h-11 bg-linear-to-br from-primary via-primary/80 to-accent/80 rounded-2xl flex items-center justify-center shadow-lg ring-1 ring-white/30 group-hover:shadow-xl transition-shadow">
               <span className="text-primary-foreground font-bold text-xl">M</span>
             </div>
             <span className="display-font font-bold text-xl hidden md:block bg-linear-to-r from-primary to-accent bg-clip-text text-transparent">
-              Marketplace
+              <span data-i18n="marketplace">Marketplace</span>
             </span>
           </Link>
 
@@ -162,7 +162,7 @@ export function Header() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Mon compte</DropdownMenuLabel>
+                    <DropdownMenuLabel><span data-i18n="account">Mon compte</span></DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
                       <Link href="/profile">Mon profil</Link>
@@ -173,14 +173,14 @@ export function Header() {
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={logout}>
                       <LogOut className="w-4 h-4 mr-2" />
-                      Déconnexion
+                      <span data-i18n="logout">Déconnexion</span>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
                 
                 <Link href="/publish">
                   <Button className="font-semibold ml-2 rounded-full px-6 shadow-lg hover:shadow-xl transition-shadow bg-accent text-accent-foreground hover:bg-accent/90">
-                    Déposer une annonce
+                    <span data-i18n="publish">Déposer une annonce</span>
                   </Button>
                 </Link>
               </>
@@ -195,7 +195,7 @@ export function Header() {
                   className="rounded-full"
                 >
                   <LogIn className="w-4 h-4 mr-2" />
-                  Connexion
+                  <span data-i18n="login">Connexion</span>
                 </Button>
                 <Button
                   onClick={() => {
@@ -204,7 +204,7 @@ export function Header() {
                   }}
                   className="font-semibold rounded-full px-6 shadow-lg hover:shadow-xl transition-shadow bg-accent text-accent-foreground hover:bg-accent/90"
                 >
-                  Inscription
+                  <span data-i18n="register">Inscription</span>
                 </Button>
               </>
             )}
@@ -237,31 +237,31 @@ export function Header() {
                   <Link href="/messages">
                     <Button variant="ghost" className="w-full justify-start">
                       <MessageSquare className="w-5 h-5 mr-2" />
-                      Messages
+                      <span data-i18n="messages">Messages</span>
                       {messageCount > 0 && <Badge className="ml-auto">{messageCount}</Badge>}
                     </Button>
                   </Link>
                   <Link href="/notifications">
                     <Button variant="ghost" className="w-full justify-start">
                       <Bell className="w-5 h-5 mr-2" />
-                      Notifications
+                      <span data-i18n="notifications">Notifications</span>
                       {notificationCount > 0 && <Badge className="ml-auto">{notificationCount}</Badge>}
                     </Button>
                   </Link>
                   <Link href="/favorites">
                     <Button variant="ghost" className="w-full justify-start">
                       <Heart className="w-5 h-5 mr-2" />
-                      Favoris
+                      <span data-i18n="favorites">Favoris</span>
                     </Button>
                   </Link>
                   <Link href="/profile">
                     <Button variant="ghost" className="w-full justify-start">
                       <User className="w-5 h-5 mr-2" />
-                      Mon profil
+                      <span data-i18n="my_profile">Mon profil</span>
                     </Button>
                   </Link>
                   <Link href="/publish">
-                    <Button className="w-full mt-4">Déposer une annonce</Button>
+                    <Button className="w-full mt-4"><span data-i18n="publish">Déposer une annonce</span></Button>
                   </Link>
                 </nav>
               </SheetContent>

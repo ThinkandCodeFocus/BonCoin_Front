@@ -54,6 +54,28 @@ const getIconForName = (name: string) => {
 }
 
 export function CategoryGrid() {
+  const getCategoryKey = (id: number) => {
+    switch (id) {
+      case 1:
+        return "categories.telephones"
+      case 2:
+        return "categories.immobilier"
+      case 3:
+        return "categories.vehicules"
+      case 4:
+        return "categories.meubles"
+      case 5:
+        return "categories.mode"
+      case 6:
+        return "categories.electronique"
+      case 7:
+        return "categories.services"
+      case 8:
+        return "categories.loisirs"
+      default:
+        return ""
+    }
+  }
   // Skeleton loading
   const SkeletonCategory = () => (
     <div className="category-card">
@@ -91,10 +113,10 @@ export function CategoryGrid() {
                     </div>
                     <div>
                       <h3 className="font-semibold text-sm md:text-base mb-1 group-hover:text-accent transition-colors">
-                        {category.name}
+                        <span data-i18n={getCategoryKey(category.id)}>{category.name}</span>
                       </h3>
                       <p className="text-xs text-muted-foreground group-hover:text-foreground/70 transition-colors">
-                        {count.toLocaleString()} annonces
+                        {count.toLocaleString()} <span data-i18n="category.annonces">annonces</span>
                       </p>
                     </div>
                   </div>

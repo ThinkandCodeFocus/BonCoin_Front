@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Upload, X, Loader2, Mic, StopCircle, Type, Video } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { useI18n } from "@/components/I18nProvider"
 import { useAuth } from "@/contexts/AuthContext"
 import { annonceService, categoryService } from "@/lib/api"
 import { useRouter } from "next/navigation"
@@ -43,6 +44,7 @@ export default function PublishPage() {
   const { toast } = useToast()
   const { isAuthenticated } = useAuth()
   const router = useRouter()
+  const { t } = useI18n()
 
   // Form state
   const [showPublishConfirm, setShowPublishConfirm] = useState(false)
@@ -69,8 +71,8 @@ export default function PublishPage() {
   useEffect(() => {
     if (!isAuthenticated) {
       toast({
-        title: "Connexion requise",
-        description: "Vous devez être connecté pour publier une annonce",
+        title: t("toast.login_required") || "Connexion requise",
+        description: t("toast.login_required_desc") || "Vous devez être connecté pour publier une annonce",
         variant: "destructive",
       })
       router.push("/")
@@ -104,16 +106,16 @@ export default function PublishPage() {
       } else {
         console.error('Failed to load categories:', result)
         toast({
-          title: "Erreur",
-          description: "Impossible de charger les catégories",
+          title: t("toast.error") || "Erreur",
+          description: t("publish.load_categories_error") || "Impossible de charger les catégories",
           variant: "destructive",
         })
       }
     } catch (error) {
       console.error('Error loading categories:', error)
       toast({
-        title: "Erreur",
-        description: "Erreur lors du chargement des catégories",
+        title: t("toast.error") || "Erreur",
+        description: t("publish.load_categories_exception") || "Erreur lors du chargement des catégories",
         variant: "destructive",
       })
     }
@@ -143,16 +145,16 @@ export default function PublishPage() {
     const maxSizeBytes = 10 * 1024 * 1024
     if (!allowedTypes.includes(file.type)) {
       toast({
-        title: "Format video invalide",
-        description: "Veuillez choisir une video MP4 ou MPEG",
+        title: t("publish.invalid_video_format") || "Format video invalide",
+        description: t("publish.invalid_video_format_desc") || "Veuillez choisir une video MP4 ou MPEG",
         variant: "destructive",
       })
       return
     }
     if (file.size > maxSizeBytes) {
       toast({
-        title: "Video trop lourde",
-        description: "La video ne doit pas depasser 10MB",
+        title: t("publish.video_too_large") || "Video trop lourde",
+        description: t("publish.video_too_large_desc") || "La video ne doit pas depasser 10MB",
         variant: "destructive",
       })
       return
@@ -199,13 +201,13 @@ export default function PublishPage() {
       setRecordingInterval(interval)
 
       toast({
-        title: "Enregistrement démarré",
-        description: "Parlez maintenant pour décrire votre annonce",
+        title: t("publish.recording_started") || "Enregistrement démarré",
+        description: t("publish.recording_started_desc") || "Parlez maintenant pour décrire votre annonce",
       })
     } catch (error) {
       toast({
-        title: "Erreur",
-        description: "Impossible d'accéder au microphone",
+        title: t("toast.error") || "Erreur",
+        description: t("publish.microphone_error") || "Impossible d'accéder au microphone",
         variant: "destructive",
       })
     }
@@ -220,8 +222,8 @@ export default function PublishPage() {
         setRecordingInterval(null)
       }
       toast({
-        title: "Enregistrement terminé",
-        description: `Durée: ${recordingTime}s`,
+        title: t("publish.recording_finished") || "Enregistrement terminé",
+        description: `${t("publish.duration") || "Durée"}: ${recordingTime}s`,
       })
     }
   }
@@ -243,8 +245,8 @@ export default function PublishPage() {
 
     if (!title || !price || !categoryId || !city || !district || !etat) {
       toast({
-        title: "Champs manquants",
-        description: "Veuillez remplir tous les champs obligatoires",
+        title: t("publish.missing_fields") || "Champs manquants",
+        description: t("publish.missing_fields_desc") || "Veuillez remplir tous les champs obligatoires",
         variant: "destructive",
       })
       return false
@@ -252,8 +254,8 @@ export default function PublishPage() {
 
     if (imageFiles.length < 2) {
       toast({
-        title: "Photos obligatoires",
-        description: "Veuillez ajouter au moins 2 photos",
+        title: t("publish.photos_required") || "Photos obligatoires",
+        description: t("publish.photos_required_desc") || "Veuillez ajouter au moins 2 photos",
         variant: "destructive",
       })
       return false
@@ -262,16 +264,16 @@ export default function PublishPage() {
     if (descriptionMode === 'text') {
       if (!description.trim() || description.trim().length < 20) {
         toast({
-          title: "Description obligatoire",
-          description: "La description doit contenir au moins 20 caractères",
+          title: t("publish.description_required") || "Description obligatoire",
+          description: t("publish.description_required_desc") || "La description doit contenir au moins 20 caractères",
           variant: "destructive",
         })
         return false
       }
     } else if (!audioBlob) {
       toast({
-        title: "Description obligatoire",
-        description: "Veuillez enregistrer une description vocale",
+        title: t("publish.description_required") || "Description obligatoire",
+        description: t("publish.recording_required") || "Veuillez enregistrer une description vocale",
         variant: "destructive",
       })
       return false
@@ -279,8 +281,8 @@ export default function PublishPage() {
 
     if (isAutreCategory && !customCategory.trim()) {
       toast({
-        title: "Catégorie manquante",
-        description: "Veuillez préciser la catégorie",
+        title: t("publish.category_missing") || "Catégorie manquante",
+        description: t("publish.category_missing_desc") || "Veuillez préciser la catégorie",
         variant: "destructive",
       })
       return false
@@ -383,7 +385,7 @@ export default function PublishPage() {
             }).join('\n')
           : result.message || "Erreur lors de la creation"
         toast({
-          title: "Erreur de creation",
+          title: t("publish.create_error") || "Erreur de creation",
           description: errorMessage,
           variant: "destructive",
         })
@@ -400,8 +402,8 @@ export default function PublishPage() {
         
         if (!uploadResult.success) {
           toast({
-            title: "Avertissement",
-            description: "Annonce creee mais erreur lors de l'upload des photos: " + (uploadResult.message || 'Erreur inconnue'),
+            title: t("publish.warning") || "Avertissement",
+            description: t("publish.upload_photos_error") + (uploadResult.message ? (": " + uploadResult.message) : ''),
           })
         } else {
           console.log('Photos uploaded successfully')
@@ -421,8 +423,8 @@ export default function PublishPage() {
           
           if (!audioUploadResult.success) {
             toast({
-              title: "Avertissement",
-              description: "Annonce creee mais erreur lors de l'upload de l'audio",
+              title: t("publish.warning") || "Avertissement",
+              description: t("publish.upload_audio_error") || "Annonce creee mais erreur lors de l'upload de l'audio",
             })
           }
         } catch (error) {
@@ -437,22 +439,22 @@ export default function PublishPage() {
         const videoUploadResult = await annonceService.uploadVideo(annonceId, formData)
         if (!videoUploadResult.success) {
           toast({
-            title: "Avertissement",
-            description: "Annonce creee mais erreur lors de l'upload de la video",
+            title: t("publish.warning") || "Avertissement",
+            description: t("publish.upload_video_error") || "Annonce creee mais erreur lors de l'upload de la video",
           })
         }
       }
 
       toast({
-        title: "Creation avec succes",
-        description: "Votre annonce est maintenant en ligne",
+        title: t("publish.create_success") || "Creation avec succes",
+        description: t("publish.create_success_desc") || "Votre annonce est maintenant en ligne",
       })
 
       router.push(`/listings/${annonceId}`)
     } catch (error) {
       toast({
-        title: "Erreur",
-        description: "Une erreur est survenue lors de la publication",
+        title: t("toast.error") || "Erreur",
+        description: t("publish.create_exception") || "Une erreur est survenue lors de la publication",
         variant: "destructive",
       })
     } finally {
@@ -469,7 +471,7 @@ export default function PublishPage() {
 
       <main className="flex-1 pb-20 md:pb-4 py-8 px-4">
         <div className="max-w-3xl mx-auto">
-          <h1 className="text-3xl font-bold mb-8">Déposer une annonce</h1>
+          <h1 className="text-3xl font-bold mb-8" data-i18n="publish">Déposer une annonce</h1>
 
           <form onSubmit={handleSubmit}>
             <Card className="p-6 space-y-6">

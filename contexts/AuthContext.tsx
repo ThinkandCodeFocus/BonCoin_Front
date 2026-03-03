@@ -5,6 +5,7 @@ import { createContext, useContext, useState, useEffect } from "react"
 import { authService } from "@/lib/api"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
+import { useI18n } from "@/components/I18nProvider"
 
 interface User {
   id: number
@@ -42,6 +43,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
   const { toast } = useToast()
+  const { t } = useI18n()
 
   // Vérifier l'authentification au chargement
   useEffect(() => {
@@ -75,23 +77,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (data) {
           setUser(data.user)
           toast({
-            title: "Connexion réussie",
-            description: `Bienvenue ${data.user.name}`,
+            title: t("toast.login_success") || "Connexion réussie",
+            description: `${t("toast.welcome") || "Bienvenue"} ${data.user.name}`,
           })
           return true
         }
       }
       const message = (result as any).message
       toast({
-        title: "Erreur de connexion",
-        description: message || "Identifiants invalides",
+        title: t("toast.login_error") || "Erreur de connexion",
+        description: message || t("toast.invalid_credentials") || "Identifiants invalides",
         variant: "destructive",
       })
       return false
     } catch (error) {
       toast({
-        title: "Erreur",
-        description: "Une erreur est survenue lors de la connexion",
+        title: t("toast.error") || "Erreur",
+        description: t("toast.login_exception") || "Une erreur est survenue lors de la connexion",
         variant: "destructive",
       })
       return false
@@ -107,8 +109,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (respData) {
           setUser(respData.user)
           toast({
-            title: "Inscription réussie",
-            description: "Votre compte a été créé avec succès",
+            title: t("toast.register_success") || "Inscription réussie",
+            description: t("toast.register_success_desc") || "Votre compte a été créé avec succès",
           })
           return true
         }
@@ -121,15 +123,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         : message || "Erreur lors de l'inscription"
         
       toast({
-        title: "Erreur d'inscription",
+        title: t("toast.register_error") || "Erreur d'inscription",
         description: errorMessage,
         variant: "destructive",
       })
       return false
     } catch (error) {
       toast({
-        title: "Erreur",
-        description: "Une erreur est survenue lors de l'inscription",
+        title: t("toast.error") || "Erreur",
+        description: t("toast.register_exception") || "Une erreur est survenue lors de l'inscription",
         variant: "destructive",
       })
       return false
@@ -140,8 +142,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await authService.logout()
     setUser(null)
     toast({
-      title: "Déconnexion",
-      description: "Vous avez été déconnecté avec succès",
+      title: t("toast.logout") || "Déconnexion",
+      description: t("toast.logout_desc") || "Vous avez été déconnecté avec succès",
     })
     router.push("/")
   }

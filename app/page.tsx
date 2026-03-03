@@ -50,27 +50,27 @@ export default function HomePage() {
                 <div>
                   <LocationSelector />
 
-                  <h1 className="display-font text-3xl md:text-5xl lg:text-6xl font-extrabold leading-tight tracking-tight text-balance mt-6">
+                  <h1 data-i18n="brand.tagline" className="display-font text-3xl md:text-5xl lg:text-6xl font-extrabold leading-tight tracking-tight text-balance mt-6">
                     Achetez et vendez{" "}
                     <span className="text-emerald-600 drop-shadow-sm">en toute simplicité</span>
                   </h1>
-                  <p className="mt-4 text-base md:text-lg opacity-90 max-w-2xl text-pretty text-emerald-800/80">
+                  <p data-i18n="brand.description" className="mt-4 text-base md:text-lg opacity-90 max-w-2xl text-pretty text-emerald-800/80">
                     Marketplace rapide, sécurisée et agréable. Des annonces, des catégories, et vos favoris en un clic.
                   </p>
 
                   {/* Feature pills avec icônes */}
-                  <div className="mt-8 flex flex-wrap gap-3">
+                    <div className="mt-8 flex flex-wrap gap-3">
                     <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 border border-white/30 backdrop-blur-sm">
                       <Shield className="w-4 h-4 text-emerald-600" />
-                      <span className="text-sm font-medium text-emerald-800">Sécurisé</span>
+                      <span data-i18n="features.secure" className="text-sm font-medium text-emerald-800">Sécurisé</span>
                     </div>
                     <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 border border-white/30 backdrop-blur-sm">
                       <Zap className="w-4 h-4 text-emerald-600" />
-                      <span className="text-sm font-medium text-emerald-800">Rapide</span>
+                      <span data-i18n="features.fast" className="text-sm font-medium text-emerald-800">Rapide</span>
                     </div>
                     <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 border border-white/30 backdrop-blur-sm">
                       <Heart className="w-4 h-4 text-emerald-600" />
-                      <span className="text-sm font-medium text-emerald-800">Favoris</span>
+                      <span data-i18n="features.favorites" className="text-sm font-medium text-emerald-800">Favoris</span>
                     </div>
                   </div>
 
@@ -81,7 +81,7 @@ export default function HomePage() {
                       className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-emerald-600 text-white font-semibold hover:bg-emerald-700 hover-scale transition-all shadow-lg"
                     >
                       <Sparkles className="w-5 h-5" />
-                      Déposer une annonce
+                        <span data-i18n="publish">Déposer une annonce</span>
                       <ArrowRight className="w-4 h-4" />
                     </Link>
                   </div>
@@ -138,12 +138,12 @@ export default function HomePage() {
                 <div className="text-center mb-10">
                   <div className="inline-flex items-center gap-3 px-5 py-2 rounded-full bg-emerald-500/20 border border-emerald-500/30 mb-6">
                     <ShoppingBag className="w-5 h-5 text-emerald-600" />
-                    <span className="text-sm font-medium text-emerald-700">Marketplace Premium</span>
+                    <span data-i18n="premium.title" className="text-sm font-medium text-emerald-700">Marketplace Premium</span>
                   </div>
-                  <h2 className="text-3xl md:text-4xl font-bold mb-4 text-emerald-900 dark:text-emerald-100">
+                  <h2 data-i18n="premium.subtitle" className="text-3xl md:text-4xl font-bold mb-4 text-emerald-900 dark:text-emerald-100">
                     Trouvez les meilleures offres
                   </h2>
-                  <p className="text-emerald-700/80 dark:text-emerald-300/80 text-lg max-w-2xl mx-auto">
+                  <p data-i18n="premium.description" className="text-emerald-700/80 dark:text-emerald-300/80 text-lg max-w-2xl mx-auto">
                     Découvrez des milliers d'annonces dans votre région. Achetez et vendez en toute confiance.
                   </p>
                 </div>
@@ -152,19 +152,19 @@ export default function HomePage() {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-10">
                   <div className="text-center p-4 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20">
                     <p className="text-3xl md:text-4xl font-bold text-emerald-700">10K+</p>
-                    <p className="text-sm text-emerald-600/80">Annonces actives</p>
+                    <p data-i18n="stats.listings" className="text-sm text-emerald-600/80">Annonces actives</p>
                   </div>
                   <div className="text-center p-4 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20">
                     <p className="text-3xl md:text-4xl font-bold text-emerald-700">5K+</p>
-                    <p className="text-sm text-emerald-600/80">Vendeurs vérifiés</p>
+                    <p data-i18n="stats.sellers" className="text-sm text-emerald-600/80">Vendeurs vérifiés</p>
                   </div>
                   <div className="text-center p-4 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20">
                     <p className="text-3xl md:text-4xl font-bold text-emerald-700">50+</p>
-                    <p className="text-sm text-emerald-600/80">Catégories</p>
+                    <p data-i18n="stats.categories" className="text-sm text-emerald-600/80">Catégories</p>
                   </div>
                   <div className="text-center p-4 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20">
                     <p className="text-3xl md:text-4xl font-bold text-emerald-700">24h</p>
-                    <p className="text-sm text-emerald-600/80">Délai moyen</p>
+                    <p data-i18n="stats.avg_time" className="text-sm text-emerald-600/80">Délai moyen</p>
                   </div>
                 </div>
 
@@ -175,14 +175,14 @@ export default function HomePage() {
                     className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-emerald-600 text-white font-semibold hover:bg-emerald-700 hover-scale transition-all shadow-lg"
                   >
                     <Tag className="w-5 h-5" />
-                    Parcourir les annonces
+                    <span data-i18n="cta.browse">Parcourir les annonces</span>
                   </Link>
                   <Link 
                     href="/publish"
                     className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 text-emerald-800 font-semibold hover:bg-white/30 hover-scale transition-all"
                   >
                     <Sparkles className="w-5 h-5" />
-                    Déposer une annonce
+                    <span data-i18n="publish">Déposer une annonce</span>
                   </Link>
                 </div>
               </div>
@@ -193,8 +193,8 @@ export default function HomePage() {
         <section className="py-16 md:py-24 px-4 reveal-up">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold mb-3">Explorez par catégorie</h2>
-              <p className="text-muted-foreground text-lg">Trouvez exactement ce que vous cherchez</p>
+              <h2 data-i18n="explore.by_category" className="text-3xl md:text-4xl font-bold mb-3">Explorez par catégorie</h2>
+              <p data-i18n="search.title" className="text-muted-foreground text-lg">Trouvez exactement ce que vous cherchez</p>
             </div>
             <CategoryGrid />
           </div>
@@ -212,16 +212,16 @@ export default function HomePage() {
 
         <section className="py-16 md:py-24 px-4 bg-muted/30 reveal-up">
           <div className="max-w-6xl mx-auto">
-            <div className="flex items-center justify-between mb-12">
+              <div className="flex items-center justify-between mb-12">
               <div>
-                <h2 className="text-3xl md:text-4xl font-bold mb-3">Annonces récentes</h2>
-                <p className="text-muted-foreground text-lg">Les dernières opportunités postées</p>
+                <h2 data-i18n="listings.recent_title" className="text-3xl md:text-4xl font-bold mb-3">Annonces récentes</h2>
+                <p data-i18n="listings.recent_subtitle" className="text-muted-foreground text-lg">Les dernières opportunités postées</p>
               </div>
               <Link 
                 href="/listings"
                 className="hidden md:flex items-center gap-2 text-primary font-medium hover:underline hover-scale"
               >
-                Voir toutes les annonces
+                <span data-i18n="listings.view_all">Voir toutes les annonces</span>
                 <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
@@ -231,7 +231,7 @@ export default function HomePage() {
                 href="/listings"
                 className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-primary text-primary-foreground font-semibold hover:bg-primary/90"
               >
-                Voir toutes les annonces
+                <span data-i18n="listings.view_all">Voir toutes les annonces</span>
                 <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
@@ -244,10 +244,10 @@ export default function HomePage() {
             <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-primary to-accent p-8 md:p-12 text-center">
               <div className="absolute inset-0 bg-[url('/placeholder.svg')] opacity-10" />
               <div className="relative">
-                <h2 className="text-2xl md:text-4xl font-bold text-primary-foreground mb-4">
+                <h2 data-i18n="sell.prompt" className="text-2xl md:text-4xl font-bold text-primary-foreground mb-4">
                   Prêt à vendre vos articles ?
                 </h2>
-                <p className="text-lg text-primary-foreground/80 mb-8 max-w-xl mx-auto">
+                <p data-i18n="sell.cta" className="text-lg text-primary-foreground/80 mb-8 max-w-xl mx-auto">
                   Déposez votre première annonce en quelques minutes et rejoignez notre communauté de vendeurs et acheteurs.
                 </p>
                 <Link 
@@ -255,7 +255,7 @@ export default function HomePage() {
                   className="inline-flex items-center gap-2 px-8 py-4 rounded-full bg-background text-primary font-semibold hover:bg-background/90 hover-scale transition-all shadow-xl"
                 >
                   <Sparkles className="w-5 h-5" />
-                  Déposer une annonce gratuite
+                  <span data-i18n="sell.free_post">Déposer une annonce gratuite</span>
                 </Link>
               </div>
             </div>
