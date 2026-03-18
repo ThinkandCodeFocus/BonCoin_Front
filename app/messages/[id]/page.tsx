@@ -7,12 +7,19 @@ import { BottomNav } from "@/components/bottom-nav"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
-import { Loader2, Mic, Send, StopCircle, AudioWaveform } from "lucide-react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Loader2, Mic, Send, StopCircle, AudioWaveform, MoreVertical, Flag, UserX } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 import { useMessageNotifications } from "@/contexts/MessageNotificationContext"
 import { messageService } from "@/lib/api"
 import { toast } from "sonner"
 import { resolveStorageUrl } from "@/lib/media"
+import { ReportUserButton } from "@/components/report-user-button"
 
 interface Message {
   id: number
@@ -22,6 +29,15 @@ interface Message {
   created_at: string
   read_at?: string | null
   user?: {
+    id: number
+    name: string
+    photo?: string
+  }
+}
+
+interface ConversationInfo {
+  id: number
+  other_user?: {
     id: number
     name: string
     photo?: string
@@ -47,6 +63,9 @@ export default function ConversationPage() {
 
   const conversationId = Number.parseInt(params?.id || "0", 10)
   const { refreshUnreadCount } = useMessageNotifications()
+  
+  // État pour les informations de l'autre utilisateur
+  const [otherUser, setOtherUser] = useState<{id: number, name: string, photo?: string} | null>(null)
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -83,9 +102,32 @@ export default function ConversationPage() {
     console.log('Messages API result:', result)
     
     if (result.success && (result as any).data) {
-      const msgs = Array.isArray((result as any).data) ? (result as any).data : []
+      const data = (result as any).data
+      const msgs = Array.isArray(data.data) ? data.data : (Array.isArray(data) ? data : [])
       console.log('Loaded messages:', msgs)
       setMessages(msgs)
+      
+      // Extraire les informations de l'autre utilisateur depuis la réponse de l'API
+      const conversationData = data.conversation || data
+      if (conversationData?.other_user) {
+        const other = conversationData.other_user
+        setOtherUser({
+          id: other.id,
+          name: other.name,
+          photo: other.photo,
+        })
+      } else if (msgs.length > 0 && user) {
+        // Fallback : extraire depuis les messages
+        const otherMsg = msgs.find((m: Message) => m.user_id !== user.id)
+        if (otherMsg && otherMsg.user) {
+          setOtherUser({
+            id: otherMsg.user.id,
+            name: otherMsg.user.name,
+            photo: otherMsg.user.photo,
+          })
+        }
+      }
+      
       // Marquer la conversation comme lue et rafraîchir les compteurs
       try {
         await messageService.markConversationAsRead(conversationId)
@@ -189,11 +231,19 @@ export default function ConversationPage() {
     
     setIsSending(true)
     try {
+      console.log('=== SEND AUDIO DEBUG ===')
+      console.log('Conversation ID:', conversationId)
+      console.log('Audio blob size:', audioBlob.size)
+      console.log('Audio blob type:', audioBlob.type)
+      
       const audioFile = new File([audioBlob], `voice_message_${Date.now()}.webm`, { 
         type: 'audio/webm' 
       })
+      console.log('Audio file:', audioFile.name, audioFile.size, audioFile.type)
       
+      console.log('Calling messageService.sendAudioMessage...')
       const result = await messageService.sendAudioMessage(conversationId, audioFile)
+      console.log('Send audio result:', result)
       
       if (result.success) {
         setAudioBlob(null)
@@ -263,7 +313,38 @@ export default function ConversationPage() {
 
       <main className="flex-1 pb-20 md:pb-4 py-6 px-4">
         <div className="max-w-3xl mx-auto space-y-4">
-          <h1 className="text-2xl font-bold">Conversation</h1>
+          {/* Header avec titre et menu */}
+          <div className="flex items-center justify-between">
+            <h1 className="text-2xl font-bold">Conversation</h1>
+            
+            {/* Menu avec options */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <MoreVertical className="w-5 h-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => {
+                  //TODO: Bloquer l'utilisateur
+                  toast.info("Fonctionnalité à venir")
+                }}>
+                  <UserX className="w-4 h-4 mr-2" />
+                  Bloquer
+                </DropdownMenuItem>
+                <ReportUserButton 
+                  userId={otherUser?.id || 0}
+                  userName={otherUser?.name}
+                  trigger={
+                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                      <Flag className="w-4 h-4 mr-2" />
+                      Signaler
+                    </DropdownMenuItem>
+                  }
+                />
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
 
           {/* Liste des messages */}
           <div className="space-y-3 min-h-100 max-h-[60vh] overflow-y-auto">

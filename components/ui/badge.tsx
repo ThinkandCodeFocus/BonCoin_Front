@@ -5,7 +5,7 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
 
 const badgeVariants = cva(
-  'inline-flex items-center justify-center rounded-md border px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden',
+  'inline-flex items-center justify-center rounded-full border px-2.5 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden',
   {
     variants: {
       variant: {
@@ -17,6 +17,19 @@ const badgeVariants = cva(
           'border-transparent bg-destructive text-white [a&]:hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60',
         outline:
           'text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground',
+        /* Status badges */
+        new: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
+        good: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+        used: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
+        /* Premium badges */
+        success: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+        warning: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
+        info: 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400',
+        /* Feature badges */
+        featured: 'bg-gradient-to-r from-primary to-accent text-primary-foreground shadow-lg',
+        boosted: 'bg-accent text-accent-foreground shadow-lg',
+        sponsored: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
+        urgent: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
       },
     },
     defaultVariants: {
@@ -44,3 +57,4 @@ function Badge({
 }
 
 export { Badge, badgeVariants }
+

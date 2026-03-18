@@ -37,6 +37,12 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
       const result = await favoriteService.getAll()
       console.log("📦 API Response in loadFavorites:", result)
       
+      // Gérer l'erreur 401 - utilisateur non autorisé
+      if (!result.success && (result as any).status === 401) {
+        console.log("⚠️ 401 Unauthorized - Token may be expired")
+        return
+      }
+      
       if (result.success && 'data' in result && Array.isArray((result as any).data)) {
         const data = (result as any).data
         console.log("✅ Got array of favorites:", data.length, "items")
@@ -54,15 +60,21 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
         setFavoriteCount(ids.length)
       } else {
         console.error("⚠️ Unexpected API response format:", result)
+        // Ne pas clear les favoris en cas d'erreur de format
+        // setFavorites([])
+        // setFavoriteItems([])
+        // setFavoriteCount(0)
+      }
+    } catch (error: any) {
+      console.error("❌ Error loading favorites:", error)
+      // Gérer les erreurs 401 silencieusement
+      if (error.status === 401 || error.statusCode === 401) {
+        console.log("⚠️ 401 Unauthorized - Clearing favorites")
         setFavorites([])
         setFavoriteItems([])
         setFavoriteCount(0)
       }
-    } catch (error) {
-      console.error("❌ Error loading favorites:", error)
-      setFavorites([])
-      setFavoriteItems([])
-      setFavoriteCount(0)
+      // Ne pas propager l'erreur pour ne pas crash l'app
     }
   }, [isAuthenticated]) // ONLY depends on isAuthenticated, not on itself!
 

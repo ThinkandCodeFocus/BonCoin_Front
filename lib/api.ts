@@ -3,7 +3,38 @@
  */
 export const API_CONFIG = {
   baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api',
-  timeout: 10000,
+  timeout: 30000, // Augmenté à 30 secondes pour éviter les timeouts
+}
+
+/**
+ * Cache simple pour les requêtes API
+ * Réduit les appels réseau pour les données fréquentes
+ */
+const apiCache = new Map<string, { data: any; timestamp: number }>()
+const CACHE_DURATION = 15 * 60 * 1000 // 15 minutes en millisecondes (augmenté de 5 à 15)
+
+const getCachedData = (key: string): any | null => {
+  if (typeof window === 'undefined') return null
+  const cached = apiCache.get(key)
+  if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+    return cached.data
+  }
+  apiCache.delete(key)
+  return null
+}
+
+const setCachedData = (key: string, data: any): void => {
+  if (typeof window === 'undefined') return
+  apiCache.set(key, { data, timestamp: Date.now() })
+}
+
+const generateCacheKey = (endpoint: string, params?: Record<string, any>): string => {
+  if (!params || Object.keys(params).length === 0) return endpoint
+  const sortedParams = Object.keys(params).sort().reduce((acc, key) => {
+    acc[key] = params[key]
+    return acc
+  }, {} as Record<string, any>)
+  return `${endpoint}?${JSON.stringify(sortedParams)}`
 }
 
 /**
@@ -34,11 +65,27 @@ const handleError = (error: any) => {
     const message = error.response.data?.message || 'Une erreur est survenue'
     const errors = error.response.data?.errors || {}
     
+    // Ne pas logger les erreurs 401 (Unauthorized) - c'est normal quand le token expire
+    const is401 = error.response.status === 401
+    
+    // Rediriger vers /auth si 401 (non autorisé)
+    if (is401 && typeof window !== 'undefined') {
+      // Stocker l'URL actuelle pour rediriger après connexion
+      const currentPath = window.location.pathname
+      if (currentPath !== '/auth') {
+        localStorage.setItem('redirect_after_login', currentPath)
+      }
+      // Optionnel: rediriger immédiatement vers /auth
+      // window.location.href = '/auth'
+      // On préfère NOTIFIER plutôt que REDIRIGER automatiquement pour éviter les boucles
+    }
+    
     return {
       success: false,
       message,
       errors,
       status: error.response.status,
+      isUnauthorized: is401,
     }
   } else if (error.request) {
     // Erreur de requête (pas de réponse)
@@ -46,6 +93,7 @@ const handleError = (error: any) => {
       success: false,
       message: 'Impossible de contacter le serveur',
       errors: {},
+      isUnauthorized: false,
     }
   } else {
     // Autre erreur
@@ -53,6 +101,7 @@ const handleError = (error: any) => {
       success: false,
       message: error.message || 'Une erreur inattendue est survenue',
       errors: {},
+      isUnauthorized: false,
     }
   }
 }
@@ -71,12 +120,26 @@ export const authService = {
     password: string
     password_confirmation: string
     language?: string
+    user_type?: 'buyer' | 'seller' | 'both'
   }) {
     try {
+      // Backend expects form-encoded payload (not JSON) for auth endpoints.
+      const body = new URLSearchParams()
+      body.set('name', data.name)
+      body.set('email', data.email)
+      body.set('phone', data.phone)
+      body.set('password', data.password)
+      body.set('password_confirmation', data.password_confirmation)
+      if (data.language) body.set('language', data.language)
+      if (data.user_type) body.set('user_type', data.user_type)
+
+      const headers = getHeaders(false)
+      headers['Content-Type'] = 'application/x-www-form-urlencoded;charset=UTF-8'
+
       const response = await fetch(`${API_CONFIG.baseURL}/auth/register`, {
         method: 'POST',
-        headers: getHeaders(false),
-        body: JSON.stringify(data),
+        headers,
+        body: body.toString(),
       })
       const result = await response.json()
       
@@ -101,10 +164,18 @@ export const authService = {
    */
   async login(login: string, password: string) {
     try {
+      // Backend expects form-encoded payload (not JSON) for auth endpoints.
+      const body = new URLSearchParams()
+      body.set('login', login)
+      body.set('password', password)
+
+      const headers = getHeaders(false)
+      headers['Content-Type'] = 'application/x-www-form-urlencoded;charset=UTF-8'
+
       const response = await fetch(`${API_CONFIG.baseURL}/auth/login`, {
         method: 'POST',
-        headers: getHeaders(false),
-        body: JSON.stringify({ login, password }),
+        headers,
+        body: body.toString(),
       })
       const result = await response.json()
       
@@ -441,13 +512,23 @@ export const annonceService = {
 }
 
 /**
- * Service des catégories
+ * Service des catégories - avec cache
  */
 export const categoryService = {
   /**
-   * Récupérer toutes les catégories
+   * Récupérer toutes les catégories (avec cache)
    */
-  async getAll() {
+  async getAll(forceRefresh = false) {
+    const cacheKey = generateCacheKey('categories')
+    
+    // Vérifier le cache d'abord si pas de refresh forcé
+    if (!forceRefresh) {
+      const cachedData = getCachedData(cacheKey)
+      if (cachedData) {
+        return { success: true, data: cachedData, fromCache: true }
+      }
+    }
+    
     try {
       const response = await fetch(`${API_CONFIG.baseURL}/categories`, {
         method: 'GET',
@@ -459,6 +540,9 @@ export const categoryService = {
         throw { response: { data: result, status: response.status } }
       }
 
+      // Stocker dans le cache
+      setCachedData(cacheKey, result)
+      
       return { success: true, data: result }
     } catch (error) {
       return handleError(error)
@@ -849,6 +933,7 @@ export const messageService = {
         headers: {
           'Accept': 'application/json',
           'Authorization': token ? `Bearer ${token}` : '',
+          // NE PAS définir Content-Type pour les FormData - le navigateur le fait automatiquement
         },
         body: formData,
       })
@@ -894,6 +979,63 @@ export const messageService = {
       const response = await fetch(`${API_CONFIG.baseURL}/conversations/${conversationId}/read`, {
         method: 'POST',
         headers: getHeaders(),
+      })
+      const result = await response.json()
+      
+      if (!response.ok) {
+        throw { response: { data: result, status: response.status } }
+      }
+
+      return { success: true, data: result }
+    } catch (error) {
+      return handleError(error)
+    }
+  },
+}
+
+/**
+ * Service de signalement
+ */
+export const reportService = {
+  /**
+   * Signaler une annonce
+   */
+  async reportAnnonce(data: {
+    annonce_id: number
+    reason: string
+    description?: string | null
+  }) {
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/reports/annonce`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(data),
+      })
+      const result = await response.json()
+      
+      if (!response.ok) {
+        throw { response: { data: result, status: response.status } }
+      }
+
+      return { success: true, data: result }
+    } catch (error) {
+      return handleError(error)
+    }
+  },
+
+  /**
+   * Signaler un utilisateur
+   */
+  async reportUser(data: {
+    user_id: number
+    reason: string
+    description?: string | null
+  }) {
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/reports/user`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(data),
       })
       const result = await response.json()
       
