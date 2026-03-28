@@ -41,6 +41,8 @@ export default function ListingsPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [locationFilter, setLocationFilter] = useState("")
   const [etatFilter, setEtatFilter] = useState("")
+  const [dateFrom, setDateFrom] = useState("")
+  const [dateTo, setDateTo] = useState("")
   const [favorites, setFavorites] = useState<number[]>([])
   const { isAuthenticated } = useAuth()
   const { toast } = useToast()
@@ -113,6 +115,14 @@ export default function ListingsPage() {
       }
     } catch (error) {
       console.warn('Could not get location:', error)
+    }
+    
+    // Ajouter les filtres de date
+    if (dateFrom) {
+      params.date_from = dateFrom
+    }
+    if (dateTo) {
+      params.date_to = dateTo
     }
     
     console.log('API params:', params)
@@ -329,6 +339,33 @@ export default function ListingsPage() {
                     </select>
                   </div>
 
+                  {/* Filtres par date */}
+                  <div className="space-y-4">
+                    <Label>Date de publication</Label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <Label htmlFor="dateFrom" className="text-xs text-muted-foreground">Du</Label>
+                        <Input 
+                          id="dateFrom" 
+                          type="date"
+                          className="mt-1 rounded-xl"
+                          value={dateFrom}
+                          onChange={(e) => setDateFrom(e.target.value)}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="dateTo" className="text-xs text-muted-foreground">Au</Label>
+                        <Input 
+                          id="dateTo" 
+                          type="date"
+                          className="mt-1 rounded-xl"
+                          value={dateTo}
+                          onChange={(e) => setDateTo(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
                   <div className="flex gap-2">
                     <Button 
                       variant="outline" 
@@ -337,12 +374,21 @@ export default function ListingsPage() {
                         setPriceRange([0, 10000000])
                         setLocationFilter("")
                         setEtatFilter("")
+                        setDateFrom("")
+                        setDateTo("")
+                        loadListings(1)
                       }}
                     >
                       Réinitialiser
                     </Button>
-                    <Button className="flex-1 rounded-xl">
-                      {filteredListings.length} résultats
+                    <Button 
+                      className="flex-1 rounded-xl"
+                      onClick={() => {
+                        setCurrentPage(1)
+                        loadListings(1)
+                      }}
+                    >
+                      Appliquer
                     </Button>
                   </div>
                 </div>
