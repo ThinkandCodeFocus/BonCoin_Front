@@ -68,16 +68,21 @@ const handleError = (error: any) => {
     // Ne pas logger les erreurs 401 (Unauthorized) - c'est normal quand le token expire
     const is401 = error.response.status === 401
     
+    if (!is401) {
+      console.error("❌ API Response Error:", error.response.status, message, errors)
+    }
+    
     // Rediriger vers /auth si 401 (non autorisé)
     if (is401 && typeof window !== 'undefined') {
+      // Nettoyer le stockage local pour forcer la déconnexion côté Front
+      localStorage.removeItem('auth_token')
+      localStorage.removeItem('user')
+      
       // Stocker l'URL actuelle pour rediriger après connexion
       const currentPath = window.location.pathname
       if (currentPath !== '/auth') {
         localStorage.setItem('redirect_after_login', currentPath)
       }
-      // Optionnel: rediriger immédiatement vers /auth
-      // window.location.href = '/auth'
-      // On préfère NOTIFIER plutôt que REDIRIGER automatiquement pour éviter les boucles
     }
     
     return {
@@ -574,8 +579,12 @@ export const favoriteService = {
       console.log("📦 Raw API response:", result)
       
       if (!response.ok) {
-        console.error("❌ API Error:", response.status, result)
-        throw { response: { data: result, status: response.status } }
+        if (response.status === 401) {
+          console.log("ℹ️ Session expirée (401) lors de la récupération des favoris")
+        } else {
+          console.error("❌ Erreur API Favoris:", response.status)
+        }
+        return handleError({ response: { data: result, status: response.status } })
       }
 
       // FavoriteResource::collection retourne { data: [...] }
@@ -593,7 +602,6 @@ export const favoriteService = {
       console.log("⚠️ Returning raw result")
       return { success: true, data: data }
     } catch (error) {
-      console.error("❌ favoriteService.getAll() error:", error)
       return handleError(error)
     }
   },
@@ -788,7 +796,7 @@ export const notificationService = {
   async markAsRead(id: number) {
     try {
       const response = await fetch(`${API_CONFIG.baseURL}/notifications/${id}/read`, {
-        method: 'POST',
+        method: 'PUT',
         headers: getHeaders(),
       })
       const result = await response.json()

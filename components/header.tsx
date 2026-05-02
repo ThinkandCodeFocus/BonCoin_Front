@@ -28,8 +28,7 @@ import { useRouter } from "next/navigation"
 export function Header() {
   const { user, isAuthenticated, logout } = useAuth()
   const { favoriteCount } = useFavorites()
-  const { unreadCount: messageCount } = useMessageNotifications()
-  const [notificationCount, setNotificationCount] = useState(0)
+  const { unreadCount: messageCount, notificationCount } = useMessageNotifications()
   const [latestConversationId, setLatestConversationId] = useState<number | null>(null)
   const router = useRouter()
   const [showAuthDialog, setShowAuthDialog] = useState(false)
@@ -45,23 +44,11 @@ export function Header() {
   useEffect(() => {
     if (isAuthenticated) {
       loadNotifications()
-      // Recharger les notifications toutes les 5 secondes
-      const interval = setInterval(loadNotifications, 5000)
-      return () => clearInterval(interval)
-    } else {
-      setNotificationCount(0)
-      // message count managed by MessageNotificationProvider
     }
   }, [isAuthenticated])
 
   const loadNotifications = async () => {
-    const notifResult = await notificationService.getUnreadCount()
-
-    if (notifResult.success) {
-      setNotificationCount(notifResult.data)
-    }
-
-    // Récupérer les conversations pour trouver la conversation la plus récente ou non lue
+    // Récupérer les conversations pour trouver la conversation la plus récente
     try {
       const convResult = await messageService.getConversations()
       if (convResult.success && Array.isArray((convResult as any).data)) {
@@ -83,7 +70,7 @@ export function Header() {
     <header className="sticky top-0 z-50 glass-card border-b border-border/70">
       <div className="max-w-7xl mx-auto px-4 lg:px-6 py-4">
         <div className="flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-3 group">
+          <Link href="/" className="flex items-center gap-3 group">
             <div className="w-11 h-11 bg-linear-to-br from-primary via-primary/80 to-accent/80 rounded-2xl flex items-center justify-center shadow-lg ring-1 ring-white/30 group-hover:shadow-xl transition-shadow">
               <span className="text-primary-foreground font-bold text-xl">M</span>
             </div>
@@ -112,7 +99,7 @@ export function Header() {
                 <Moon className="w-5 h-5" />
               )}
             </Button>
-            
+
             {isAuthenticated ? (
               <>
                 <Link href="/messages">
@@ -149,13 +136,13 @@ export function Header() {
                     ))}
                   </Button>
                 </Link>
-                
+
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon" className="rounded-full hover:bg-muted">
-                        <Avatar className="w-8 h-8">
-                        <AvatarImage 
-                          src={user?.photo ? resolveStorageUrl(user.photo) : undefined} 
+                      <Avatar className="w-8 h-8">
+                        <AvatarImage
+                          src={user?.photo ? resolveStorageUrl(user.photo) : undefined}
                         />
                         <AvatarFallback>{user?.name?.charAt(0).toUpperCase()}</AvatarFallback>
                       </Avatar>
@@ -168,7 +155,7 @@ export function Header() {
                       <Link href="/profile">Mon profil</Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <Link href="/profile/annonces">Mes annonces</Link>
+                      <Link href="/profile?tab=listings">Mes annonces</Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={logout}>
@@ -177,7 +164,7 @@ export function Header() {
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
-                
+
                 <Link href="/publish">
                   <Button className="font-semibold ml-2 rounded-full px-6 shadow-lg hover:shadow-xl transition-shadow bg-accent text-accent-foreground hover:bg-accent/90">
                     <span data-i18n="publish">Déposer une annonce</span>
@@ -269,7 +256,7 @@ export function Header() {
           </div>
         </div>
       </div>
-      
+
       <AuthDialog open={showAuthDialog} onOpenChange={setShowAuthDialog} defaultTab={authTab} />
     </header>
   )

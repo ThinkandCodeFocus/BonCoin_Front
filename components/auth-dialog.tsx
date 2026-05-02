@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useAuth } from "@/contexts/AuthContext"
 import { Eye, EyeOff, Loader2 } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
 
 interface AuthDialogProps {
   open: boolean
@@ -18,6 +19,7 @@ interface AuthDialogProps {
 
 export function AuthDialog({ open, onOpenChange, defaultTab = "login" }: AuthDialogProps) {
   const { login, register } = useAuth()
+  const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
   const [activeTab, setActiveTab] = useState(defaultTab)
 
@@ -48,6 +50,16 @@ export function AuthDialog({ open, onOpenChange, defaultTab = "login" }: AuthDia
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
+    const phoneRegex = /^(77|78|76|70|75|33)[0-9]{7}$/;
+    if (!phoneRegex.test(registerPhone)) {
+      toast({
+        title: "Numéro invalide",
+        description: "Format Sénégal requis (ex: 771234567)",
+        variant: "destructive",
+      });
+      setIsLoading(false);
+      return;
+    }
     setIsLoading(true)
     const success = await register({
       name: registerName,
