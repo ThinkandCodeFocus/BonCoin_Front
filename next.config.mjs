@@ -5,10 +5,13 @@ const nextConfig = {
   },
   // Proxy des images vers Laravel pour éviter les problèmes CORS
   async rewrites() {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api';
+    const backendUrl = apiUrl.replace('/api', '');
+    
     return [
       {
         source: '/storage/:path*',
-        destination: 'http://127.0.0.1:8000/storage/:path*',
+        destination: `${backendUrl}/storage/:path*`,
       },
     ]
   },
@@ -32,8 +35,6 @@ const nextConfig = {
         pathname: '/storage/**',
       },
     ],
-    // Domaines autorisés pour les images
-    domains: ['localhost', '127.0.0.1'],
   },
   // Optimisation de la compilation
   compiler: {

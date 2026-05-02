@@ -86,7 +86,7 @@ export default function ConversationPage() {
       if (isAuthenticated && !Number.isNaN(conversationId) && conversationId > 0) {
         loadMessages(true)
       }
-    }, 5000)
+    }, 10000)
     return () => clearInterval(interval)
   }, [isAuthenticated, conversationId])
 
@@ -97,49 +97,55 @@ export default function ConversationPage() {
 
   const loadMessages = async (silent = false) => {
     if (!silent) setIsLoading(true)
-    console.log('Loading messages for conversation:', conversationId)
-    const result = await messageService.getMessages(conversationId)
-    console.log('Messages API result:', result)
-    
-    if (result.success && (result as any).data) {
-      const data = (result as any).data
-      const msgs = Array.isArray(data.data) ? data.data : (Array.isArray(data) ? data : [])
-      console.log('Loaded messages:', msgs)
-      setMessages(msgs)
+    try {
+      console.log('Loading messages for conversation:', conversationId)
+      const result = await messageService.getMessages(conversationId)
+      console.log('Messages API result:', result)
       
-      // Extraire les informations de l'autre utilisateur depuis la réponse de l'API
-      const conversationData = data.conversation || data
-      if (conversationData?.other_user) {
-        const other = conversationData.other_user
-        setOtherUser({
-          id: other.id,
-          name: other.name,
-          photo: other.photo,
-        })
-      } else if (msgs.length > 0 && user) {
-        // Fallback : extraire depuis les messages
-        const otherMsg = msgs.find((m: Message) => m.user_id !== user.id)
-        if (otherMsg && otherMsg.user) {
+      if (result.success && (result as any).data) {
+        const data = (result as any).data
+        const msgs = Array.isArray(data.data) ? data.data : (Array.isArray(data) ? data : [])
+        console.log('Loaded messages:', msgs)
+        setMessages(msgs)
+        
+        // Extraire les informations de l'autre utilisateur depuis la réponse de l'API
+        const conversationData = data.conversation || data
+        if (conversationData?.other_user) {
+          const other = conversationData.other_user
           setOtherUser({
-            id: otherMsg.user.id,
-            name: otherMsg.user.name,
-            photo: otherMsg.user.photo,
+            id: other.id,
+            name: other.name,
+            photo: other.photo,
           })
+        } else if (msgs.length > 0 && user) {
+          // Fallback : extraire depuis les messages
+          const otherMsg = msgs.find((m: Message) => m.user_id !== user.id)
+          if (otherMsg && otherMsg.user) {
+            setOtherUser({
+              id: otherMsg.user.id,
+              name: otherMsg.user.name,
+              photo: otherMsg.user.photo,
+            })
+          }
         }
+        
+        // Marquer la conversation comme lue
+        try {
+          await messageService.markConversationAsRead(conversationId)
+          await refreshUnreadCount()
+        } catch (e) {
+          // ignore
+        }
+      } else if (!silent) {
+        console.error('Failed to load messages:', result)
+        toast.error((result as any).message || "Impossible de charger les messages")
       }
-      
-      // Marquer la conversation comme lue et rafraîchir les compteurs
-      try {
-        await messageService.markConversationAsRead(conversationId)
-        await refreshUnreadCount()
-      } catch (e) {
-        // ignore
-      }
-    } else if (!silent) {
-      console.error('Failed to load messages:', result)
-      toast.error((result as any).message || "Impossible de charger les messages")
+    } catch (error) {
+      console.error('Error in loadMessages:', error)
+      if (!silent) toast.error("Erreur de connexion")
+    } finally {
+      if (!silent) setIsLoading(false)
     }
-    if (!silent) setIsLoading(false)
   }
 
   const handleSendText = async () => {
@@ -295,27 +301,17 @@ export default function ConversationPage() {
     }).format(date)
   }
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex flex-col">
-        <Header />
-        <main className="flex-1 flex items-center justify-center">
-          <Loader2 className="w-8 h-8 animate-spin text-primary" />
-        </main>
-        <BottomNav />
-      </div>
-    )
-  }
-
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
 
-      <main className="flex-1 pb-20 md:pb-4 py-6 px-4">
+      <main className="flex-1 pb-32 pt-6 px-4">
         <div className="max-w-3xl mx-auto space-y-4">
           {/* Header avec titre et menu */}
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold">Conversation</h1>
+            <h1 className="text-2xl font-bold">
+              {otherUser ? `Chat avec ${otherUser.name}` : "Conversation"}
+            </h1>
             
             {/* Menu avec options */}
             <DropdownMenu>
@@ -347,12 +343,16 @@ export default function ConversationPage() {
           </div>
 
           {/* Liste des messages */}
-          <div className="space-y-3 min-h-100 max-h-[60vh] overflow-y-auto">
-            {messages.length === 0 ? (
-              <Card className="p-6 text-center text-muted-foreground">
+          <div className="space-y-3 min-h-[300px] max-h-[60vh] overflow-y-auto p-2">
+            {isLoading ? (
+              <div className="flex justify-center py-12">
+                <Loader2 className="w-8 h-8 animate-spin text-primary/50" />
+              </div>
+            ) : messages.length === 0 ? (
+              <Card className="p-6 text-center text-muted-foreground border-dashed">
                 <AudioWaveform className="w-12 h-12 mx-auto mb-2 opacity-50" />
                 <p>Aucun message pour le moment</p>
-                <p className="text-sm mt-1">Envoyez un message pour commencer la conversation</p>
+                <p className="text-sm mt-1">Dites bonjour pour commencer !</p>
               </Card>
             ) : (
               messages.map((msg) => {
@@ -396,115 +396,66 @@ export default function ConversationPage() {
             <div ref={bottomRef} />
           </div>
 
-          {/* Zone de saisie */}
-          <div className="border-t pt-4 space-y-3">
-            {/* Message audio en cours de prévisualisation */}
-            {audioBlob && (
-              <Card className="p-3 bg-primary/5 border-primary/20">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-                      <AudioWaveform className="w-5 h-5 text-primary animate-pulse" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium">Message vocal</p>
-                      <p className="text-xs text-muted-foreground">
-                        {formatDuration(recordingDuration)}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={cancelRecording}
-                      className="text-destructive hover:text-destructive"
-                    >
-                      Annuler
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      onClick={sendAudio}
-                      disabled={isSending}
-                    >
-                      {isSending ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : (
-                        <Send className="w-4 h-4" />
-                      )}
-                      Envoyer
-                    </Button>
-                  </div>
-                </div>
-                <audio 
-                  controls 
-                  className="w-full mt-2 h-8" 
-                  src={URL.createObjectURL(audioBlob)}
-                />
-              </Card>
-            )}
-
+          {/* Zone de saisie fixe en bas */}
+          <div className="fixed bottom-0 left-0 right-0 bg-background p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] space-y-3 border-t z-50 shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
             {/* Indicateur d'enregistrement en cours */}
             {isRecording && (
-              <Card className="p-3 bg-red-50 border-red-200 dark:bg-red-950 dark:border-red-900">
+              <Card className="p-3 bg-red-50 border-red-200 mb-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-3 h-3 rounded-full bg-red-500 animate-pulse" />
-                    <span className="text-sm font-medium text-red-600 dark:text-red-400">
-                      Enregistrement en cours...
-                    </span>
-                    <span className="text-sm font-mono text-red-600 dark:text-red-400">
-                      {formatDuration(recordingDuration)}
-                    </span>
+                    <span className="text-sm font-medium text-red-600">Enregistrement... {formatDuration(recordingDuration)}</span>
                   </div>
-                  <Button 
-                    variant="destructive" 
-                    size="sm" 
-                    onClick={stopRecording}
-                  >
-                    <StopCircle className="w-4 h-4 mr-1" />
-                    Arrêter
-                  </Button>
+                  <Button variant="destructive" size="sm" onClick={stopRecording}>Arrêter</Button>
                 </div>
               </Card>
             )}
 
-            {/* Zone de saisie normale */}
-            {!isRecording && !audioBlob && (
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Écrire un message..."
-                  value={text}
-                  onChange={(e) => setText(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleSendText()}
-                  disabled={isSending}
-                />
-                <Button 
-                  onClick={handleSendText} 
-                  disabled={isSending || !text.trim()}
-                >
-                  {isSending ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Send className="w-4 h-4" />
-                  )}
-                </Button>
-              </div>
+            {/* Message audio prêt à l'envoi */}
+            {audioBlob && !isRecording && (
+              <Card className="p-3 bg-primary/5 border-primary/20 mb-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">Vocal prêt ({formatDuration(recordingDuration)})</span>
+                  <div className="flex gap-2">
+                    <Button variant="ghost" size="sm" onClick={cancelRecording}>Annuler</Button>
+                    <Button size="sm" onClick={sendAudio} disabled={isSending}>Envoyer le vocal</Button>
+                  </div>
+                </div>
+              </Card>
             )}
 
-            {/* Bouton d'enregistrement */}
-            {!isRecording && (
-              <div className="flex justify-center">
-                <Button
-                  variant="outline"
-                  onClick={startRecording}
-                  disabled={isSending}
-                  className="w-full"
-                >
-                  <Mic className="w-4 h-4 mr-2" />
-                  Appuyer pour enregistrer un message vocal
-                </Button>
-              </div>
+            {/* Saisie de texte TOUJOURS visible */}
+            <div className="flex gap-2">
+              <Input
+                placeholder="Écrivez votre message ici..."
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSendText()}
+                disabled={isSending}
+                autoFocus
+                className="bg-muted/50 border-primary/20 focus-visible:ring-primary"
+              />
+              <Button 
+                onClick={handleSendText} 
+                disabled={isSending || (!text.trim() && !audioBlob)}
+                className="shadow-md"
+              >
+                {isSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+              </Button>
+            </div>
+
+            {/* Bouton micro séparé pour ne pas gêner le texte */}
+            {!isRecording && !audioBlob && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={startRecording}
+                disabled={isSending}
+                className="w-full text-xs text-muted-foreground hover:text-primary"
+              >
+                <Mic className="w-3 h-3 mr-2" />
+                Enregistrer un message vocal au lieu du texte
+              </Button>
             )}
           </div>
         </div>

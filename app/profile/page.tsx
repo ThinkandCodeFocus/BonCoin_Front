@@ -13,7 +13,7 @@ import Link from "next/link"
 import { useAuth } from "@/contexts/AuthContext"
 import { resolveStorageUrl } from "@/lib/media"
 import { profileService, favoriteService, annonceService } from "@/lib/api"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import { useFavorites } from "@/contexts/FavoritesContext"
 import {
@@ -46,6 +46,8 @@ interface Favorite {
 export default function ProfilePage() {
   const { user, logout, isAuthenticated } = useAuth()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const defaultTab = searchParams.get('tab') || 'listings'
   const { loadFavorites: reloadFavoritesContext } = useFavorites()
   const [userAnnonces, setUserAnnonces] = useState<Annonce[]>([])
   const [favorites, setFavorites] = useState<Favorite[]>([])
@@ -148,8 +150,8 @@ export default function ProfilePage() {
         <div className="bg-primary text-primary-foreground py-8 px-4">
           <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center gap-6">
             <Avatar className="w-24 h-24">
-              <AvatarImage 
-                src={user.photo ? resolveStorageUrl(user.photo) : undefined} 
+              <AvatarImage
+                src={user.photo ? resolveStorageUrl(user.photo) : undefined}
               />
               <AvatarFallback className="text-4xl">
                 {user.name?.charAt(0).toUpperCase()}
@@ -178,9 +180,8 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Profile Content */}
         <div className="max-w-6xl mx-auto p-4">
-          <Tabs defaultValue="listings" className="space-y-6">
+          <Tabs defaultValue={defaultTab} className="space-y-6">
             <TabsList className="grid w-full max-w-md mx-auto grid-cols-2">
               <TabsTrigger value="listings">
                 <Package className="w-4 h-4 mr-2" />

@@ -143,12 +143,14 @@ export default function ListingDetailPage() {
         seller_id: annonce.user.id,
       }) as any
 
-      console.log('Conversation result:', result)
+      console.log('Conversation result:', JSON.stringify(result))
 
       if (result.success && result.data) {
-        // Nouvelle structure: result.data.conversation
-        const conversationId = result.data.conversation?.id || result.data.id
-        console.log('Conversation ID:', conversationId)
+        // Gérer la structure imbriquée data.data.conversation.id ou data.id
+        const conversationData = result.data.data?.conversation || result.data.conversation || result.data.data || result.data
+        const conversationId = conversationData?.id
+        
+        console.log('Detected Conversation ID:', conversationId)
         if (conversationId) {
           toast.success("Conversation créée !")
           // Rediriger vers la conversation
@@ -156,11 +158,11 @@ export default function ListingDetailPage() {
           return
         }
       }
-      
+
       // Si on arrive ici, il y a eu une erreur
       const errorMessage = result.message || result.errors?.annonce_id || "Erreur lors de la création de la conversation"
       toast.error(errorMessage)
-      
+
     } catch (error) {
       console.error('Error creating conversation:', error)
       toast.error("Erreur lors de la création de la conversation")
@@ -218,7 +220,7 @@ export default function ListingDetailPage() {
     )
   }
 
-    const photoUrl = resolveStorageUrl(annonce.photos?.[currentPhotoIndex])
+  const photoUrl = resolveStorageUrl(annonce.photos?.[currentPhotoIndex])
 
   console.log('Current photo URL:', photoUrl)
   console.log('All photos:', annonce.photos)
@@ -267,9 +269,8 @@ export default function ListingDetailPage() {
                       {annonce.photos.map((_, index) => (
                         <button
                           key={index}
-                          className={`w-2 h-2 rounded-full ${
-                            index === currentPhotoIndex ? "bg-primary" : "bg-white/50"
-                          }`}
+                          className={`w-2 h-2 rounded-full ${index === currentPhotoIndex ? "bg-primary" : "bg-white/50"
+                            }`}
                           onClick={() => setCurrentPhotoIndex(index)}
                         />
                       ))}
@@ -283,9 +284,8 @@ export default function ListingDetailPage() {
                     <button
                       key={index}
                       onClick={() => setCurrentPhotoIndex(index)}
-                      className={`aspect-square rounded-lg overflow-hidden ${
-                        index === currentPhotoIndex ? "ring-2 ring-primary" : ""
-                      }`}
+                      className={`aspect-square rounded-lg overflow-hidden ${index === currentPhotoIndex ? "ring-2 ring-primary" : ""
+                        }`}
                     >
                       <img
                         src={resolveStorageUrl(photo)}
@@ -391,9 +391,9 @@ export default function ListingDetailPage() {
                         {annonce.user.phone}
                       </Button>
                     )}
-                    <Button 
-                      className="w-full" 
-                      variant="outline" 
+                    <Button
+                      className="w-full"
+                      variant="outline"
                       onClick={contactSeller}
                       disabled={isContacting}
                     >
@@ -424,7 +424,7 @@ export default function ListingDetailPage() {
               <Card className="p-4">
                 <h2 className="font-semibold text-lg mb-3">Description</h2>
                 {annonce.description && (
-                  <p className="text-muted-foreground whitespace-pre-wrap mb-4">
+                  <p className="text-muted-foreground  whitespace-pre-wrap break-words leading-relaxed mb-4">
                     {annonce.description}
                   </p>
                 )}

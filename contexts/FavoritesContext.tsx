@@ -95,7 +95,7 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
       const interval = setInterval(() => {
         console.log("⏰ Auto-reloading favorites (30s interval)")
         loadFavorites()
-      }, 30000)
+      }, 60000)
       
       return () => clearInterval(interval)
     } else {

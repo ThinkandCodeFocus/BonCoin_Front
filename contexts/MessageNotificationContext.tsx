@@ -3,7 +3,7 @@
 import type React from "react"
 import { createContext, useContext, useState, useEffect, useRef } from "react"
 import { useAuth } from "@/contexts/AuthContext"
-import { messageService } from "@/lib/api"
+import { messageService, notificationService } from "@/lib/api"
 
 interface MessageNotification {
   id: string
@@ -16,6 +16,7 @@ interface MessageNotification {
 
 interface MessageNotificationContextType {
   unreadCount: number
+  notificationCount: number
   newMessageNotification: MessageNotification | null
   clearNotification: () => void
   refreshUnreadCount: () => Promise<void>
@@ -26,6 +27,7 @@ const MessageNotificationContext = createContext<MessageNotificationContextType 
 export function MessageNotificationProvider({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, user } = useAuth()
   const [unreadCount, setUnreadCount] = useState(0)
+  const [notificationCount, setNotificationCount] = useState(0)
   const [newMessageNotification, setNewMessageNotification] = useState<MessageNotification | null>(null)
   const previousCountRef = useRef(0)
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null)
@@ -57,24 +59,20 @@ export function MessageNotificationProvider({ children }: { children: React.Reac
   const refreshUnreadCount = async () => {
     if (!isAuthenticated) {
       setUnreadCount(0)
+      setNotificationCount(0)
       return
     }
 
-    const result = await messageService.getUnreadCount()
-    if (result.success && typeof (result as any).data === "number") {
-      const newCount = (result as any).data
-      
-      // Si le nombre de messages non lus a augmenté, afficher une notification
-      if (newCount > previousCountRef.current && previousCountRef.current > 0) {
-        playNotificationSound()
+    try {
+      // 1. Récupérer le compte des messages non lus
+      const messageResult = await messageService.getConversations()
+      if (messageResult.success && Array.isArray((messageResult as any).data)) {
+        const conversations = (messageResult as any).data
+        const totalUnread = conversations.reduce((acc: number, conv: any) => acc + (conv.unread_count || 0), 0)
         
-        // Récupérer les conversations pour afficher plus d'info
-        const convResult = await messageService.getConversations()
-        if (convResult.success && Array.isArray((convResult as any).data)) {
-          const conversations = (convResult as any).data
-          // Trouver la première conversation avec des messages non lus
+        if (totalUnread > previousCountRef.current && previousCountRef.current > 0) {
+          playNotificationSound()
           const unreadConv = conversations.find((c: any) => c.unread_count > 0)
-          
           if (unreadConv) {
             const otherUser = unreadConv.buyer_id === user?.id ? unreadConv.seller : unreadConv.buyer
             setNewMessageNotification({
@@ -85,17 +83,26 @@ export function MessageNotificationProvider({ children }: { children: React.Reac
               timestamp: new Date(),
               isRead: false,
             })
-            
-            // Masquer la notification après 5 secondes
-            setTimeout(() => {
-              setNewMessageNotification(null)
-            }, 5000)
+            setTimeout(() => setNewMessageNotification(null), 5000)
           }
         }
+        setUnreadCount(totalUnread)
+        previousCountRef.current = totalUnread
       }
-      
-      setUnreadCount(newCount)
-      previousCountRef.current = newCount
+
+      // 2. Récupérer le compte des notifications (cloche)
+      const notifResult = await notificationService.getAll()
+      if (notifResult.success) {
+        // La structure est { success: true, data: { success: true, data: [...] } } 
+        // ou simplement { success: true, data: [...] } selon le service
+        const rawData = (notifResult as any).data
+        const notifArray = Array.isArray(rawData.data) ? rawData.data : (Array.isArray(rawData) ? rawData : [])
+        
+        const unreadNotifs = notifArray.filter((n: any) => !n.read_at).length
+        setNotificationCount(unreadNotifs)
+      }
+    } catch (error) {
+      console.error("Error refreshing counts:", error)
     }
   }
 
@@ -109,10 +116,10 @@ export function MessageNotificationProvider({ children }: { children: React.Reac
     // Charger immédiatement au montage
     refreshUnreadCount()
 
-    // Ensuite faire le polling toutes les 5 secondes
+    // Ensuite faire le polling toutes les 20 secondes
     pollingIntervalRef.current = setInterval(() => {
       refreshUnreadCount()
-    }, 5000)
+    }, 20000)
 
     return () => {
       if (pollingIntervalRef.current) {
@@ -129,6 +136,7 @@ export function MessageNotificationProvider({ children }: { children: React.Reac
     <MessageNotificationContext.Provider
       value={{
         unreadCount,
+        notificationCount,
         newMessageNotification,
         clearNotification,
         refreshUnreadCount,
