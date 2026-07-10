@@ -9,6 +9,7 @@ import { Heart, MessageCircle, Package, Star, Loader2 } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 import { useRouter } from "next/navigation"
 import { notificationService } from "@/lib/api"
+import Link from "next/link"
 
 interface Notification {
   id: number
@@ -17,6 +18,7 @@ interface Notification {
   body: string
   read_at: string | null
   created_at: string
+  annonce_id?: number
 }
 
 export default function NotificationsPage() {
@@ -50,6 +52,10 @@ export default function NotificationsPage() {
         n.id === notification.id ? { ...n, read_at: new Date().toISOString() } : n
       ))
     }
+    // Rediriger vers l'annonce si elle existe
+    if (notification.annonce_id) {
+      router.push(`/listings/${notification.annonce_id}`)
+    }
   }
 
   const getIcon = (type: string) => {
@@ -58,6 +64,8 @@ export default function NotificationsPage() {
       case 'favorite': return Heart
       case 'listing': return Package
       case 'review': return Star
+      case 'publication': return Package
+      case 'category': return Package
       default: return Package
     }
   }
@@ -140,3 +148,4 @@ export default function NotificationsPage() {
     </div>
   )
 }
+
