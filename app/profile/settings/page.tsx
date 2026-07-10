@@ -12,6 +12,7 @@ import { Loader2, Camera, ArrowLeft, Eye, EyeOff } from "lucide-react"
 import Link from "next/link"
 import { useAuth } from "@/contexts/AuthContext"
 import { profileService } from "@/lib/api"
+import { uploadProfilePhoto } from "@/lib/uploadHelpers"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { resolveStorageUrl } from "@/lib/media"
@@ -79,7 +80,7 @@ export default function ProfileSettingsPage() {
     }
 
     setIsUploadingPhoto(true)
-    const result = await profileService.uploadPhoto(file)
+    const result = await uploadProfilePhoto(file)
     
     if (result.success) {
       toast.success("Photo de profil mise à jour")
