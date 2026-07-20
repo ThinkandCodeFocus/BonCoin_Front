@@ -3,13 +3,13 @@
 import { useState, useEffect, useRef } from "react"
 import { Header } from "@/components/header"
 import { BottomNav } from "@/components/bottom-nav"
+import { AccountLayout } from "@/components/account-layout"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Loader2, Camera, ArrowLeft, Eye, EyeOff } from "lucide-react"
-import Link from "next/link"
+import { Loader2, Camera, Eye, EyeOff } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 import { profileService } from "@/lib/api"
 import { useRouter } from "next/navigation"
@@ -158,183 +158,159 @@ export default function ProfileSettingsPage() {
     : ""
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col">
       <Header />
 
-      <main className="flex-1 pb-20 md:pb-4">
-        <div className="max-w-2xl mx-auto p-4 space-y-6">
-          {/* Header */}
-          <div className="flex items-center gap-4">
-            <Link href="/profile">
-              <Button variant="ghost" size="icon">
-                <ArrowLeft className="w-5 h-5" />
-              </Button>
-            </Link>
-            <h1 className="text-2xl font-bold">Paramètres du profil</h1>
-          </div>
+      <main className="flex-1 pb-16 md:pb-4">
+        <AccountLayout>
+          <div className="max-w-xl space-y-6">
+            <h1 className="text-base font-semibold">Paramètres du profil</h1>
 
-          {/* Photo de profil */}
-          <Card className="p-6">
-            <div className="flex flex-col items-center gap-4">
-              <div className="relative">
-                <Avatar className="w-32 h-32">
-                  <AvatarImage src={photoUrl} />
-                  <AvatarFallback className="text-4xl">
-                    {user.name?.charAt(0).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                <Button
-                  size="icon"
-                  className="absolute bottom-0 right-0 rounded-full"
-                  onClick={handlePhotoClick}
-                  disabled={isUploadingPhoto}
-                >
-                  {isUploadingPhoto ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Camera className="w-4 h-4" />
-                  )}
-                </Button>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handlePhotoChange}
-                />
+            <Card className="p-4">
+              <div className="flex flex-col items-center gap-3">
+                <div className="relative">
+                  <Avatar className="w-24 h-24">
+                    <AvatarImage src={photoUrl} />
+                    <AvatarFallback className="text-2xl">
+                      {user.name?.charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <Button
+                    size="icon-sm"
+                    className="absolute bottom-0 right-0"
+                    onClick={handlePhotoClick}
+                    disabled={isUploadingPhoto}
+                  >
+                    {isUploadingPhoto ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Camera className="w-4 h-4" />
+                    )}
+                  </Button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handlePhotoChange}
+                  />
+                </div>
+                <div className="text-center">
+                  <p className="text-sm text-muted-foreground">
+                    Cliquez sur l'icône pour changer votre photo
+                  </p>
+                  <p className="text-xs text-muted-foreground">JPG, PNG ou GIF (max 2MB)</p>
+                </div>
               </div>
-              <div className="text-center">
-                <p className="text-sm text-muted-foreground">
-                  Cliquez sur l'icône pour changer votre photo
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  JPG, PNG ou GIF (max 2MB)
-                </p>
-              </div>
-            </div>
-          </Card>
+            </Card>
 
-          {/* Formulaire */}
-          <Card className="p-6">
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Nom complet *</Label>
-                <Input
-                  id="name"
-                  name="name"
-                  type="text"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
+            <Card className="p-4">
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Nom complet *</Label>
+                  <Input
+                    id="name"
+                    name="name"
+                    type="text"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="email">Email *</Label>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email *</Label>
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="phone">Téléphone</Label>
-                <Input
-                  id="phone"
-                  name="phone"
-                  type="tel"
-                  value={formData.phone}
-                  onChange={handleInputChange}
-                  placeholder="+221 XX XXX XX XX"
-                />
-              </div>
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Téléphone</Label>
+                  <Input
+                    id="phone"
+                    name="phone"
+                    type="tel"
+                    value={formData.phone}
+                    onChange={handleInputChange}
+                    placeholder="+221 XX XXX XX XX"
+                  />
+                </div>
 
-              <div className="border-t pt-4 mt-6">
-                <h3 className="font-semibold mb-4">Changer le mot de passe</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Laissez vide si vous ne souhaitez pas changer votre mot de passe
-                </p>
+                <div className="border-t pt-4 mt-2">
+                  <h3 className="text-sm font-semibold mb-1">Changer le mot de passe</h3>
+                  <p className="text-xs text-muted-foreground mb-4">
+                    Laissez vide si vous ne souhaitez pas changer votre mot de passe
+                  </p>
 
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="password">Nouveau mot de passe</Label>
-                    <div className="relative">
-                      <Input
-                        id="password"
-                        name="password"
-                        type={showPassword ? "text" : "password"}
-                        value={formData.password}
-                        onChange={handleInputChange}
-                        minLength={8}
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="absolute right-0 top-0"
-                        onClick={() => setShowPassword(!showPassword)}
-                      >
-                        {showPassword ? (
-                          <EyeOff className="w-4 h-4" />
-                        ) : (
-                          <Eye className="w-4 h-4" />
-                        )}
-                      </Button>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="password">Nouveau mot de passe</Label>
+                      <div className="relative">
+                        <Input
+                          id="password"
+                          name="password"
+                          type={showPassword ? "text" : "password"}
+                          value={formData.password}
+                          onChange={handleInputChange}
+                          minLength={8}
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="absolute right-0 top-0"
+                          onClick={() => setShowPassword(!showPassword)}
+                        >
+                          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </Button>
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="password_confirmation">
-                      Confirmer le mot de passe
-                    </Label>
-                    <div className="relative">
-                      <Input
-                        id="password_confirmation"
-                        name="password_confirmation"
-                        type={showConfirmPassword ? "text" : "password"}
-                        value={formData.password_confirmation}
-                        onChange={handleInputChange}
-                        minLength={8}
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="absolute right-0 top-0"
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      >
-                        {showConfirmPassword ? (
-                          <EyeOff className="w-4 h-4" />
-                        ) : (
-                          <Eye className="w-4 h-4" />
-                        )}
-                      </Button>
+                    <div className="space-y-2">
+                      <Label htmlFor="password_confirmation">Confirmer le mot de passe</Label>
+                      <div className="relative">
+                        <Input
+                          id="password_confirmation"
+                          name="password_confirmation"
+                          type={showConfirmPassword ? "text" : "password"}
+                          value={formData.password_confirmation}
+                          onChange={handleInputChange}
+                          minLength={8}
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="absolute right-0 top-0"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        >
+                          {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Enregistrement...
-                  </>
-                ) : (
-                  "Enregistrer les modifications"
-                )}
-              </Button>
-            </form>
-          </Card>
-        </div>
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Enregistrement...
+                    </>
+                  ) : (
+                    "Enregistrer les modifications"
+                  )}
+                </Button>
+              </form>
+            </Card>
+          </div>
+        </AccountLayout>
       </main>
 
       <BottomNav />

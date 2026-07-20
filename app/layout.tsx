@@ -1,6 +1,6 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { DM_Serif_Display, Sora } from "next/font/google"
+import { Inter } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import "./globals.css"
 import { Toaster } from "@/components/ui/toaster"
@@ -11,20 +11,14 @@ import { MessageNotificationProvider } from "@/contexts/MessageNotificationConte
 import { MessageNotificationToast } from "@/components/message-notification-toast"
 import { I18nProvider } from "@/components/I18nProvider"
 
-const sora = Sora({
+const inter = Inter({
   subsets: ["latin"],
-  variable: "--font-sora",
-})
-
-const dmSerif = DM_Serif_Display({
-  subsets: ["latin"],
-  weight: "400",
-  variable: "--font-display",
+  variable: "--font-inter",
 })
 
 export const metadata: Metadata = {
-  title: "Marketplace - Achetez et vendez en ligne",
-  description: "Plateforme de vente et d'achat en ligne au Sénégal",
+  title: "Marketplace - Petites annonces",
+  description: "Achat et vente de particulier à particulier au Sénégal",
   generator: "v0.app",
   icons: {
     icon: [
@@ -52,7 +46,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr">
-      <body className={`${sora.variable} ${dmSerif.variable} font-sans antialiased`}>
+      <body className={`${inter.variable} font-sans antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
           <I18nProvider>
             <AuthProvider>

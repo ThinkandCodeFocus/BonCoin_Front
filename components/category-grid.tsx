@@ -15,29 +15,28 @@ import {
   Leaf,
 } from "lucide-react"
 import Link from "next/link"
-import { cn } from "@/lib/utils"
 
 const defaultCategories = [
-  { id: 1, name: "Telephones", icon: "Smartphone", annonces_count: 1250 },
-  { id: 2, name: "Immobilier", icon: "Building2", annonces_count: 856 },
-  { id: 3, name: "Vehicules", icon: "Car", annonces_count: 543 },
-  { id: 4, name: "Meubles", icon: "Sofa", annonces_count: 432 },
-  { id: 5, name: "Mode", icon: "Shirt", annonces_count: 1200 },
-  { id: 6, name: "Electronique", icon: "Smartphone", annonces_count: 789 },
-  { id: 7, name: "Services", icon: "Briefcase", annonces_count: 234 },
-  { id: 8, name: "Loisirs", icon: "Gamepad2", annonces_count: 567 },
+  { id: 1, name: "Téléphones", icon: "Smartphone" },
+  { id: 2, name: "Immobilier", icon: "Building2" },
+  { id: 3, name: "Véhicules", icon: "Car" },
+  { id: 4, name: "Meubles", icon: "Sofa" },
+  { id: 5, name: "Mode", icon: "Shirt" },
+  { id: 6, name: "Électronique", icon: "Smartphone" },
+  { id: 7, name: "Services", icon: "Briefcase" },
+  { id: 8, name: "Loisirs", icon: "Gamepad2" },
 ]
 
 const getIconForName = (name: string) => {
   const n = name.toLowerCase()
-  if (n.includes("vehicul") || n.includes("voiture") || n.includes("auto")) return Car
+  if (n.includes("vehicul") || n.includes("véhicul") || n.includes("voiture") || n.includes("auto")) return Car
   if (n.includes("immobilier") || n.includes("habitation")) return Building2
   if (n.includes("maison")) return Home
   if (n.includes("jardin")) return Leaf
-  if (n.includes("electron") || n.includes("informat") || n.includes("telephone") || n.includes("mobile")) return Smartphone
+  if (n.includes("electron") || n.includes("électron") || n.includes("informat") || n.includes("telephone") || n.includes("téléphone") || n.includes("mobile")) return Smartphone
   if (n.includes("meuble")) return Sofa
-  if (n.includes("mode") || n.includes("vetement")) return Shirt
-  if (n.includes("beaute") || n.includes("cosmet")) return Sparkles
+  if (n.includes("mode") || n.includes("vetement") || n.includes("vêtement")) return Shirt
+  if (n.includes("beaute") || n.includes("beauté") || n.includes("cosmet")) return Sparkles
   if (n.includes("emploi") || n.includes("service") || n.includes("job")) return Briefcase
   if (n.includes("loisir") || n.includes("divert")) return Gamepad2
   if (n.includes("animal")) return PawPrint
@@ -45,82 +44,21 @@ const getIconForName = (name: string) => {
 }
 
 export function CategoryGrid() {
-  const getCategoryKey = (id: number) => {
-    switch (id) {
-      case 1:
-        return "categories.telephones"
-      case 2:
-        return "categories.immobilier"
-      case 3:
-        return "categories.vehicules"
-      case 4:
-        return "categories.meubles"
-      case 5:
-        return "categories.mode"
-      case 6:
-        return "categories.electronique"
-      case 7:
-        return "categories.services"
-      case 8:
-        return "categories.loisirs"
-      default:
-        return ""
-    }
-  }
-  // Skeleton loading
-  const SkeletonCategory = () => (
-    <div className="category-card">
-      <div className="hex-card">
-        <div className="hex-card-inner">
-          <div className="flex flex-col items-center text-center gap-3">
-            <div className="w-14 h-14 shimmer-card rounded-2xl" />
-            <div className="space-y-2">
-              <div className="h-4 shimmer-card rounded-md w-20" />
-              <div className="h-3 shimmer-card rounded-md w-16" />
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
+    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
       {defaultCategories.map((category) => {
         const Icon = getIconForName(category.name)
-        const count = category.annonces_count || 0
-        
         return (
-          <Link key={category.id} href={`/listings?category=${category.id}`} className="group">
-            <div className="category-card">
-              <div className="hex-card">
-                <div className="hex-card-inner">
-                  <div className="flex flex-col items-center text-center gap-3 relative z-10">
-                    <div className="relative">
-                      <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center shadow-[0_10px_24px_rgba(0,0,0,0.12)] group-hover:scale-110 transition-transform duration-300">
-                        <Icon className="w-6 h-6 text-primary" />
-                      </div>
-                      <div className="absolute inset-0 rounded-2xl bg-accent/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                    </div>
-                    <div>
-                      <h3 className={cn(
-                        "font-semibold text-sm md:text-base mb-1 transition-colors",
-                        "text-foreground group-hover:text-accent"
-                      )}>
-                        <span data-i18n={getCategoryKey(category.id)}>{category.name}</span>
-                      </h3>
-                      <p className="text-xs text-muted-foreground group-hover:text-foreground/70 transition-colors">
-                        {count.toLocaleString()} <span data-i18n="category.annonces">annonces</span>
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+          <Link
+            key={category.id}
+            href={`/listings?category=${category.id}`}
+            className="flex flex-col items-center gap-2 p-3 border rounded-md bg-card hover:bg-muted transition-colors text-center"
+          >
+            <Icon className="w-5 h-5 text-primary" />
+            <span className="text-xs font-medium">{category.name}</span>
           </Link>
         )
       })}
     </div>
   )
 }
-

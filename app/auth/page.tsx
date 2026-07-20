@@ -63,10 +63,10 @@ export default function AuthPage() {
     <div className="min-h-screen flex flex-col">
       <Header />
 
-      <main className="flex-1 py-12 px-4 bg-muted/30">
+      <main className="flex-1 py-12 px-4">
         <div className="max-w-md mx-auto">
           <Card className="p-6">
-            <h1 className="text-2xl font-bold mb-6 text-center">Connexion</h1>
+            <h1 className="text-lg font-semibold mb-6 text-center">Connexion</h1>
 
             <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "login" | "register")}>
               <TabsList className="grid w-full grid-cols-2 mb-6">

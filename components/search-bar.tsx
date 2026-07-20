@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { Search, MapPin, ArrowRight } from "lucide-react"
+import { Search, MapPin } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { useI18n } from "@/components/I18nProvider"
@@ -45,43 +45,39 @@ export function SearchBar({ variant = "hero" }: { variant?: SearchBarVariant }) 
     router.push(qs ? `/listings?${qs}` : "/listings")
   }
 
-  const wrapperClassName =
-    variant === "top"
-      ? "w-full rounded-3xl p-3 md:p-4 bg-card/90 border border-border/60 backdrop-blur-xl shadow-[0_18px_50px_rgba(15,23,42,0.12)]"
-      : "glass-card rounded-3xl p-4 shadow-[0_26px_70px_rgba(15,23,42,0.18)] max-w-4xl"
-
-  const inputBaseClass = "flex-1 flex items-center gap-3 bg-background/75 rounded-2xl px-4 py-3.5 border border-border/50 transition-all duration-300"
+  const isTop = variant === "top"
 
   return (
-    <div className={`flex flex-col md:flex-row gap-3 ${wrapperClassName}`}>
-      <div className={`${inputBaseClass} focus-within:border-primary/60 focus-within:shadow-[0_0_0_4px_rgba(15,118,110,0.08)] focus-within:bg-background`}>
-        <Search className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+    <div
+      className={`flex flex-col md:flex-row md:items-stretch border rounded-md bg-card divide-y md:divide-y-0 md:divide-x ${
+        isTop ? "" : "max-w-3xl"
+      }`}
+    >
+      <div className="flex-1 flex items-center gap-2 px-3 py-2.5">
+        <Search className="w-4 h-4 text-muted-foreground shrink-0" />
         <Input
-          placeholder={t("search.placeholder")}
+          placeholder={t("search.placeholder") || "Que recherchez-vous ?"}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && runSearch()}
-          className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-base"
+          className="border-0 shadow-none px-0 h-auto focus-visible:ring-0"
         />
       </div>
-      <div className={`${inputBaseClass} focus-within:border-primary/60 focus-within:shadow-[0_0_0_4px_rgba(15,118,110,0.08)] focus-within:bg-background`}>
-        <MapPin className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+      <div className="flex items-center gap-2 px-3 py-2.5 md:w-56">
+        <MapPin className="w-4 h-4 text-muted-foreground shrink-0" />
         <Input
-          placeholder={t("search.location_placeholder")}
+          placeholder={t("search.location_placeholder") || "Ville ou code postal"}
           value={city}
           onChange={(e) => setCity(e.target.value)}
-          className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-base"
+          onKeyDown={(e) => e.key === "Enter" && runSearch()}
+          className="border-0 shadow-none px-0 h-auto focus-visible:ring-0"
         />
       </div>
-      <Button
-        size="lg"
-        className="md:w-auto rounded-2xl px-6 font-semibold shadow-lg hover:shadow-xl transition-all hover-scale bg-accent text-accent-foreground hover:bg-accent/90 flex items-center gap-2"
-        onClick={runSearch}
-      >
-        <span data-i18n="search.search_button">Rechercher</span>
-        <ArrowRight className="w-4 h-4 hidden md:inline" />
-      </Button>
+      <div className="p-2">
+        <Button className="w-full md:w-auto" onClick={runSearch}>
+          {t("search.search_button") || "Rechercher"}
+        </Button>
+      </div>
     </div>
   )
 }
-

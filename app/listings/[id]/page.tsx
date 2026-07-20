@@ -15,6 +15,8 @@ import { useParams, useRouter } from "next/navigation"
 import { toast } from "sonner"
 import Link from "next/link"
 import { ReportListingButton } from "@/components/report-listing-button"
+import { formatPrice } from "@/components/design-system"
+import { ListingCard, type ListingCardData } from "@/components/listing-card"
 
 interface Annonce {
   id: number
@@ -53,6 +55,7 @@ export default function ListingDetailPage() {
   const [isFavorite, setIsFavorite] = useState(false)
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0)
   const [isContacting, setIsContacting] = useState(false)
+  const [similarListings, setSimilarListings] = useState<ListingCardData[]>([])
 
   useEffect(() => {
     if (!id) return
@@ -60,11 +63,11 @@ export default function ListingDetailPage() {
     if (isAuthenticated) {
       loadFavoriteStatus()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, isAuthenticated])
 
   const loadAnnonce = async () => {
     setIsLoading(true)
-    console.log('Loading annonce with ID:', id)
     try {
       const parsedId = Number.parseInt(id as string, 10)
       if (Number.isNaN(parsedId)) {
@@ -72,21 +75,27 @@ export default function ListingDetailPage() {
         return
       }
       const result = await annonceService.getById(parsedId)
-      console.log('API Result:', result)
       if (result.success && result.data) {
         const annonceData = result.data.data || result.data
-        console.log('Annonce data:', annonceData)
-        console.log('Photos:', annonceData.photos)
         setAnnonce(annonceData)
+        loadSimilarListings(annonceData.category?.id, parsedId)
       } else {
-        console.error('Failed to load annonce:', result)
         toast.error(result.message || "Annonce introuvable")
       }
     } catch (error) {
-      console.error('Error loading annonce:', error)
       toast.error("Erreur lors du chargement de l'annonce")
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const loadSimilarListings = async (categoryId: number | undefined, excludeId: number) => {
+    if (!categoryId) return
+    const result = await annonceService.getAll({ category: categoryId, page: 1 })
+    if (result.success && (result as any).data) {
+      const data = (result as any).data
+      const items = (data.data || []).filter((item: ListingCardData) => item.id !== excludeId).slice(0, 4)
+      setSimilarListings(items)
     }
   }
 
@@ -109,7 +118,7 @@ export default function ListingDetailPage() {
       const result = await favoriteService.remove(annonce!.id)
       if (result.success) {
         setIsFavorite(false)
-        toast.success("Retire des favoris")
+        toast.success("Retiré des favoris")
       } else {
         toast.error(result.message || "Impossible de retirer")
       }
@@ -117,7 +126,7 @@ export default function ListingDetailPage() {
       const result = await favoriteService.add(annonce!.id)
       if (result.success) {
         setIsFavorite(true)
-        toast.success("Ajoute aux favoris")
+        toast.success("Ajouté aux favoris")
       } else {
         toast.error(result.message || "Impossible d'ajouter")
       }
@@ -137,42 +146,29 @@ export default function ListingDetailPage() {
     toast.info("Création de la conversation...")
 
     try {
-      // Créer ou récupérer la conversation
       const result = await messageService.createConversation({
         annonce_id: annonce.id,
         seller_id: annonce.user.id,
       }) as any
 
-      console.log('Conversation result:', JSON.stringify(result))
-
       if (result.success && result.data) {
-        // Gérer la structure imbriquée data.data.conversation.id ou data.id
         const conversationData = result.data.data?.conversation || result.data.conversation || result.data.data || result.data
         const conversationId = conversationData?.id
-        
-        console.log('Detected Conversation ID:', conversationId)
+
         if (conversationId) {
           toast.success("Conversation créée !")
-          // Rediriger vers la conversation
           router.push(`/messages/${conversationId}`)
           return
         }
       }
 
-      // Si on arrive ici, il y a eu une erreur
       const errorMessage = result.message || result.errors?.annonce_id || "Erreur lors de la création de la conversation"
       toast.error(errorMessage)
-
     } catch (error) {
-      console.error('Error creating conversation:', error)
       toast.error("Erreur lors de la création de la conversation")
     } finally {
       setIsContacting(false)
     }
-  }
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("fr-FR").format(price) + " FCFA"
   }
 
   const formatDate = (dateString: string) => {
@@ -201,7 +197,7 @@ export default function ListingDetailPage() {
       <div className="min-h-screen flex flex-col">
         <Header />
         <main className="flex-1 flex items-center justify-center">
-          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <Loader2 className="w-6 h-6 animate-spin text-primary" />
         </main>
         <BottomNav />
       </div>
@@ -221,24 +217,18 @@ export default function ListingDetailPage() {
   }
 
   const photoUrl = resolveStorageUrl(annonce.photos?.[currentPhotoIndex])
-
-  console.log('Current photo URL:', photoUrl)
-  console.log('All photos:', annonce.photos)
-  console.log('Audios:', annonce.audios)
-  console.log('Videos:', annonce.videos)
-
   const isOwner = user?.id === annonce.user.id
 
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
 
-      <main className="flex-1 pb-20 md:pb-4">
+      <main className="flex-1 pb-16 md:pb-4">
         <div className="max-w-6xl mx-auto p-4 md:p-6">
           <div className="grid md:grid-cols-2 gap-8">
-            {/* Photos */}
+            {/* Galerie photos */}
             <div>
-              <div className="relative aspect-square rounded-lg overflow-hidden bg-muted mb-4">
+              <div className="relative aspect-square rounded-lg overflow-hidden bg-muted mb-3 border">
                 <img
                   src={photoUrl}
                   alt={annonce.title}
@@ -252,25 +242,24 @@ export default function ListingDetailPage() {
                     <Button
                       size="icon"
                       variant="secondary"
-                      className="absolute left-4 top-1/2 -translate-y-1/2"
+                      className="absolute left-3 top-1/2 -translate-y-1/2"
                       onClick={previousPhoto}
                     >
-                      <ChevronLeft className="w-5 h-5" />
+                      <ChevronLeft className="w-4 h-4" />
                     </Button>
                     <Button
                       size="icon"
                       variant="secondary"
-                      className="absolute right-4 top-1/2 -translate-y-1/2"
+                      className="absolute right-3 top-1/2 -translate-y-1/2"
                       onClick={nextPhoto}
                     >
-                      <ChevronRight className="w-5 h-5" />
+                      <ChevronRight className="w-4 h-4" />
                     </Button>
-                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+                    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
                       {annonce.photos.map((_, index) => (
                         <button
                           key={index}
-                          className={`w-2 h-2 rounded-full ${index === currentPhotoIndex ? "bg-primary" : "bg-white/50"
-                            }`}
+                          className={`w-1.5 h-1.5 rounded-full ${index === currentPhotoIndex ? "bg-primary" : "bg-white/60"}`}
                           onClick={() => setCurrentPhotoIndex(index)}
                         />
                       ))}
@@ -284,8 +273,7 @@ export default function ListingDetailPage() {
                     <button
                       key={index}
                       onClick={() => setCurrentPhotoIndex(index)}
-                      className={`aspect-square rounded-lg overflow-hidden ${index === currentPhotoIndex ? "ring-2 ring-primary" : ""
-                        }`}
+                      className={`aspect-square rounded-md overflow-hidden border ${index === currentPhotoIndex ? "ring-2 ring-primary" : ""}`}
                     >
                       <img
                         src={resolveStorageUrl(photo)}
@@ -300,17 +288,11 @@ export default function ListingDetailPage() {
                 </div>
               )}
 
-              {/* Vidéos */}
               {annonce.videos && annonce.videos.length > 0 && (
                 <div className="mt-4 space-y-3">
-                  <h3 className="font-semibold">Vidéos</h3>
+                  <h3 className="font-semibold text-sm">Vidéos</h3>
                   {annonce.videos.map((video: string, index: number) => (
-                    <video
-                      key={index}
-                      controls
-                      className="w-full rounded-lg"
-                      src={resolveStorageUrl(video)}
-                    >
+                    <video key={index} controls className="w-full rounded-md" src={resolveStorageUrl(video)}>
                       Votre navigateur ne supporte pas la lecture de vidéos.
                     </video>
                   ))}
@@ -318,65 +300,53 @@ export default function ListingDetailPage() {
               )}
             </div>
 
-            {/* Details */}
-            <div className="space-y-6">
+            {/* Détails / colonne sticky */}
+            <div className="space-y-4 md:sticky md:top-20 md:self-start">
               <div>
-                <div className="flex items-start justify-between mb-4">
+                <div className="flex items-start justify-between gap-3 mb-3">
                   <div>
-                    <h1 className="text-3xl font-bold mb-2">{annonce.title}</h1>
-                    <p className="text-4xl font-bold text-primary">{formatPrice(annonce.price)}</p>
+                    <h1 className="text-xl font-semibold mb-1">{annonce.title}</h1>
+                    <p className="text-2xl font-bold">{formatPrice(annonce.price)}</p>
                     {annonce.negotiable && (
                       <Badge variant="secondary" className="mt-2">
                         Prix négociable
                       </Badge>
                     )}
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 shrink-0">
                     <Button size="icon" variant="outline" onClick={toggleFavorite}>
-                      <Heart className={`w-5 h-5 ${isFavorite ? "fill-current text-destructive" : ""}`} />
+                      <Heart className={`w-4 h-4 ${isFavorite ? "fill-current text-destructive" : ""}`} />
                     </Button>
                     <Button size="icon" variant="outline">
-                      <Share2 className="w-5 h-5" />
+                      <Share2 className="w-4 h-4" />
                     </Button>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-4 text-sm text-muted-foreground mb-6">
-                  <div className="flex items-center gap-1">
+                <div className="flex items-center gap-3 text-sm text-muted-foreground mb-4">
+                  <span className="flex items-center gap-1">
                     <MapPin className="w-4 h-4" />
-                    <span>
-                      {annonce.city}, {annonce.district}
-                    </span>
-                  </div>
-                  <span>•</span>
+                    {annonce.city}, {annonce.district}
+                  </span>
+                  <span>·</span>
                   <span>{formatDate(annonce.created_at)}</span>
                 </div>
               </div>
 
-              {/* Seller */}
               <Card className="p-4">
-                <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-3">
-                    <Avatar className="w-12 h-12">
-                      <AvatarImage
-                        src={
-                          annonce.user.photo
-                            ? resolveStorageUrl(annonce.user.photo)
-                            : undefined
-                        }
-                      />
+                    <Avatar className="w-10 h-10">
+                      <AvatarImage src={annonce.user.photo ? resolveStorageUrl(annonce.user.photo) : undefined} />
                       <AvatarFallback>{annonce.user.name.charAt(0).toUpperCase()}</AvatarFallback>
                     </Avatar>
                     <div>
-                      <p className="font-semibold">{annonce.user.name}</p>
-                      <p className="text-sm text-muted-foreground">Vendeur</p>
+                      <p className="font-medium text-sm">{annonce.user.name}</p>
+                      <p className="text-xs text-muted-foreground">Vendeur</p>
                     </div>
                   </div>
                   {!isOwner && (
-                    <ReportListingButton
-                      annonceId={annonce.id}
-                      annonceTitle={annonce.title}
-                    >
+                    <ReportListingButton annonceId={annonce.id} annonceTitle={annonce.title}>
                       <Button size="icon" variant="outline">
                         <Flag className="w-4 h-4" />
                       </Button>
@@ -391,12 +361,7 @@ export default function ListingDetailPage() {
                         {annonce.user.phone}
                       </Button>
                     )}
-                    <Button
-                      className="w-full"
-                      variant="outline"
-                      onClick={contactSeller}
-                      disabled={isContacting}
-                    >
+                    <Button className="w-full" variant="outline" onClick={contactSeller} disabled={isContacting}>
                       {isContacting ? (
                         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                       ) : (
@@ -420,45 +385,34 @@ export default function ListingDetailPage() {
                 )}
               </Card>
 
-              {/* Description */}
               <Card className="p-4">
-                <h2 className="font-semibold text-lg mb-3">Description</h2>
+                <h2 className="font-semibold text-sm mb-2">Description</h2>
                 {annonce.description && (
-                  <p className="text-muted-foreground  whitespace-pre-wrap break-words leading-relaxed mb-4">
+                  <p className="text-sm text-muted-foreground whitespace-pre-wrap break-words leading-relaxed">
                     {annonce.description}
                   </p>
                 )}
                 {annonce.audios && annonce.audios.length > 0 && (
-                  <div className="space-y-3">
-                    <p className="text-sm text-muted-foreground">
-                      Description vocale enregistrée - Écoutez l'audio pour plus de détails
-                    </p>
+                  <div className="space-y-3 mt-3">
+                    <p className="text-xs text-muted-foreground">Description vocale enregistrée</p>
                     {annonce.audios.map((audio: string, index: number) => (
-                      <audio
-                        key={index}
-                        controls
-                        className="w-full"
-                        src={resolveStorageUrl(audio)}
-                      >
+                      <audio key={index} controls className="w-full" src={resolveStorageUrl(audio)}>
                         Votre navigateur ne supporte pas l'élément audio.
                       </audio>
                     ))}
                   </div>
                 )}
                 {!annonce.description && (!annonce.audios || annonce.audios.length === 0) && (
-                  <p className="text-muted-foreground">Aucune description fournie</p>
+                  <p className="text-sm text-muted-foreground">Aucune description fournie</p>
                 )}
               </Card>
 
-              {/* Details */}
               <Card className="p-4">
-                <h2 className="font-semibold text-lg mb-3">Détails</h2>
-                <div className="space-y-2">
+                <h2 className="font-semibold text-sm mb-2">Détails</h2>
+                <div className="space-y-1.5 text-sm">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Catégorie</span>
-                    <span className="font-medium">
-                      {annonce.custom_category || annonce.category.name}
-                    </span>
+                    <span className="font-medium">{annonce.custom_category || annonce.category.name}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">État</span>
@@ -466,12 +420,23 @@ export default function ListingDetailPage() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Statut</span>
-                    <Badge>{annonce.status}</Badge>
+                    <Badge variant="outline">{annonce.status}</Badge>
                   </div>
                 </div>
               </Card>
             </div>
           </div>
+
+          {similarListings.length > 0 && (
+            <div className="mt-10">
+              <h2 className="text-base font-semibold mb-3">Annonces similaires</h2>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                {similarListings.map((item) => (
+                  <ListingCard key={item.id} listing={item} />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </main>
 

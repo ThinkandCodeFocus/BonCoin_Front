@@ -3,12 +3,13 @@
 import { useEffect, useState } from "react"
 import { Header } from "@/components/header"
 import { BottomNav } from "@/components/bottom-nav"
-import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Heart, MessageCircle, Package, Star, Loader2 } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 import { useRouter } from "next/navigation"
 import { notificationService } from "@/lib/api"
+import { EmptyState } from "@/components/design-system"
+import { cn } from "@/lib/utils"
 
 interface Notification {
   id: number
@@ -91,44 +92,38 @@ export default function NotificationsPage() {
     <div className="min-h-screen flex flex-col">
       <Header />
 
-      <main className="flex-1 pb-20 md:pb-4 py-8 px-4">
+      <main className="flex-1 pb-16 md:pb-4 py-6 px-4">
         <div className="max-w-3xl mx-auto">
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="text-3xl font-bold">Notifications</h1>
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-xl font-semibold">Notifications</h1>
             <Badge variant="secondary">{notifications.filter((n) => !n.read_at).length} non lues</Badge>
           </div>
 
           {notifications.length === 0 ? (
-            <Card className="p-8 text-center">
-              <Package className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-              <p className="text-muted-foreground">Aucune notification pour le moment</p>
-            </Card>
+            <EmptyState icon={Package} title="Aucune notification pour le moment" />
           ) : (
-            <div className="space-y-3">
+            <div className="border rounded-lg divide-y overflow-hidden">
               {notifications.map((notification) => {
                 const Icon = getIcon(notification.type)
                 return (
-                  <Card
+                  <button
                     key={notification.id}
-                    className={`p-4 cursor-pointer hover:shadow-md transition-shadow ${
-                      !notification.read_at ? "bg-primary/5 border-primary/20" : ""
-                    }`}
+                    className={cn(
+                      "w-full text-left flex items-start gap-3 p-4 hover:bg-muted transition-colors",
+                      !notification.read_at && "bg-primary/5"
+                    )}
                     onClick={() => handleNotificationClick(notification)}
                   >
-                    <div className="flex items-start gap-4">
-                      <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center shrink-0">
-                        <Icon className="w-5 h-5 text-primary" />
+                    <Icon className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="text-sm font-medium">{notification.title}</p>
+                        {!notification.read_at && <div className="w-1.5 h-1.5 bg-primary rounded-full shrink-0 mt-1.5" />}
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-2 mb-1">
-                          <p className="font-semibold">{notification.title}</p>
-                          {!notification.read_at && <div className="w-2 h-2 bg-primary rounded-full shrink-0" />}
-                        </div>
-                        <p className="text-sm text-muted-foreground mb-2">{notification.body}</p>
-                        <p className="text-xs text-muted-foreground">{formatTime(notification.created_at)}</p>
-                      </div>
+                      <p className="text-sm text-muted-foreground mt-0.5">{notification.body}</p>
+                      <p className="text-xs text-muted-foreground mt-1">{formatTime(notification.created_at)}</p>
                     </div>
-                  </Card>
+                  </button>
                 )
               })}
             </div>

@@ -1,6 +1,6 @@
 "use client"
 
-import { Bell, Heart, MessageSquare, User, Menu, LogOut, LogIn, Moon, Sun, Home } from "lucide-react"
+import { Bell, Heart, MessageSquare, User, Menu, LogOut, LogIn, Moon, Sun, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
@@ -21,16 +21,24 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { notificationService, messageService } from "@/lib/api"
+import { messageService } from "@/lib/api"
 import { useMessageNotifications } from "@/contexts/MessageNotificationContext"
-import { useRouter } from "next/navigation"
+
+const categoryNav = [
+  { label: "Immobilier", href: "/listings?category=2" },
+  { label: "Véhicules", href: "/listings?category=3" },
+  { label: "Emploi", href: "/listings?category=7" },
+  { label: "Loisirs", href: "/listings?category=8" },
+  { label: "Maison", href: "/listings?category=4" },
+  { label: "Mode", href: "/listings?category=5" },
+  { label: "Multimédia", href: "/listings?category=1" },
+]
 
 export function Header() {
   const { user, isAuthenticated, logout } = useAuth()
   const { favoriteCount } = useFavorites()
   const { unreadCount: messageCount, notificationCount } = useMessageNotifications()
   const [latestConversationId, setLatestConversationId] = useState<number | null>(null)
-  const router = useRouter()
   const [showAuthDialog, setShowAuthDialog] = useState(false)
   const [authTab, setAuthTab] = useState<"login" | "register">("login")
   const { resolvedTheme, setTheme } = useTheme()
@@ -40,7 +48,6 @@ export function Header() {
     setMounted(true)
   }, [])
 
-  // Charger les compteurs de notifications et messages
   useEffect(() => {
     if (isAuthenticated) {
       loadNotifications()
@@ -48,15 +55,12 @@ export function Header() {
   }, [isAuthenticated])
 
   const loadNotifications = async () => {
-    // Récupérer les conversations pour trouver la conversation la plus récente
     try {
       const convResult = await messageService.getConversations()
       if (convResult.success && Array.isArray((convResult as any).data)) {
         const convs = (convResult as any).data as any[]
-        // Prioriser une conversation avec unread_count > 0
         let target = convs.find((c) => (c.unread_count || 0) > 0)
         if (!target) {
-          // Sinon prendre la plus récemment mise à jour
           target = convs.sort((a, b) => new Date(b.updated_at || b.created_at).getTime() - new Date(a.updated_at || a.created_at).getTime())[0]
         }
         setLatestConversationId(target ? target.id : null)
@@ -67,80 +71,61 @@ export function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-50 glass-card border-b border-border/70">
-      <div className="max-w-7xl mx-auto px-4 lg:px-6 py-4">
-        <div className="flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-11 h-11 bg-linear-to-br from-primary via-primary/80 to-accent/80 rounded-2xl flex items-center justify-center shadow-lg ring-1 ring-white/30 group-hover:shadow-xl transition-shadow">
-              <span className="text-primary-foreground font-bold text-xl">M</span>
-            </div>
-            <span className="display-font font-bold text-xl hidden md:block bg-linear-to-r from-primary to-accent bg-clip-text text-transparent">
-              <span data-i18n="marketplace">Marketplace</span>
-            </span>
+    <header className="sticky top-0 z-50 bg-card border-b">
+      <div className="max-w-7xl mx-auto px-4 lg:px-6">
+        <div className="flex items-center justify-between h-16 gap-4">
+          <Link href="/" className="flex items-center shrink-0">
+            <span className="text-xl font-bold text-primary">LeMarché</span>
           </Link>
 
-          <nav className="hidden md:flex items-center gap-2">
-            <Link href="/">
-              <Button variant="ghost" size="icon" className="rounded-full hover:bg-muted" title="Accueil">
-                <Home className="w-5 h-5" />
-              </Button>
-            </Link>
-            <LanguageSwitcher />
+          <nav className="hidden md:flex items-center gap-1">
             <Button
               variant="ghost"
               size="icon"
-              className="rounded-full"
               onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
               aria-label="Basculer le thème"
             >
               {mounted && resolvedTheme === "dark" ? (
-                <Sun className="w-5 h-5" />
+                <Sun className="w-4 h-4" />
               ) : (
-                <Moon className="w-5 h-5" />
+                <Moon className="w-4 h-4" />
               )}
             </Button>
+            <LanguageSwitcher />
 
             {isAuthenticated ? (
               <>
+                <Link href="/favorites">
+                  <Button variant="ghost" size="sm" className="relative gap-1.5">
+                    <Heart className="w-4 h-4" />
+                    <span>Favoris</span>
+                    {favoriteCount > 0 && (
+                      <Badge className="ml-1">{favoriteCount}</Badge>
+                    )}
+                  </Button>
+                </Link>
                 <Link href="/messages">
-                  <Button variant="ghost" size="icon" className="relative rounded-full hover:bg-muted">
-                    <MessageSquare className="w-5 h-5" />
+                  <Button variant="ghost" size="sm" className="relative gap-1.5">
+                    <MessageSquare className="w-4 h-4" />
+                    <span>Messages</span>
                     {messageCount > 0 && (
-                      <Badge className="absolute -top-1 -right-1 w-5 h-5 flex items-center justify-center p-0 text-xs bg-accent text-accent-foreground border-2 border-background">
-                        {messageCount}
-                      </Badge>
+                      <Badge className="ml-1">{messageCount}</Badge>
                     )}
                   </Button>
                 </Link>
                 <Link href="/notifications">
-                  <Button variant="ghost" size="icon" className="relative rounded-full hover:bg-muted">
-                    <Bell className="w-5 h-5" />
+                  <Button variant="ghost" size="icon" className="relative">
+                    <Bell className="w-4 h-4" />
                     {notificationCount > 0 && (
-                      <Badge className="absolute -top-1 -right-1 w-5 h-5 flex items-center justify-center p-0 text-xs bg-accent text-accent-foreground border-2 border-background">
-                        {notificationCount}
-                      </Badge>
+                      <Badge className="absolute -top-1 -right-1 px-1 min-w-4 justify-center">{notificationCount}</Badge>
                     )}
-                  </Button>
-                </Link>
-                <Link href={latestConversationId ? `/messages/${latestConversationId}` : (messageCount > 0 ? "/messages" : "/favorites")}>
-                  <Button variant="ghost" size="icon" className="relative rounded-full hover:bg-muted" title={latestConversationId ? "Ouvrir la conversation" : (messageCount > 0 ? "Messages" : "Favoris")}>
-                    <Heart className="w-5 h-5" />
-                    {(messageCount > 0) ? (
-                      <Badge className="absolute -top-1 -right-1 w-5 h-5 flex items-center justify-center p-0 text-xs bg-accent text-accent-foreground border-2 border-background">
-                        {messageCount}
-                      </Badge>
-                    ) : (favoriteCount > 0 && (
-                      <Badge className="absolute -top-1 -right-1 w-5 h-5 flex items-center justify-center p-0 text-xs bg-accent text-accent-foreground border-2 border-background">
-                        {favoriteCount}
-                      </Badge>
-                    ))}
                   </Button>
                 </Link>
 
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="rounded-full hover:bg-muted">
-                      <Avatar className="w-8 h-8">
+                    <Button variant="ghost" size="icon">
+                      <Avatar className="w-7 h-7">
                         <AvatarImage
                           src={user?.photo ? resolveStorageUrl(user.photo) : undefined}
                         />
@@ -149,7 +134,7 @@ export function Header() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuLabel><span data-i18n="account">Mon compte</span></DropdownMenuLabel>
+                    <DropdownMenuLabel>Mon compte</DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
                       <Link href="/profile">Mon profil</Link>
@@ -160,14 +145,15 @@ export function Header() {
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={logout}>
                       <LogOut className="w-4 h-4 mr-2" />
-                      <span data-i18n="logout">Déconnexion</span>
+                      Déconnexion
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
 
                 <Link href="/publish">
-                  <Button className="font-semibold ml-2 rounded-full px-6 shadow-lg hover:shadow-xl transition-shadow bg-accent text-accent-foreground hover:bg-accent/90">
-                    <span data-i18n="publish">Déposer une annonce</span>
+                  <Button size="sm" className="ml-1 gap-1.5">
+                    <Plus className="w-4 h-4" />
+                    Déposer une annonce
                   </Button>
                 </Link>
               </>
@@ -175,86 +161,114 @@ export function Header() {
               <>
                 <Button
                   variant="ghost"
+                  size="sm"
                   onClick={() => {
                     setAuthTab("login")
                     setShowAuthDialog(true)
                   }}
-                  className="rounded-full"
+                  className="gap-1.5"
                 >
-                  <LogIn className="w-4 h-4 mr-2" />
-                  <span data-i18n="login">Connexion</span>
+                  <LogIn className="w-4 h-4" />
+                  Connexion
                 </Button>
                 <Button
+                  size="sm"
                   onClick={() => {
                     setAuthTab("register")
                     setShowAuthDialog(true)
                   }}
-                  className="font-semibold rounded-full px-6 shadow-lg hover:shadow-xl transition-shadow bg-accent text-accent-foreground hover:bg-accent/90"
                 >
-                  <span data-i18n="register">Inscription</span>
+                  Inscription
                 </Button>
               </>
             )}
           </nav>
 
-          {/* Mobile Menu */}
-          <div className="md:hidden flex items-center gap-2">
+          {/* Menu mobile */}
+          <div className="md:hidden flex items-center gap-1">
             <LanguageSwitcher />
             <Button
               variant="ghost"
               size="icon"
-              className="rounded-full"
               onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
               aria-label="Basculer le thème"
             >
               {mounted && resolvedTheme === "dark" ? (
-                <Sun className="w-5 h-5" />
+                <Sun className="w-4 h-4" />
               ) : (
-                <Moon className="w-5 h-5" />
+                <Moon className="w-4 h-4" />
               )}
             </Button>
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="rounded-full">
-                  <Menu className="w-5 h-5" />
+                <Button variant="ghost" size="icon">
+                  <Menu className="w-4 h-4" />
                 </Button>
               </SheetTrigger>
               <SheetContent>
-                <nav className="flex flex-col gap-4 mt-8">
+                <nav className="flex flex-col gap-1 mt-8">
                   <Link href="/messages">
                     <Button variant="ghost" className="w-full justify-start">
-                      <MessageSquare className="w-5 h-5 mr-2" />
-                      <span data-i18n="messages">Messages</span>
+                      <MessageSquare className="w-4 h-4 mr-2" />
+                      Messages
                       {messageCount > 0 && <Badge className="ml-auto">{messageCount}</Badge>}
                     </Button>
                   </Link>
                   <Link href="/notifications">
                     <Button variant="ghost" className="w-full justify-start">
-                      <Bell className="w-5 h-5 mr-2" />
-                      <span data-i18n="notifications">Notifications</span>
+                      <Bell className="w-4 h-4 mr-2" />
+                      Notifications
                       {notificationCount > 0 && <Badge className="ml-auto">{notificationCount}</Badge>}
                     </Button>
                   </Link>
                   <Link href="/favorites">
                     <Button variant="ghost" className="w-full justify-start">
-                      <Heart className="w-5 h-5 mr-2" />
-                      <span data-i18n="favorites">Favoris</span>
+                      <Heart className="w-4 h-4 mr-2" />
+                      Favoris
                     </Button>
                   </Link>
                   <Link href="/profile">
                     <Button variant="ghost" className="w-full justify-start">
-                      <User className="w-5 h-5 mr-2" />
-                      <span data-i18n="my_profile">Mon profil</span>
+                      <User className="w-4 h-4 mr-2" />
+                      Mon profil
                     </Button>
                   </Link>
+                  {!isAuthenticated && (
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start"
+                      onClick={() => {
+                        setAuthTab("login")
+                        setShowAuthDialog(true)
+                      }}
+                    >
+                      <LogIn className="w-4 h-4 mr-2" />
+                      Connexion
+                    </Button>
+                  )}
                   <Link href="/publish">
-                    <Button className="w-full mt-4"><span data-i18n="publish">Déposer une annonce</span></Button>
+                    <Button className="w-full mt-3 gap-1.5">
+                      <Plus className="w-4 h-4" />
+                      Déposer une annonce
+                    </Button>
                   </Link>
                 </nav>
               </SheetContent>
             </Sheet>
           </div>
         </div>
+
+        <nav className="hidden md:flex items-center gap-5 h-10 -mb-px overflow-x-auto">
+          {categoryNav.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="text-sm border-b-2 border-transparent px-0.5 h-10 flex items-center whitespace-nowrap text-muted-foreground hover:text-foreground hover:border-border transition-colors"
+            >
+              {item.label}
+            </Link>
+          ))}
+        </nav>
       </div>
 
       <AuthDialog open={showAuthDialog} onOpenChange={setShowAuthDialog} defaultTab={authTab} />
