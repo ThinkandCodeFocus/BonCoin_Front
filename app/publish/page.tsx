@@ -5,7 +5,6 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import { Header } from "@/components/header"
 import { BottomNav } from "@/components/bottom-nav"
-import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -469,24 +468,24 @@ export default function PublishPage() {
     <div className="min-h-screen flex flex-col">
       <Header />
 
-      <main className="flex-1 pb-20 md:pb-4 py-8 px-4">
-        <div className="max-w-3xl mx-auto">
-          <h1 className="text-3xl font-bold mb-8" data-i18n="publish">Déposer une annonce</h1>
+      <main className="flex-1 pb-16 md:pb-4 py-6 px-4">
+        <div className="max-w-2xl mx-auto">
+          <h1 className="text-xl font-semibold mb-6">Déposer une annonce</h1>
 
-          <form onSubmit={handleSubmit}>
-            <Card className="p-6 space-y-6">
-              {/* Images */}
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <section className="space-y-4">
+              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Photos</h2>
               <div>
                 <Label>Photos (min 2, max 5) *</Label>
-                <div className="mt-2 grid grid-cols-3 md:grid-cols-5 gap-4">
+                <div className="mt-2 grid grid-cols-3 md:grid-cols-5 gap-3">
                   {imagePreviews.map((img, idx) => (
-                    <div key={idx} className="relative aspect-square rounded-lg overflow-hidden">
+                    <div key={idx} className="relative aspect-square rounded-md overflow-hidden border">
                       <img src={img} alt="" className="w-full h-full object-cover" />
                       <Button
                         type="button"
-                        size="icon"
+                        size="icon-sm"
                         variant="destructive"
-                        className="absolute top-2 right-2 w-6 h-6"
+                        className="absolute top-1 right-1"
                         onClick={() => removeImage(idx)}
                       >
                         <X className="w-4 h-4" />
@@ -494,22 +493,21 @@ export default function PublishPage() {
                     </div>
                   ))}
                   {imageFiles.length < 5 && (
-                    <label className="aspect-square rounded-lg border-2 border-dashed border-border flex items-center justify-center cursor-pointer hover:bg-muted/50 transition-colors">
-                      <Upload className="w-6 h-6 text-muted-foreground" />
+                    <label className="aspect-square rounded-md border-2 border-dashed flex items-center justify-center cursor-pointer hover:bg-muted transition-colors">
+                      <Upload className="w-5 h-5 text-muted-foreground" />
                       <input type="file" accept="image/*" multiple className="hidden" onChange={handleImageUpload} />
                     </label>
                   )}
                 </div>
               </div>
 
-              {/* Video */}
               <div>
-                <Label>Video (optionnel)</Label>
+                <Label>Vidéo (optionnel)</Label>
                 {!videoFile ? (
                   <div className="mt-2">
-                    <label className="flex items-center gap-3 w-full rounded-lg border-2 border-dashed border-border p-4 cursor-pointer hover:bg-muted/50 transition-colors">
-                      <Video className="w-6 h-6 text-muted-foreground" />
-                      <span className="text-sm text-muted-foreground">Ajouter une video (mp4/mpeg, max 10MB)</span>
+                    <label className="flex items-center gap-3 w-full rounded-md border-2 border-dashed p-4 cursor-pointer hover:bg-muted transition-colors">
+                      <Video className="w-5 h-5 text-muted-foreground" />
+                      <span className="text-sm text-muted-foreground">Ajouter une vidéo (mp4/mpeg, max 10MB)</span>
                       <input
                         type="file"
                         accept="video/mp4,video/mpeg"
@@ -521,21 +519,24 @@ export default function PublishPage() {
                 ) : (
                   <div className="mt-2 space-y-3">
                     <video
-                      className="w-full rounded-lg border"
+                      className="w-full rounded-md border"
                       controls
                       src={videoPreview || undefined}
                     />
                     <div className="flex items-center justify-between text-sm text-muted-foreground">
                       <span>{videoFile.name}</span>
                       <Button type="button" variant="destructive" size="sm" onClick={removeVideo}>
-                        Retirer la video
+                        Retirer la vidéo
                       </Button>
                     </div>
                   </div>
                 )}
               </div>
+            </section>
 
-              {/* Category */}
+            <section className="space-y-4 border-t pt-6">
+              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Description</h2>
+
               <div>
                 <Label htmlFor="category">Catégorie *</Label>
                 <Select value={categoryId} onValueChange={setCategoryId}>
@@ -556,7 +557,6 @@ export default function PublishPage() {
                 </Select>
               </div>
 
-              {/* Custom Category - Shown only when Autre is selected */}
               {categoryId && isCustomCategory && (
                 <div>
                   <Label htmlFor="customCategory">Précisez la catégorie *</Label>
@@ -571,7 +571,6 @@ export default function PublishPage() {
                 </div>
               )}
 
-              {/* Title */}
               <div>
                 <Label htmlFor="title">Titre de l'annonce * (10-100 caractères)</Label>
                 <Input
@@ -586,7 +585,6 @@ export default function PublishPage() {
                 />
               </div>
 
-              {/* Description */}
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <Label htmlFor="description">Description *</Label>
@@ -624,35 +622,27 @@ export default function PublishPage() {
                     minLength={20}
                   />
                 ) : (
-                  <div className="mt-2 p-4 border rounded-lg">
+                  <div className="mt-2 p-4 border rounded-md">
                     {!audioBlob ? (
-                      <div className="flex flex-col items-center justify-center py-8">
+                      <div className="flex flex-col items-center justify-center py-6 gap-3">
                         {!isRecording ? (
                           <>
-                            <Button
-                              type="button"
-                              onClick={startRecording}
-                              className="w-20 h-20 rounded-full"
-                            >
-                              <Mic className="w-8 h-8" />
+                            <Button type="button" onClick={startRecording} className="gap-2">
+                              <Mic className="w-4 h-4" />
+                              Enregistrer
                             </Button>
-                            <p className="text-sm text-muted-foreground mt-4">
+                            <p className="text-sm text-muted-foreground">
                               Cliquez pour enregistrer votre description
                             </p>
                           </>
                         ) : (
                           <>
-                            <Button
-                              type="button"
-                              onClick={stopRecording}
-                              variant="destructive"
-                              className="w-20 h-20 rounded-full animate-pulse"
-                            >
-                              <StopCircle className="w-8 h-8" />
+                            <Button type="button" onClick={stopRecording} variant="destructive" className="gap-2">
+                              <span className="w-2 h-2 rounded-full bg-white" />
+                              <StopCircle className="w-4 h-4" />
+                              Arrêter ({formatTime(recordingTime)})
                             </Button>
-                            <p className="text-sm text-muted-foreground mt-4">
-                              Enregistrement en cours... {formatTime(recordingTime)}
-                            </p>
+                            <p className="text-sm text-muted-foreground">Enregistrement en cours...</p>
                           </>
                         )}
                       </div>
@@ -660,12 +650,10 @@ export default function PublishPage() {
                       <div className="space-y-4">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                              <Mic className="w-6 h-6 text-primary" />
-                            </div>
+                            <Mic className="w-5 h-5 text-primary" />
                             <div>
-                              <p className="font-medium">Audio enregistré</p>
-                              <p className="text-sm text-muted-foreground">
+                              <p className="text-sm font-medium">Audio enregistré</p>
+                              <p className="text-xs text-muted-foreground">
                                 Durée: {formatTime(recordingTime)}
                               </p>
                             </div>
@@ -673,15 +661,15 @@ export default function PublishPage() {
                           <Button
                             type="button"
                             variant="destructive"
-                            size="icon"
+                            size="icon-sm"
                             onClick={deleteRecording}
                           >
                             <X className="w-4 h-4" />
                           </Button>
                         </div>
-                        <audio 
-                          controls 
-                          className="w-full" 
+                        <audio
+                          controls
+                          className="w-full"
                           src={audioBlob ? URL.createObjectURL(audioBlob) : undefined}
                         >
                           Votre navigateur ne supporte pas la lecture audio.
@@ -691,8 +679,11 @@ export default function PublishPage() {
                   </div>
                 )}
               </div>
+            </section>
 
-              {/* Price */}
+            <section className="space-y-4 border-t pt-6">
+              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Prix et localisation</h2>
+
               <div>
                 <Label htmlFor="price">Prix (FCFA) *</Label>
                 <Input
@@ -720,7 +711,6 @@ export default function PublishPage() {
                 </div>
               </div>
 
-              {/* Location */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="city">Ville *</Label>
@@ -746,7 +736,6 @@ export default function PublishPage() {
                 </div>
               </div>
 
-              {/* Condition */}
               <div>
                 <Label htmlFor="condition">État *</Label>
                 <Select required value={etat} onValueChange={setEtat}>
@@ -760,12 +749,13 @@ export default function PublishPage() {
                   </SelectContent>
                 </Select>
               </div>
+            </section>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <Button type="button" variant="outline" size="lg" onClick={handlePreview} disabled={isLoading}>
-                  Prévisualiser
-                </Button>
-                <Button type="submit" className="w-full" size="lg" disabled={isLoading}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 border-t pt-6">
+              <Button type="button" variant="outline" onClick={handlePreview} disabled={isLoading}>
+                Prévisualiser
+              </Button>
+              <Button type="submit" disabled={isLoading}>
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -774,9 +764,8 @@ export default function PublishPage() {
                 ) : (
                   "Publier l'annonce"
                 )}
-                </Button>
-              </div>
-            </Card>
+              </Button>
+            </div>
           </form>
         </div>
       </main>

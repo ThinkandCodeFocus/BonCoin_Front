@@ -2,13 +2,12 @@
 
 import { Header } from "@/components/header"
 import { BottomNav } from "@/components/bottom-nav"
-import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Slider } from "@/components/ui/slider"
-import { Heart, SlidersHorizontal, MapPin, Search, Loader2, Clock } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { SlidersHorizontal, Search, LayoutGrid, List as ListIcon } from "lucide-react"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import Link from "next/link"
 import { useState, useEffect } from "react"
@@ -17,23 +16,110 @@ import { annonceService, favoriteService } from "@/lib/api"
 import { useAuth } from "@/contexts/AuthContext"
 import { useToast } from "@/hooks/use-toast"
 import { getUserLocation, getCityCoordinates } from "@/lib/geolocation"
-import { resolveStorageUrl } from "@/lib/media"
+import { ListingCard, type ListingCardData } from "@/components/listing-card"
+import { ListingRow } from "@/components/listing-row"
+import { ListingPagination } from "@/components/listing-pagination"
+import { SkeletonCard, EmptyState } from "@/components/design-system"
 
-interface Annonce {
-  id: number
-  title: string
-  price: number
-  city: string
-  district: string
-  etat?: string
-  photos?: string[]
-  created_at: string
+type SortOption = "recent" | "price_asc" | "price_desc"
+
+function FiltersForm({
+  priceMin,
+  setPriceMin,
+  priceMax,
+  setPriceMax,
+  locationFilter,
+  setLocationFilter,
+  etatFilter,
+  setEtatFilter,
+  radiusKm,
+  setRadiusKm,
+  onReset,
+  onApply,
+}: {
+  priceMin: string
+  setPriceMin: (v: string) => void
+  priceMax: string
+  setPriceMax: (v: string) => void
+  locationFilter: string
+  setLocationFilter: (v: string) => void
+  etatFilter: string
+  setEtatFilter: (v: string) => void
+  radiusKm: string
+  setRadiusKm: (v: string) => void
+  onReset: () => void
+  onApply: () => void
+}) {
+  return (
+    <div className="space-y-5">
+      <div>
+        <Label>Prix</Label>
+        <div className="flex items-center gap-2 mt-2">
+          <Input placeholder="Min" type="number" value={priceMin} onChange={(e) => setPriceMin(e.target.value)} />
+          <span className="text-muted-foreground text-sm">à</span>
+          <Input placeholder="Max" type="number" value={priceMax} onChange={(e) => setPriceMax(e.target.value)} />
+        </div>
+      </div>
+
+      <div>
+        <Label htmlFor="location">Localisation</Label>
+        <Input
+          id="location"
+          placeholder="Ville ou code postal"
+          className="mt-2"
+          value={locationFilter}
+          onChange={(e) => setLocationFilter(e.target.value)}
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="etat">État</Label>
+        <Select value={etatFilter || "all"} onValueChange={(v) => setEtatFilter(v === "all" ? "" : v)}>
+          <SelectTrigger id="etat" className="mt-2">
+            <SelectValue placeholder="Tous les états" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Tous les états</SelectItem>
+            <SelectItem value="Neuf">Neuf</SelectItem>
+            <SelectItem value="Bon état">Bon état</SelectItem>
+            <SelectItem value="Usagé">Usagé</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div>
+        <Label htmlFor="radius">Rayon</Label>
+        <Select value={radiusKm} onValueChange={setRadiusKm}>
+          <SelectTrigger id="radius" className="mt-2">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="5">5 km</SelectItem>
+            <SelectItem value="10">10 km</SelectItem>
+            <SelectItem value="20">20 km</SelectItem>
+            <SelectItem value="50">50 km</SelectItem>
+            <SelectItem value="0">Toute la France</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="flex gap-2 pt-1">
+        <Button variant="outline" className="flex-1" onClick={onReset}>
+          Réinitialiser
+        </Button>
+        <Button className="flex-1" onClick={onApply}>
+          Appliquer
+        </Button>
+      </div>
+    </div>
+  )
 }
 
 export default function ListingsPage() {
   const searchParams = useSearchParams()
-  const [priceRange, setPriceRange] = useState([0, 10000000])
-  const [listings, setListings] = useState<Annonce[]>([])
+  const [priceMin, setPriceMin] = useState("")
+  const [priceMax, setPriceMax] = useState("")
+  const [listings, setListings] = useState<ListingCardData[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
@@ -41,100 +127,75 @@ export default function ListingsPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [locationFilter, setLocationFilter] = useState("")
   const [etatFilter, setEtatFilter] = useState("")
-  const [dateFrom, setDateFrom] = useState("")
-  const [dateTo, setDateTo] = useState("")
+  const [radiusKm, setRadiusKm] = useState("10")
+  const [sortBy, setSortBy] = useState<SortOption>("recent")
+  const [viewMode, setViewMode] = useState<"grid" | "list">("list")
   const [favorites, setFavorites] = useState<number[]>([])
   const { isAuthenticated } = useAuth()
   const { toast } = useToast()
 
-  // Récupérer la catégorie depuis l'URL
-  const selectedCategory = searchParams.get('category') || ''
-  const urlLocation = searchParams.get('location') || ''
-  const urlSearch = searchParams.get('search') || ''
+  const selectedCategory = searchParams.get("category") || ""
+  const urlLocation = searchParams.get("location") || ""
+  const urlSearch = searchParams.get("search") || ""
 
-  // Initialiser les valeurs depuis l'URL
   useEffect(() => {
     if (urlLocation) setLocationFilter(urlLocation)
     if (urlSearch) setSearchQuery(urlSearch)
   }, [urlLocation, urlSearch])
 
   useEffect(() => {
-    console.log('Selected category:', selectedCategory)
     setCurrentPage(1)
     loadListings(1)
     if (isAuthenticated) {
       loadFavorites()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, selectedCategory])
 
-  // Effet séparé pour la recherche avec délai
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
-      if (searchQuery !== undefined) {
-        setCurrentPage(1)
-        loadListings(1)
-      }
+      setCurrentPage(1)
+      loadListings(1)
     }, 500)
 
     return () => clearTimeout(delayDebounceFn)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchQuery])
 
   const loadListings = async (page = currentPage) => {
     setIsLoading(true)
     const params: any = { page }
-    
-    if (searchQuery) {
-      params.search = searchQuery
-    }
-    
-    if (selectedCategory) {
-      params.category = selectedCategory
-      console.log('Filtering by category:', selectedCategory)
-    }
 
-    // Ajouter la géolocalisation pour le filtrage par distance
+    if (searchQuery) params.search = searchQuery
+    if (selectedCategory) params.category = selectedCategory
+
     try {
       const userLocation = await getUserLocation()
-      if (userLocation) {
-        params.user_lat = userLocation.lat
-        params.user_lng = userLocation.lng
-        params.distance_km = 10 // 10 km par défaut
-        console.log('Using GPS location:', userLocation)
-      } else {
-        // Si pas de GPS, essayer d'utiliser la ville sauvegardée
-        const savedCity = localStorage.getItem('location_city')
-        if (savedCity) {
-          const cityCoords = getCityCoordinates(savedCity)
-          if (cityCoords) {
-            params.user_lat = cityCoords.lat
-            params.user_lng = cityCoords.lng
-            params.distance_km = 20 // 20 km pour les villes
-            console.log('Using city coords:', cityCoords)
+      const radius = Number(radiusKm)
+      if (radius > 0) {
+        if (userLocation) {
+          params.user_lat = userLocation.lat
+          params.user_lng = userLocation.lng
+          params.distance_km = radius
+        } else {
+          const savedCity = localStorage.getItem("location_city")
+          if (savedCity) {
+            const cityCoords = getCityCoordinates(savedCity)
+            if (cityCoords) {
+              params.user_lat = cityCoords.lat
+              params.user_lng = cityCoords.lng
+              params.distance_km = radius
+            }
           }
         }
       }
-    } catch (error) {
-      console.warn('Could not get location:', error)
+    } catch {
+      // géolocalisation indisponible, on continue sans filtre de distance
     }
-    
-    // Ajouter les filtres de date
-    if (dateFrom) {
-      params.date_from = dateFrom
-    }
-    if (dateTo) {
-      params.date_to = dateTo
-    }
-    
-    console.log('API params:', params)
+
     const result = await annonceService.getAll(params)
-    console.log('Listings API result:', result)
     if (result.success && result.data) {
       const listingsData = result.data.data || []
-      console.log('Listings data:', listingsData)
-      console.log('Number of listings:', listingsData.length)
-      if (listingsData.length > 0) {
-        console.log('First listing photos:', listingsData[0].photos)
-      }
       setListings(listingsData)
       const meta = result.data.meta || result.data?.data?.meta
       if (meta) {
@@ -160,7 +221,7 @@ export default function ListingsPage() {
 
   const toggleFavorite = async (e: React.MouseEvent, annonceId: number) => {
     e.preventDefault()
-    
+
     if (!isAuthenticated) {
       toast({
         title: "Connexion requise",
@@ -177,7 +238,6 @@ export default function ListingsPage() {
       if (result.success) {
         setFavorites((prev) => prev.filter((id) => id !== annonceId))
         toast({ title: "Retiré des favoris" })
-        await loadFavorites()
       } else {
         toast({ title: "Erreur", description: result.message || "Impossible de retirer", variant: "destructive" })
       }
@@ -186,108 +246,71 @@ export default function ListingsPage() {
       if (result.success) {
         setFavorites((prev) => [...prev, annonceId])
         toast({ title: "Ajouté aux favoris" })
-        await loadFavorites()
       } else {
         toast({ title: "Erreur", description: result.message || "Impossible d'ajouter", variant: "destructive" })
       }
     }
   }
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("fr-FR").format(price) + "FCFA"
+  const resetFilters = () => {
+    setPriceMin("")
+    setPriceMax("")
+    setLocationFilter("")
+    setEtatFilter("")
+    setRadiusKm("10")
+    setCurrentPage(1)
+    loadListings(1)
   }
 
-  const getRelativeTime = (dateString: string) => {
-    const date = new Date(dateString)
-    const now = new Date()
-    const diffMs = now.getTime() - date.getTime()
-    const diffMins = Math.floor(diffMs / 60000)
-    const diffHours = Math.floor(diffMs / 3600000)
-    const diffDays = Math.floor(diffMs / 86400000)
+  const filteredListings = listings
+    .filter((listing: any) => {
+      if (priceMin && listing.price < Number(priceMin)) return false
+      if (priceMax && listing.price > Number(priceMax)) return false
 
-    if (diffMins < 1) return "À l'instant"
-    if (diffMins < 60) return `Il y a ${diffMins}min`
-    if (diffHours < 24) return `Il y a ${diffHours}h`
-    if (diffDays < 7) return `Il y a ${diffDays}j`
-    return date.toLocaleDateString("fr-FR")
-  }
-
-  const getStatusBadge = (etat?: string) => {
-    if (!etat) return null
-    const statusMap: Record<string, { class: string; label: string }> = {
-      "Neuf": { class: "status-new", label: "Neuf" },
-      "Bon état": { class: "status-good", label: "Bon état" },
-      "Usagé": { class: "status-used", label: "Usagé" },
-    }
-    const status = statusMap[etat] || { class: "bg-muted text-muted-foreground", label: etat }
-    return <span className={`status-badge ${status.class}`}>{status.label}</span>
-  }
-
-  const isRecentlyAdded = (dateString: string) => {
-    const date = new Date(dateString)
-    const now = new Date()
-    const diffHours = (now.getTime() - date.getTime()) / 3600000
-    return diffHours < 24
-  }
-
-  // Skeleton card for loading state
-  const SkeletonCard = () => (
-    <div className="overflow-hidden group cursor-pointer border-border/60 bg-card/90 rounded-xl">
-      <div className="relative aspect-[4/3] shimmer-card" />
-      <div className="p-5 space-y-3">
-        <div className="h-6 shimmer-card rounded-md w-3/4" />
-        <div className="h-8 shimmer-card rounded-md w-1/2" />
-        <div className="h-4 shimmer-card rounded-md w-2/3" />
-      </div>
-    </div>
-  )
-
-  const filteredListings = listings.filter((listing) => {
-    // Filtre par prix
-    if (listing.price < priceRange[0] || listing.price > priceRange[1]) {
-      return false
-    }
-    
-    // Filtre par localisation
-    if (locationFilter) {
-      const location = locationFilter.toLowerCase()
-      const cityMatch = listing.city?.toLowerCase().includes(location)
-      const districtMatch = listing.district?.toLowerCase().includes(location)
-      if (!cityMatch && !districtMatch) {
-        return false
+      if (locationFilter) {
+        const location = locationFilter.toLowerCase()
+        const cityMatch = listing.city?.toLowerCase().includes(location)
+        const districtMatch = listing.district?.toLowerCase().includes(location)
+        if (!cityMatch && !districtMatch) return false
       }
-    }
-    
-    // Filtre par état
-    if (etatFilter && listing.etat !== etatFilter) {
-      return false
-    }
-    
-    return true
-  })
+
+      if (etatFilter && listing.etat !== etatFilter) return false
+
+      return true
+    })
+    .sort((a: any, b: any) => {
+      if (sortBy === "price_asc") return a.price - b.price
+      if (sortBy === "price_desc") return b.price - a.price
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    })
 
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
 
-      <main className="flex-1 pb-20 md:pb-4">
-        {/* Search Bar */}
-        <div className="bg-card border-b p-4">
-          <div className="max-w-6xl mx-auto flex gap-3">
-            <div className="flex-1 flex items-center gap-2 bg-muted rounded-xl px-4 py-3 transition-all focus-within:ring-2 focus-within:ring-primary/20">
-              <Search className="w-5 h-5 text-muted-foreground" />
+      <main className="flex-1 pb-16 md:pb-4">
+        <div className="max-w-6xl mx-auto px-4 py-3 text-sm text-muted-foreground">
+          <Link href="/" className="hover:underline">Accueil</Link>
+          <span className="mx-1.5">/</span>
+          <span className="text-foreground">Annonces</span>
+        </div>
+
+        <div className="max-w-6xl mx-auto px-4 pb-3">
+          <div className="flex gap-2">
+            <div className="flex-1 flex items-center gap-2 border rounded-md px-3 py-2 bg-card">
+              <Search className="w-4 h-4 text-muted-foreground shrink-0" />
               <Input
                 placeholder="Rechercher..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && loadListings()}
-                className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
+                onKeyDown={(e) => e.key === "Enter" && loadListings()}
+                className="border-0 shadow-none px-0 h-auto focus-visible:ring-0"
               />
             </div>
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="outline" className="rounded-xl">
-                  <SlidersHorizontal className="w-5 h-5 md:mr-2" />
+                <Button variant="outline" className="lg:hidden">
+                  <SlidersHorizontal className="w-4 h-4 md:mr-2" />
                   <span className="hidden md:inline">Filtres</span>
                 </Button>
               </SheetTrigger>
@@ -295,252 +318,144 @@ export default function ListingsPage() {
                 <SheetHeader>
                   <SheetTitle>Filtres de recherche</SheetTitle>
                 </SheetHeader>
-                <div className="mt-6 space-y-6">
-                  <div>
-                    <Label>Prix (FCFA)</Label>
-                    <div className="mt-4">
-                      <Slider
-                        value={priceRange}
-                        onValueChange={setPriceRange}
-                        max={10000000}
-                        step={10000}
-                        className="mb-2"
-                      />
-                      <div className="flex justify-between text-sm text-muted-foreground">
-                        <span>{priceRange[0].toLocaleString()}</span>
-                        <span>{priceRange[1].toLocaleString()}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="location">Localisation</Label>
-                    <Input 
-                      id="location" 
-                      placeholder="Ville ou quartier" 
-                      className="mt-2 rounded-xl"
-                      value={locationFilter}
-                      onChange={(e) => setLocationFilter(e.target.value)}
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="etat">État</Label>
-                    <select
-                      id="etat"
-                      className="w-full mt-2 flex h-10 rounded-xl border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                      value={etatFilter}
-                      onChange={(e) => setEtatFilter(e.target.value)}
-                    >
-                      <option value="">Tous les états</option>
-                      <option value="Neuf">Neuf</option>
-                      <option value="Bon état">Bon état</option>
-                      <option value="Usagé">Usagé</option>
-                    </select>
-                  </div>
-
-                  {/* Filtres par date */}
-                  <div className="space-y-4">
-                    <Label>Date de publication</Label>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <Label htmlFor="dateFrom" className="text-xs text-muted-foreground">Du</Label>
-                        <Input 
-                          id="dateFrom" 
-                          type="date"
-                          className="mt-1 rounded-xl"
-                          value={dateFrom}
-                          onChange={(e) => setDateFrom(e.target.value)}
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="dateTo" className="text-xs text-muted-foreground">Au</Label>
-                        <Input 
-                          id="dateTo" 
-                          type="date"
-                          className="mt-1 rounded-xl"
-                          value={dateTo}
-                          onChange={(e) => setDateTo(e.target.value)}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-2">
-                    <Button 
-                      variant="outline" 
-                      className="flex-1 rounded-xl"
-                      onClick={() => {
-                        setPriceRange([0, 10000000])
-                        setLocationFilter("")
-                        setEtatFilter("")
-                        setDateFrom("")
-                        setDateTo("")
-                        loadListings(1)
-                      }}
-                    >
-                      Réinitialiser
-                    </Button>
-                    <Button 
-                      className="flex-1 rounded-xl"
-                      onClick={() => {
-                        setCurrentPage(1)
-                        loadListings(1)
-                      }}
-                    >
-                      Appliquer
-                    </Button>
-                  </div>
+                <div className="mt-6">
+                  <FiltersForm
+                    priceMin={priceMin}
+                    setPriceMin={setPriceMin}
+                    priceMax={priceMax}
+                    setPriceMax={setPriceMax}
+                    locationFilter={locationFilter}
+                    setLocationFilter={setLocationFilter}
+                    etatFilter={etatFilter}
+                    setEtatFilter={setEtatFilter}
+                    radiusKm={radiusKm}
+                    setRadiusKm={setRadiusKm}
+                    onReset={resetFilters}
+                    onApply={() => loadListings(1)}
+                  />
                 </div>
               </SheetContent>
             </Sheet>
           </div>
         </div>
 
-        {/* Listings Grid */}
-        <div className="max-w-6xl mx-auto p-4">
-          <div className="mb-4 flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">
-                {isLoading ? "Chargement..." : `${filteredListings.length} annonces trouvées`}
-                {selectedCategory && " dans la catégorie sélectionnée"}
-              </p>
-              {selectedCategory && (
-                <div className="mt-2">
+        <div className="max-w-6xl mx-auto px-4 pb-8 grid grid-cols-1 lg:grid-cols-[240px_1fr] gap-6">
+          <aside className="hidden lg:block">
+            <div className="border rounded-md p-4 bg-card sticky top-20">
+              <h2 className="font-semibold text-sm mb-4">Filtres</h2>
+              <FiltersForm
+                priceMin={priceMin}
+                setPriceMin={setPriceMin}
+                priceMax={priceMax}
+                setPriceMax={setPriceMax}
+                locationFilter={locationFilter}
+                setLocationFilter={setLocationFilter}
+                etatFilter={etatFilter}
+                setEtatFilter={setEtatFilter}
+                radiusKm={radiusKm}
+                setRadiusKm={setRadiusKm}
+                onReset={resetFilters}
+                onApply={() => loadListings(1)}
+              />
+            </div>
+          </aside>
+
+          <div>
+            <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
+              <div>
+                <p className="text-sm text-muted-foreground">
+                  {isLoading ? "Chargement..." : `${totalItems || filteredListings.length} annonces`}
+                </p>
+                {selectedCategory && (
                   <Link href="/listings">
-                    <Badge variant="secondary" className="cursor-pointer hover:bg-secondary/80 transition-colors">
+                    <Badge variant="secondary" className="mt-1 cursor-pointer">
                       Catégorie filtrée ✕
                     </Badge>
                   </Link>
+                )}
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
+                  <SelectTrigger className="w-44">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="recent">Le plus récent</SelectItem>
+                    <SelectItem value="price_asc">Prix croissant</SelectItem>
+                    <SelectItem value="price_desc">Prix décroissant</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <div className="flex border rounded-md">
+                  <Button
+                    variant={viewMode === "list" ? "secondary" : "ghost"}
+                    size="icon-sm"
+                    className="rounded-r-none"
+                    onClick={() => setViewMode("list")}
+                    aria-label="Vue liste"
+                  >
+                    <ListIcon className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant={viewMode === "grid" ? "secondary" : "ghost"}
+                    size="icon-sm"
+                    className="rounded-l-none"
+                    onClick={() => setViewMode("grid")}
+                    aria-label="Vue grille"
+                  >
+                    <LayoutGrid className="w-4 h-4" />
+                  </Button>
                 </div>
-              )}
-            </div>
-          </div>
-
-          {isLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[...Array(9)].map((_, i) => (
-                <SkeletonCard key={i} />
-              ))}
-            </div>
-          ) : filteredListings.length === 0 ? (
-            <div className="text-center py-20">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted mb-4">
-                <Search className="w-8 h-8 text-muted-foreground" />
               </div>
-              <p className="text-muted-foreground text-lg">Aucune annonce trouvée</p>
-              <p className="text-sm text-muted-foreground mt-2">Essayez de modifier vos critères de recherche</p>
             </div>
-          ) : (
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredListings.map((listing) => {
-                  const photoUrl = resolveStorageUrl(listing.photos?.[0])
-                  const isFavorite = favorites.includes(listing.id)
-                  const isNew = isRecentlyAdded(listing.created_at)
-                  
-                  console.log('Listing:', listing.title, 'Photo URL:', photoUrl)
 
-                  return (
-                    <Link key={listing.id} href={`/listings/${listing.id}`}>
-                      <Card className="overflow-hidden hover:shadow-xl transition-all group cursor-pointer card-lift card-glow rounded-xl">
-                        <div className="relative aspect-[4/3] overflow-hidden bg-muted image-overlay">
-                          <img
-                            src={photoUrl}
-                            alt={listing.title}
-                            loading="lazy"
-                            onError={(e) => {
-                              e.currentTarget.src = "/placeholder.svg"
-                            }}
-                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                          
-                          {/* Badges row */}
-                          <div className="absolute top-3 left-3 right-3 flex items-center justify-between">
-                            <div className="flex gap-2">
-                              {isNew && (
-                                <Badge className="bg-emerald-500 text-white shadow-lg font-semibold">
-                                  Nouveau
-                                </Badge>
-                              )}
-                            </div>
-                            
-                            <Button
-                              size="icon"
-                              variant="secondary"
-                              className={`rounded-full w-9 h-9 transition-all duration-300 ${
-                                isFavorite 
-                                  ? "bg-destructive text-destructive-foreground scale-110" 
-                                  : "bg-background/80 hover:bg-background"
-                              }`}
-                              onClick={(e) => toggleFavorite(e, listing.id)}
-                            >
-                              <Heart 
-                                className={`w-4 h-4 ${isFavorite ? "fill-current heart-animate" : ""}`} 
-                              />
-                            </Button>
-                          </div>
-
-                          {/* Status badge */}
-                          {getStatusBadge(listing.etat) && (
-                            <div className="absolute bottom-3 left-3">
-                              {getStatusBadge(listing.etat)}
-                            </div>
-                          )}
-                        </div>
-                        
-                        <div className="p-4">
-                          <h3 className="font-semibold text-lg mb-2 line-clamp-2 group-hover:text-primary transition-colors">
-                            {listing.title}
-                          </h3>
-                          
-                          <div className="flex items-center justify-between mb-2">
-                            <p className="text-2xl font-bold text-primary tracking-tight">{formatPrice(listing.price)}</p>
-                            <div className="time-ago flex items-center gap-1">
-                              <Clock className="w-3 h-3" />
-                              <span>{getRelativeTime(listing.created_at)}</span>
-                            </div>
-                          </div>
-                          
-                          <div className="flex items-center text-sm text-muted-foreground">
-                            <MapPin className="w-4 h-4 mr-1 text-accent flex-shrink-0" />
-                            <span className="truncate">{listing.city}, {listing.district}</span>
-                          </div>
-                        </div>
-                      </Card>
-                    </Link>
-                  )
-                })}
+            {isLoading ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {[...Array(9)].map((_, i) => (
+                  <SkeletonCard key={i} />
+                ))}
               </div>
-
-              {totalPages > 1 && (
-                <div className="flex items-center justify-between pt-8 border-t border-border/60">
-                  <p className="text-sm text-muted-foreground">
-                    Page <span className="font-semibold text-foreground">{currentPage}</span> / {totalPages} • {totalItems} annonces
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      disabled={currentPage <= 1 || isLoading}
-                      onClick={() => loadListings(currentPage - 1)}
-                      className="rounded-xl hover-scale"
-                    >
-                      Précédent
-                    </Button>
-                    <Button
-                      variant="outline"
-                      disabled={currentPage >= totalPages || isLoading}
-                      onClick={() => loadListings(currentPage + 1)}
-                      className="rounded-xl hover-scale"
-                    >
-                      Suivant
-                    </Button>
+            ) : filteredListings.length === 0 ? (
+              <EmptyState
+                icon={Search}
+                title="Aucune annonce ne correspond à votre recherche"
+                description="Essayez de modifier vos critères de recherche"
+              />
+            ) : (
+              <div className="space-y-6">
+                {viewMode === "grid" ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {filteredListings.map((listing) => (
+                      <ListingCard
+                        key={listing.id}
+                        listing={listing}
+                        isFavorited={favorites.includes(listing.id)}
+                        onToggleFavorite={toggleFavorite}
+                      />
+                    ))}
                   </div>
-                </div>
-              )}
-            </div>
-          )}
+                ) : (
+                  <div className="flex flex-col gap-3">
+                    {filteredListings.map((listing) => (
+                      <ListingRow
+                        key={listing.id}
+                        listing={listing}
+                        isFavorited={favorites.includes(listing.id)}
+                        onToggleFavorite={toggleFavorite}
+                      />
+                    ))}
+                  </div>
+                )}
+
+                <ListingPagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={(page) => loadListings(page)}
+                />
+              </div>
+            )}
+          </div>
         </div>
       </main>
 

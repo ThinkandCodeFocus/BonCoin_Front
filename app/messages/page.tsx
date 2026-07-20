@@ -1,242 +1,35 @@
- "use client"
+"use client"
 
-import { useEffect, useState, useRef } from "react"
+import { useEffect } from "react"
 import { Header } from "@/components/header"
 import { BottomNav } from "@/components/bottom-nav"
-import { Input } from "@/components/ui/input"
-import { Card } from "@/components/ui/card"
-import { MessageCircle, Search, Loader2, Send } from "lucide-react"
+import { ConversationList } from "@/components/conversation-list"
+import { EmptyState } from "@/components/design-system"
+import { MessageCircle } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 import { useRouter } from "next/navigation"
-import { messageService } from "@/lib/api"
-import { resolveStorageUrl } from "@/lib/media"
-
-interface Conversation {
-  id: number
-  annonce_id: number
-  buyer_id: number
-  seller_id: number
-  created_at: string
-  updated_at: string
-  annonce?: { id: number; title: string; photos?: string[] }
-  buyer?: { id: number; name: string; photo?: string }
-  seller?: { id: number; name: string; photo?: string }
-}
-
-interface MessageData {
-  id: number
-  content: string | null
-  type: "text" | "audio"
-  created_at: string
-  user_id: number
-  read_at?: string | null
-}
 
 export default function MessagesPage() {
-  const { isAuthenticated, user } = useAuth()
+  const { isAuthenticated } = useAuth()
   const router = useRouter()
-  const [isLoading, setIsLoading] = useState(true)
-  const [conversations, setConversations] = useState<Conversation[]>([])
-  const [searchQuery, setSearchQuery] = useState("")
-  const [unreadCounts, setUnreadCounts] = useState<Record<number, number>>({})
-  const [lastMessages, setLastMessages] = useState<Record<number, MessageData>>({})
-  const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
     if (!isAuthenticated) {
       router.push("/")
-      return
     }
-    loadConversations()
-    
-    refreshIntervalRef.current = setInterval(loadConversations, 10000)
-    
-    return () => {
-      if (refreshIntervalRef.current) {
-        clearInterval(refreshIntervalRef.current)
-      }
-    }
-  }, [isAuthenticated])
-
-  async function loadConversations() {
-    setIsLoading(true)
-    try {
-      const result = await messageService.getConversations()
-      if (result.success && Array.isArray((result as any).data)) {
-        const convs = (result as any).data as Conversation[]
-        
-        const newUnreadCounts: Record<number, number> = {}
-        const newLastMessages: Record<number, MessageData> = {}
-        
-        for (const conv of convs) {
-          try {
-            const messagesResult = await messageService.getMessages(conv.id)
-            if (messagesResult.success && Array.isArray((messagesResult as any).data)) {
-              const messages = (messagesResult as any).data as MessageData[]
-              if (messages.length > 0) {
-                const lastMsg = messages[messages.length - 1]
-                newLastMessages[conv.id] = lastMsg
-                const unreadCount = messages.filter((m: MessageData) => {
-                  return m.user_id !== user?.id && !m.read_at
-                }).length
-                newUnreadCounts[conv.id] = unreadCount
-              }
-            }
-          } catch (err) {
-            console.error("Error loading messages", err)
-          }
-        }
-        
-        setConversations(convs)
-        setUnreadCounts(newUnreadCounts)
-        setLastMessages(newLastMessages)
-      }
-    } catch (error) {
-      console.error("Error loading conversations:", error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  function getOtherUser(conv: Conversation) {
-    if (!user) return { name: "Utilisateur", photo: null as string | null }
-    if (conv.buyer_id === user.id) {
-      return conv.seller || { name: "Vendeur", photo: null as string | null }
-    }
-    return conv.buyer || { name: "Acheteur", photo: null as string | null }
-  }
-
-  function formatTime(dateString: string) {
-    const date = new Date(dateString)
-    const now = new Date()
-    const diffMs = now.getTime() - date.getTime()
-    const diffMins = Math.floor(diffMs / 60000)
-    const diffHours = Math.floor(diffMs / 3600000)
-    const diffDays = Math.floor(diffMs / 86400000)
-
-    if (diffMins < 1) return "Maintenant"
-    if (diffMins < 60) return diffMins + "min"
-    if (diffHours < 24) return diffHours + "h"
-    if (diffDays === 1) return "Hier"
-    return date.toLocaleDateString("fr-FR", { day: "numeric", month: "short" })
-  }
-
-  function handleConvClick(convId: number) {
-    router.push("/messages/" + convId)
-  }
-
-  const filteredConversations = conversations.filter((conv) => {
-    const otherUser = getOtherUser(conv)
-    const searchLower = searchQuery.toLowerCase()
-    return otherUser.name.toLowerCase().includes(searchLower) ||
-           (conv.annonce?.title || "").toLowerCase().includes(searchLower)
-  })
-
-  const totalUnread = Object.values(unreadCounts).reduce((sum, count) => {
-    return sum + count
-  }, 0)
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex flex-col">
-        <Header />
-        <main className="flex-1 flex items-center justify-center">
-          <Loader2 className="w-8 h-8 animate-spin text-primary" />
-        </main>
-        <BottomNav />
-      </div>
-    )
-  }
+  }, [isAuthenticated, router])
 
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
-      <main className="flex-1 pb-20 md:pb-4 py-8 px-4">
-        <div className="max-w-3xl mx-auto">
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="text-3xl font-bold">Messages</h1>
-            {totalUnread > 0 && (
-              <span className="bg-accent/10 text-accent px-3 py-1 rounded-full text-sm font-medium">
-                {totalUnread} non lu{totalUnread > 1 ? "s" : ""}
-              </span>
-            )}
+      <main className="flex-1 pb-16 md:pb-4">
+        <div className="max-w-5xl mx-auto md:my-6 border md:rounded-lg overflow-hidden grid grid-cols-1 md:grid-cols-[320px_1fr] h-[calc(100vh-4rem)] md:h-[calc(100vh-8rem)]">
+          <div className="border-r">
+            <ConversationList />
           </div>
-
-          <div className="relative mb-6">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-            <Input
-              placeholder="Rechercher..."
-              value={searchQuery}
-              onChange={(e) => { setSearchQuery(e.target.value) }}
-              className="pl-12 py-6 bg-muted/50 border-0 text-lg"
-            />
+          <div className="hidden md:flex items-center justify-center">
+            <EmptyState icon={MessageCircle} title="Sélectionnez une conversation" description="Choisissez une conversation dans la liste pour l'afficher ici" />
           </div>
-
-          {filteredConversations.length === 0 ? (
-            <Card className="p-8 text-center">
-              <MessageCircle className="w-16 h-16 mx-auto mb-4 text-muted-foreground/50" />
-              <h2 className="text-xl font-semibold mb-2">Aucun message</h2>
-              <p className="text-muted-foreground">Les conversations apparaîtront ici</p>
-            </Card>
-          ) : (
-            <div className="space-y-2">
-              {filteredConversations.map((conv) => {
-                const otherUser = getOtherUser(conv)
-                const hasUnread = (unreadCounts[conv.id] || 0) > 0
-                const lastMsg = lastMessages[conv.id]
-                const photoUrl = otherUser.photo ? resolveStorageUrl(otherUser.photo) : null
-
-                return (
-                  <Card
-                    key={conv.id}
-                    className={"p-4 cursor-pointer transition-all hover:shadow-md " + (hasUnread ? "border-l-4 border-l-accent" : "")}
-                    onClick={() => handleConvClick(conv.id)}
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="relative shrink-0">
-                        {photoUrl ? (
-                          <img src={photoUrl} alt={otherUser.name} className="w-14 h-14 rounded-full object-cover" />
-                        ) : (
-                          <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center">
-                            <span className="text-xl font-semibold text-primary">{otherUser.name.charAt(0).toUpperCase()}</span>
-                          </div>
-                        )}
-                        {hasUnread ? (
-                          <div className="absolute -top-1 -right-1 w-5 h-5 bg-accent rounded-full flex items-center justify-center">
-                            <span className="text-xs font-bold text-white">{unreadCounts[conv.id]}</span>
-                          </div>
-                        ) : null}
-                      </div>
-
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between mb-1">
-                          <div>
-                            <h3 className={"font-semibold " + (hasUnread ? "text-primary" : "")}>
-                              {conv.annonce?.title || "Conversation"}
-                            </h3>
-                            <p className="text-sm text-muted-foreground">{otherUser.name}</p>
-                          </div>
-                          <p className={"text-xs " + (hasUnread ? "text-accent font-medium" : "text-muted-foreground")}>
-                            {formatTime(conv.updated_at || conv.created_at)}
-                          </p>
-                        </div>
-                        
-                        <div className="flex items-center gap-2">
-                          <p className={"text-sm truncate flex-1 " + (hasUnread ? "font-medium" : "text-muted-foreground")}>
-                            {(user?.id === lastMsg?.user_id) ? "Vous: " : ""}
-                            {lastMsg && lastMsg.type === "audio" ? "Message vocal" : (lastMsg?.content || "Aucun message")}
-                          </p>
-                          <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center shrink-0">
-                            <Send className="w-3 h-3 text-muted-foreground" />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </Card>
-                )
-              })}
-            </div>
-          )}
         </div>
       </main>
       <BottomNav />

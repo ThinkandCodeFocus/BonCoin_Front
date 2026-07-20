@@ -3,12 +3,12 @@
 import { useEffect, useState } from "react"
 import { Header } from "@/components/header"
 import { BottomNav } from "@/components/bottom-nav"
+import { AccountLayout } from "@/components/account-layout"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Settings, Star, Package, Heart, LogOut, Loader2, MapPin, Trash2, Edit3 } from "lucide-react"
+import { Package, Heart, Loader2, MapPin, Trash2, Edit3 } from "lucide-react"
 import Link from "next/link"
 import { useAuth } from "@/contexts/AuthContext"
 import { resolveStorageUrl } from "@/lib/media"
@@ -16,6 +16,7 @@ import { profileService, favoriteService, annonceService } from "@/lib/api"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import { useFavorites } from "@/contexts/FavoritesContext"
+import { formatPrice, EmptyState } from "@/components/design-system"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -44,10 +45,10 @@ interface Favorite {
 }
 
 export default function ProfilePage() {
-  const { user, logout, isAuthenticated } = useAuth()
+  const { user, isAuthenticated } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
-  const defaultTab = searchParams.get('tab') || 'listings'
+  const activeTab = searchParams.get("tab") === "favorites" ? "favorites" : "listings"
   const { loadFavorites: reloadFavoritesContext } = useFavorites()
   const [userAnnonces, setUserAnnonces] = useState<Annonce[]>([])
   const [favorites, setFavorites] = useState<Favorite[]>([])
@@ -64,6 +65,7 @@ export default function ProfilePage() {
 
     loadUserAnnonces()
     loadFavorites()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated])
 
   const loadUserAnnonces = async () => {
@@ -84,33 +86,11 @@ export default function ProfilePage() {
     setIsLoadingFavorites(false)
   }
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("fr-FR").format(price) + " FCFA"
-  }
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return new Intl.DateTimeFormat("fr-FR", {
-      month: "long",
-      year: "numeric",
-    }).format(date)
-  }
-
-  const handleLogout = async () => {
-    await logout()
-    router.push("/")
-  }
-
-  const handleSwitchAccount = async () => {
-    await logout()
-    router.push("/auth")
-  }
-
   const removeFavorite = async (annonceId: number) => {
     const result = await favoriteService.remove(annonceId)
     if (result.success) {
       setFavorites((prev) => prev.filter((fav) => fav.annonce?.id !== annonceId))
-      toast({ title: "Favori retire" })
+      toast({ title: "Favori retiré" })
       await reloadFavoritesContext()
     } else {
       toast({ title: "Erreur", description: result.message || "Impossible de retirer le favori", variant: "destructive" })
@@ -126,9 +106,9 @@ export default function ProfilePage() {
     const result = await annonceService.delete(deleteTargetId)
     if (result.success) {
       setUserAnnonces((prev) => prev.filter((a) => a.id !== deleteTargetId))
-      toast({ title: "Annonce supprimee" })
+      toast({ title: "Annonce supprimée" })
     } else {
-      toast({ title: "Erreur", description: result.message || "Suppression echouee", variant: "destructive" })
+      toast({ title: "Erreur", description: result.message || "Suppression échouée", variant: "destructive" })
     }
     setDeleteTargetId(null)
   }
@@ -136,7 +116,7 @@ export default function ProfilePage() {
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <Loader2 className="w-6 h-6 animate-spin text-primary" />
       </div>
     )
   }
@@ -145,97 +125,67 @@ export default function ProfilePage() {
     <div className="min-h-screen flex flex-col">
       <Header />
 
-      <main className="flex-1 pb-20 md:pb-4">
-        {/* Profile Header */}
-        <div className="bg-primary text-primary-foreground py-8 px-4">
-          <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center gap-6">
-            <Avatar className="w-24 h-24">
-              <AvatarImage
-                src={user.photo ? resolveStorageUrl(user.photo) : undefined}
-              />
-              <AvatarFallback className="text-4xl">
-                {user.name?.charAt(0).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1 text-center md:text-left">
-              <h1 className="text-2xl font-bold mb-2">{user.name}</h1>
-              <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 text-sm">
-                <span>{user.email}</span>
-                {user.phone && <span>{user.phone}</span>}
-                <span>Membre depuis {formatDate(user.created_at)}</span>
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <Link href="/profile/settings">
-                <Button variant="secondary">
-                  <Settings className="w-4 h-4 mr-2" />
-                  Paramètres
-                </Button>
-              </Link>
-              <Button variant="secondary" onClick={handleLogout}>
-                <LogOut className="w-4 h-4 mr-2" />
-                Déconnexion
-              </Button>
-            </div>
+      <main className="flex-1 pb-16 md:pb-4">
+        <div className="max-w-6xl mx-auto px-4 pt-6 flex items-center gap-3">
+          <Avatar className="w-12 h-12">
+            <AvatarImage src={user.photo ? resolveStorageUrl(user.photo) : undefined} />
+            <AvatarFallback>{user.name?.charAt(0).toUpperCase()}</AvatarFallback>
+          </Avatar>
+          <div>
+            <p className="font-semibold">{user.name}</p>
+            <p className="text-sm text-muted-foreground">{user.email}</p>
           </div>
         </div>
 
-        <div className="max-w-6xl mx-auto p-4">
-          <Tabs defaultValue={defaultTab} className="space-y-6">
-            <TabsList className="grid w-full max-w-md mx-auto grid-cols-2">
-              <TabsTrigger value="listings">
-                <Package className="w-4 h-4 mr-2" />
-                Mes annonces ({userAnnonces.length})
-              </TabsTrigger>
-              <TabsTrigger value="favorites">
-                <Heart className="w-4 h-4 mr-2" />
-                Favoris ({favorites.length})
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="listings" className="space-y-4">
+        <AccountLayout>
+          {activeTab === "listings" ? (
+            <div className="space-y-3">
+              <h1 className="text-base font-semibold">Mes annonces ({userAnnonces.length})</h1>
               {isLoadingAnnonces ? (
                 <div className="flex justify-center py-8">
-                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                  <Loader2 className="w-6 h-6 animate-spin text-primary" />
                 </div>
               ) : userAnnonces.length === 0 ? (
-                <Card className="p-8 text-center">
-                  <p className="text-muted-foreground mb-4">Vous n'avez pas encore d'annonces</p>
-                  <Link href="/publish">
-                    <Button>Publier une annonce</Button>
-                  </Link>
-                </Card>
+                <EmptyState
+                  icon={Package}
+                  title="Vous n'avez pas encore d'annonces"
+                  action={
+                    <Link href="/publish">
+                      <Button>Publier une annonce</Button>
+                    </Link>
+                  }
+                />
               ) : (
                 userAnnonces.map((listing) => {
                   const photoUrl = resolveStorageUrl(listing.photos?.[0])
 
                   return (
-                    <Card key={listing.id} className="p-4">
-                      <div className="flex gap-4">
+                    <Card key={listing.id} className="p-3">
+                      <div className="flex gap-3">
                         <img
                           src={photoUrl}
                           alt={listing.title}
                           onError={(e) => {
                             e.currentTarget.src = "/placeholder.svg"
                           }}
-                          className="w-32 h-32 object-cover rounded-lg"
+                          className="w-24 h-24 object-cover rounded-md border shrink-0"
                         />
-                        <div className="flex-1">
-                          <div className="flex items-start justify-between mb-2">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-2 mb-1">
                             <div>
-                              <h3 className="font-semibold text-lg">{listing.title}</h3>
-                              <p className="text-xl font-bold text-primary">{formatPrice(listing.price)}</p>
+                              <h3 className="font-medium">{listing.title}</h3>
+                              <p className="text-lg font-bold">{formatPrice(listing.price)}</p>
                             </div>
                             <Badge variant={listing.status === "Disponible" ? "default" : "secondary"}>
                               {listing.status}
                             </Badge>
                           </div>
-                          <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
+                          <div className="flex items-center gap-3 text-xs text-muted-foreground mb-2">
                             <span>{listing.views || 0} vues</span>
-                            <div className="flex items-center gap-1">
-                              <MapPin className="w-4 h-4" />
+                            <span className="flex items-center gap-1">
+                              <MapPin className="w-3 h-3" />
                               {listing.city}, {listing.district}
-                            </div>
+                            </span>
                           </div>
                           <div className="flex gap-2">
                             <Link href={`/listings/${listing.id}`}>
@@ -245,12 +195,17 @@ export default function ProfilePage() {
                             </Link>
                             <Link href={`/publish?edit=${listing.id}`}>
                               <Button size="sm" variant="outline">
-                                <Edit3 className="w-4 h-4 mr-1" />
+                                <Edit3 className="w-3.5 h-3.5 mr-1" />
                                 Modifier
                               </Button>
                             </Link>
-                            <Button size="sm" variant="outline" className="text-destructive bg-transparent" onClick={() => confirmDeleteAnnonce(listing.id)}>
-                              <Trash2 className="w-4 h-4 mr-1" />
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-destructive"
+                              onClick={() => confirmDeleteAnnonce(listing.id)}
+                            >
+                              <Trash2 className="w-3.5 h-3.5 mr-1" />
                               Supprimer
                             </Button>
                           </div>
@@ -260,63 +215,60 @@ export default function ProfilePage() {
                   )
                 })
               )}
-            </TabsContent>
-
-            <TabsContent value="favorites" className="space-y-4">
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <h1 className="text-base font-semibold">Favoris ({favorites.length})</h1>
               {isLoadingFavorites ? (
                 <div className="flex justify-center py-8">
-                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                  <Loader2 className="w-6 h-6 animate-spin text-primary" />
                 </div>
               ) : favorites.length === 0 ? (
-                <Card className="p-8 text-center">
-                  <p className="text-muted-foreground">Vous n'avez pas encore de favoris</p>
-                </Card>
+                <EmptyState icon={Heart} title="Vous n'avez pas encore de favoris" />
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {favorites.map((item) => {
                     const annonce = item.annonce
                     const photoUrl = resolveStorageUrl(annonce.photos?.[0])
 
                     return (
-                      <Link key={item.id} href={`/listings/${annonce.id}`}>
-                        <Card className="overflow-hidden hover:shadow-lg transition-shadow">
+                      <Card key={item.id} className="overflow-hidden p-0">
+                        <Link href={`/listings/${annonce.id}`}>
                           <img
                             src={photoUrl}
                             alt={annonce.title}
                             onError={(e) => {
                               e.currentTarget.src = "/placeholder.svg"
                             }}
-                            className="w-full aspect-4/3 object-cover"
+                            className="w-full aspect-square object-cover"
                           />
-                          <div className="p-4">
-                            <h3 className="font-semibold mb-2 line-clamp-2">{annonce.title}</h3>
-                            <p className="text-xl font-bold text-primary mb-2">{formatPrice(annonce.price)}</p>
-                            <div className="flex items-center text-sm text-muted-foreground">
-                              <MapPin className="w-4 h-4 mr-1" />
-                              {annonce.city}, {annonce.district}
-                            </div>
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              className="mt-3"
-                              onClick={(e) => {
-                                e.preventDefault()
-                                removeFavorite(annonce.id)
-                              }}
-                            >
-                              Retirer
-                            </Button>
+                        </Link>
+                        <div className="p-3">
+                          <Link href={`/listings/${annonce.id}`}>
+                            <h3 className="font-medium mb-1 line-clamp-2 text-sm">{annonce.title}</h3>
+                          </Link>
+                          <p className="text-lg font-bold mb-1">{formatPrice(annonce.price)}</p>
+                          <div className="flex items-center text-xs text-muted-foreground mb-2">
+                            <MapPin className="w-3 h-3 mr-1" />
+                            {annonce.city}, {annonce.district}
                           </div>
-                        </Card>
-                      </Link>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => removeFavorite(annonce.id)}
+                          >
+                            Retirer
+                          </Button>
+                        </div>
+                      </Card>
                     )
                   })}
                 </div>
               )}
-            </TabsContent>
-          </Tabs>
-        </div>
+            </div>
+          )}
+        </AccountLayout>
       </main>
 
       <AlertDialog open={!!deleteTargetId} onOpenChange={(open) => !open && setDeleteTargetId(null)}>
@@ -324,7 +276,7 @@ export default function ProfilePage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Supprimer l'annonce</AlertDialogTitle>
             <AlertDialogDescription>
-              Cette action est definitive. Voulez-vous vraiment supprimer cette annonce ?
+              Cette action est définitive. Voulez-vous vraiment supprimer cette annonce ?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
