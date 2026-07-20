@@ -23,6 +23,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { messageService } from "@/lib/api"
 import { useMessageNotifications } from "@/contexts/MessageNotificationContext"
+import { SearchBar } from "@/components/search-bar"
 
 const categoryNav = [
   { label: "Immobilier", href: "/listings?category=2" },
@@ -74,9 +75,21 @@ export function Header() {
     <header className="sticky top-0 z-50 bg-card border-b">
       <div className="max-w-7xl mx-auto px-4 lg:px-6">
         <div className="flex items-center justify-between h-16 gap-4">
-          <Link href="/" className="flex items-center shrink-0">
-            <span className="text-xl font-bold text-primary">LeMarché</span>
-          </Link>
+          <div className="flex items-center gap-4 shrink-0">
+            <Link href="/" className="flex items-center shrink-0">
+              <span className="text-xl font-bold text-primary">LeMarché</span>
+            </Link>
+            <Link href="/publish" className="hidden md:block">
+              <Button size="sm" className="gap-1.5">
+                <Plus className="w-4 h-4" />
+                Déposer une annonce
+              </Button>
+            </Link>
+          </div>
+
+          <div className="hidden md:block flex-1 max-w-md">
+            <SearchBar />
+          </div>
 
           <nav className="hidden md:flex items-center gap-1">
             <Button
@@ -149,13 +162,6 @@ export function Header() {
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
-
-                <Link href="/publish">
-                  <Button size="sm" className="ml-1 gap-1.5">
-                    <Plus className="w-4 h-4" />
-                    Déposer une annonce
-                  </Button>
-                </Link>
               </>
             ) : (
               <>
@@ -258,15 +264,21 @@ export function Header() {
           </div>
         </div>
 
-        <nav className="hidden md:flex items-center gap-5 h-10 -mb-px overflow-x-auto">
-          {categoryNav.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="text-sm border-b-2 border-transparent px-0.5 h-10 flex items-center whitespace-nowrap text-muted-foreground hover:text-foreground hover:border-border transition-colors"
-            >
-              {item.label}
-            </Link>
+        <div className="md:hidden pb-3">
+          <SearchBar />
+        </div>
+
+        <nav className="hidden md:flex items-center gap-2 h-10 -mb-px overflow-x-auto">
+          {categoryNav.map((item, index) => (
+            <span key={item.href} className="flex items-center gap-2">
+              {index > 0 && <span className="text-muted-foreground">·</span>}
+              <Link
+                href={item.href}
+                className="text-sm border-b-2 border-transparent px-0.5 h-10 flex items-center whitespace-nowrap text-muted-foreground hover:text-foreground hover:border-border transition-colors"
+              >
+                {item.label}
+              </Link>
+            </span>
           ))}
         </nav>
       </div>
