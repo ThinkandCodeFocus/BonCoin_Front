@@ -172,8 +172,8 @@ export default function ProfilePage() {
                         />
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between gap-2 mb-1">
-                            <div>
-                              <h3 className="font-medium">{listing.title}</h3>
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-medium line-clamp-2 break-words">{listing.title}</h3>
                               <p className="text-lg font-bold">{formatPrice(listing.price)}</p>
                             </div>
                             <Badge variant={listing.status === "Disponible" ? "default" : "secondary"}>
