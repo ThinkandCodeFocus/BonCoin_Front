@@ -15,6 +15,7 @@ import { profileService } from "@/lib/api"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { resolveStorageUrl } from "@/lib/media"
+import { convertHeicIfNeeded } from "@/lib/image"
 
 export default function ProfileSettingsPage() {
   const { user, refreshUser, isAuthenticated } = useAuth()
@@ -63,29 +64,43 @@ export default function ProfileSettingsPage() {
   }
 
   const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    // Vérifier le type de fichier
-    if (!file.type.startsWith("image/")) {
-      toast.error("Veuillez sélectionner une image")
-      return
-    }
-
-    // Vérifier la taille (max 2MB)
-    if (file.size > 2 * 1024 * 1024) {
-      toast.error("L'image ne doit pas dépasser 2MB")
-      return
-    }
+    const rawFile = e.target.files?.[0]
+    if (!rawFile) return
 
     setIsUploadingPhoto(true)
+
+    let file: File
+    try {
+      // Convertit les photos HEIC/HEIF (format par défaut iPhone) en JPEG :
+      // sans ça, le type MIME n'est souvent pas reconnu par le navigateur et
+      // l'upload est rejeté avant même d'atteindre le serveur.
+      file = await convertHeicIfNeeded(rawFile)
+    } catch {
+      toast.error("Impossible de traiter cette image. Essayez un format JPEG ou PNG.")
+      setIsUploadingPhoto(false)
+      return
+    }
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Veuillez sélectionner une image")
+      setIsUploadingPhoto(false)
+      return
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("L'image ne doit pas dépasser 2MB")
+      setIsUploadingPhoto(false)
+      return
+    }
+
     const result = await profileService.uploadPhoto(file)
     
     if (result.success) {
       toast.success("Photo de profil mise à jour")
       await refreshUser()
     } else {
-      toast.error(result.message || "Erreur lors de l'upload de la photo")
+      const fieldError = (result as any).errors?.photo?.[0]
+      toast.error(fieldError || result.message || "Erreur lors de l'upload de la photo")
     }
     
     setIsUploadingPhoto(false)
