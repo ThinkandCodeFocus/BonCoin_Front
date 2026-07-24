@@ -304,8 +304,8 @@ export default function ListingDetailPage() {
             <div className="space-y-4 md:sticky md:top-20 md:self-start">
               <div>
                 <div className="flex items-start justify-between gap-3 mb-3">
-                  <div>
-                    <h1 className="text-xl font-semibold mb-1">{annonce.title}</h1>
+                  <div className="flex-1 min-w-0">
+                    <h1 className="text-xl font-semibold mb-1 line-clamp-3 break-words">{annonce.title}</h1>
                     <p className="text-2xl font-bold">{formatPrice(annonce.price)}</p>
                     {annonce.negotiable && (
                       <Badge variant="secondary" className="mt-2">
