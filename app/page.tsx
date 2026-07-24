@@ -1,20 +1,13 @@
 import { Header } from "@/components/header"
 import { CategoryGrid } from "@/components/category-grid"
 import { RecentSearches } from "@/components/recent-searches"
-import { CategoryCarousel } from "@/components/category-carousel"
+import { HomeCategoryCarousels } from "@/components/home-category-carousels"
 import { FeaturedListings } from "@/components/featured-listings"
 import { BottomNav } from "@/components/bottom-nav"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
 import Link from "next/link"
-
-const homeCarousels = [
-  { categoryId: 1, categoryName: "Téléphones" },
-  { categoryId: 2, categoryName: "Immobilier" },
-  { categoryId: 3, categoryName: "Véhicules" },
-  { categoryId: 7, categoryName: "Emploi" },
-]
 
 export default function HomePage() {
   return (
@@ -51,9 +44,7 @@ export default function HomePage() {
 
         <section className="px-4 md:px-6 py-6 space-y-8">
           <div className="max-w-6xl mx-auto space-y-8">
-            {homeCarousels.map((c) => (
-              <CategoryCarousel key={c.categoryId} categoryId={c.categoryId} categoryName={c.categoryName} />
-            ))}
+            <HomeCategoryCarousels />
           </div>
         </section>
 

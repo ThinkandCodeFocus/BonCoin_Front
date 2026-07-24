@@ -24,20 +24,12 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { messageService } from "@/lib/api"
 import { useMessageNotifications } from "@/contexts/MessageNotificationContext"
 import { SearchBar } from "@/components/search-bar"
-
-const categoryNav = [
-  { label: "Immobilier", href: "/listings?category=2" },
-  { label: "Véhicules", href: "/listings?category=3" },
-  { label: "Emploi", href: "/listings?category=7" },
-  { label: "Loisirs", href: "/listings?category=8" },
-  { label: "Maison", href: "/listings?category=4" },
-  { label: "Mode", href: "/listings?category=5" },
-  { label: "Multimédia", href: "/listings?category=1" },
-]
+import { useCategories } from "@/hooks/use-categories"
 
 export function Header() {
   const { user, isAuthenticated, logout } = useAuth()
   const { favoriteCount } = useFavorites()
+  const { categories } = useCategories()
   const { unreadCount: messageCount, notificationCount } = useMessageNotifications()
   const [latestConversationId, setLatestConversationId] = useState<number | null>(null)
   const [showAuthDialog, setShowAuthDialog] = useState(false)
@@ -269,14 +261,14 @@ export function Header() {
         </div>
 
         <nav className="hidden md:flex items-center gap-2 h-10 -mb-px overflow-x-auto">
-          {categoryNav.map((item, index) => (
-            <span key={item.href} className="flex items-center gap-2">
+          {categories.map((category, index) => (
+            <span key={category.id} className="flex items-center gap-2">
               {index > 0 && <span className="text-muted-foreground">·</span>}
               <Link
-                href={item.href}
+                href={`/listings?category=${category.id}`}
                 className="text-sm border-b-2 border-transparent px-0.5 h-10 flex items-center whitespace-nowrap text-muted-foreground hover:text-foreground hover:border-border transition-colors"
               >
-                {item.label}
+                {category.name}
               </Link>
             </span>
           ))}

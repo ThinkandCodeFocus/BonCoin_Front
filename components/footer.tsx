@@ -45,10 +45,10 @@ export function Footer() {
     <footer className="mt-12 bg-muted/40 border-t">
       <div className="max-w-6xl mx-auto px-6 py-6 text-sm text-muted-foreground border-b">
         Avec LeMarché, trouvez la bonne affaire près de chez vous. Des milliers de petites annonces de particulier à
-        particulier et de professionnels dans toutes les catégories : <Link href="/listings?category=3" className="text-primary hover:underline">véhicules</Link>,{" "}
-        <Link href="/listings?category=2" className="text-primary hover:underline">immobilier</Link>,{" "}
-        <Link href="/listings?category=7" className="text-primary hover:underline">emploi</Link>,{" "}
-        <Link href="/listings?category=5" className="text-primary hover:underline">mode</Link> et bien plus. Déposez
+        particulier et de professionnels dans toutes les catégories : <Link href="/listings?category=Véhicules" className="text-primary hover:underline">véhicules</Link>,{" "}
+        <Link href="/listings?category=Immobilier" className="text-primary hover:underline">immobilier</Link>,{" "}
+        <Link href="/listings?category=Emplois" className="text-primary hover:underline">emploi</Link>,{" "}
+        <Link href="/listings?category=Mode" className="text-primary hover:underline">mode</Link> et bien plus. Déposez
         une annonce gratuite pour vendre, acheter ou donner vos biens de seconde main.
       </div>
 
