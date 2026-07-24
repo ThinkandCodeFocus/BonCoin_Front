@@ -5,7 +5,7 @@ export const API_CONFIG = {
   baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api',
   timeout: 30000, // Augmenté à 30 secondes pour éviter les timeouts
 }
-
+ 
 /**
  * Cache simple pour les requêtes API
  * Réduit les appels réseau pour les données fréquentes
