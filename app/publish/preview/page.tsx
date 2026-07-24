@@ -12,7 +12,7 @@ import { annonceService } from "@/lib/api"
 import { useAuth } from "@/contexts/AuthContext"
 import { useToast } from "@/hooks/use-toast"
 import { useI18n } from "@/components/I18nProvider"
-import { getUserLocation, getCityCoordinates } from "@/lib/geolocation"
+import { getCityCoordinates } from "@/lib/geolocation"
 import { formatPrice } from "@/components/design-system"
 
 interface PreviewAnnonce {
@@ -87,14 +87,12 @@ export default function PublishPreviewPage() {
 
     setIsLoading(true)
     try {
+      // Coordonnees approximatives a partir de la ville saisie (pas de demande
+      // de permission de geolocalisation : ce n'est pas obligatoire pour publier)
       let latitude: number | undefined
       let longitude: number | undefined
 
-      const userLocation = await getUserLocation()
-      if (userLocation) {
-        latitude = userLocation.lat
-        longitude = userLocation.lng
-      } else if (data.city) {
+      if (data.city) {
         const cityCoords = getCityCoordinates(data.city)
         if (cityCoords) {
           latitude = cityCoords.lat

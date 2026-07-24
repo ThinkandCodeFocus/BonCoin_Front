@@ -15,7 +15,7 @@ import { useSearchParams } from "next/navigation"
 import { annonceService, favoriteService } from "@/lib/api"
 import { useAuth } from "@/contexts/AuthContext"
 import { useToast } from "@/hooks/use-toast"
-import { getUserLocation, getCityCoordinates } from "@/lib/geolocation"
+import { getCityCoordinates } from "@/lib/geolocation"
 import { ListingCard, type ListingCardData } from "@/components/listing-card"
 import { ListingRow } from "@/components/listing-row"
 import { ListingPagination } from "@/components/listing-pagination"
@@ -169,28 +169,19 @@ export default function ListingsPage() {
     if (searchQuery) params.search = searchQuery
     if (selectedCategory) params.category = selectedCategory
 
-    try {
-      const userLocation = await getUserLocation()
-      const radius = Number(radiusKm)
-      if (radius > 0) {
-        if (userLocation) {
-          params.user_lat = userLocation.lat
-          params.user_lng = userLocation.lng
+    // Filtre par rayon : basé sur la ville connue (localStorage), jamais sur une
+    // demande de permission de géolocalisation du navigateur (pas obligatoire).
+    const radius = Number(radiusKm)
+    if (radius > 0) {
+      const savedCity = localStorage.getItem("location_city")
+      if (savedCity) {
+        const cityCoords = getCityCoordinates(savedCity)
+        if (cityCoords) {
+          params.user_lat = cityCoords.lat
+          params.user_lng = cityCoords.lng
           params.distance_km = radius
-        } else {
-          const savedCity = localStorage.getItem("location_city")
-          if (savedCity) {
-            const cityCoords = getCityCoordinates(savedCity)
-            if (cityCoords) {
-              params.user_lat = cityCoords.lat
-              params.user_lng = cityCoords.lng
-              params.distance_km = radius
-            }
-          }
         }
       }
-    } catch {
-      // géolocalisation indisponible, on continue sans filtre de distance
     }
 
     const result = await annonceService.getAll(params)
