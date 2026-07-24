@@ -18,6 +18,7 @@ import { annonceService, categoryService } from "@/lib/api"
 import { useRouter } from "next/navigation"
 import { Checkbox } from "@/components/ui/checkbox"
 import { getCityCoordinates } from "@/lib/geolocation"
+import { convertHeicIfNeeded } from "@/lib/image"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -120,15 +121,31 @@ export default function PublishPage() {
     }
   }
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
-    if (files) {
-      const newFiles = Array.from(files).slice(0, 5 - imageFiles.length)
-      const newPreviews = newFiles.map((file) => URL.createObjectURL(file))
-      
-      setImageFiles([...imageFiles, ...newFiles])
-      setImagePreviews([...imagePreviews, ...newPreviews])
+    if (!files) return
+
+    const selectedFiles = Array.from(files).slice(0, 5 - imageFiles.length)
+
+    // Convertit les photos HEIC/HEIF (format par défaut iPhone) en JPEG : sans
+    // ça, l'aperçu reste vide et l'upload peut être rejeté par le serveur.
+    const newFiles: File[] = []
+    for (const file of selectedFiles) {
+      try {
+        newFiles.push(await convertHeicIfNeeded(file))
+      } catch {
+        toast({
+          title: t("toast.error") || "Erreur",
+          description: `Impossible de traiter "${file.name}" — essayez un format JPEG ou PNG.`,
+          variant: "destructive",
+        })
+      }
     }
+
+    const newPreviews = newFiles.map((file) => URL.createObjectURL(file))
+
+    setImageFiles([...imageFiles, ...newFiles])
+    setImagePreviews([...imagePreviews, ...newPreviews])
   }
 
   const removeImage = (index: number) => {
