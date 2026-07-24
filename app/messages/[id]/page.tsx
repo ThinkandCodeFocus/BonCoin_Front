@@ -254,7 +254,7 @@ export default function ConversationPage() {
     <div className="min-h-screen flex flex-col">
       <Header />
       <main className="flex-1 pb-16 md:pb-4">
-        <div className="max-w-5xl mx-auto md:my-6 border md:rounded-lg overflow-hidden grid grid-cols-1 md:grid-cols-[320px_1fr] h-[calc(100vh-4rem)] md:h-[calc(100vh-8rem)]">
+        <div className="max-w-5xl mx-auto md:my-6 border md:rounded-lg overflow-hidden grid grid-cols-1 md:grid-cols-[320px_1fr] h-[calc(100dvh-11rem)] md:h-[calc(100dvh-8rem)]">
           <div className="hidden md:block border-r">
             <ConversationList activeId={conversationId} />
           </div>
