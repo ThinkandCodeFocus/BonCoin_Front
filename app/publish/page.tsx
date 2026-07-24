@@ -17,7 +17,7 @@ import { useAuth } from "@/contexts/AuthContext"
 import { annonceService, categoryService } from "@/lib/api"
 import { useRouter } from "next/navigation"
 import { Checkbox } from "@/components/ui/checkbox"
-import { getUserLocation, getCityCoordinates } from "@/lib/geolocation"
+import { getCityCoordinates } from "@/lib/geolocation"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -333,22 +333,15 @@ export default function PublishPage() {
       const selectedCategory = categories.find(c => c.id.toString() === categoryId)
       const isAutreCategory = selectedCategory?.name === "Autre" || selectedCategory?.name === "Yeneen"
 
-      // Essayer d'obtenir les coordonnees
+      // Coordonnees approximatives a partir de la ville saisie (pas de demande
+      // de permission de geolocalisation : ce n'est pas obligatoire pour publier)
       let latitude: number | undefined
       let longitude: number | undefined
 
-      // Essayer d'abord la geolocalisation du navigateur
-      const userLocation = await getUserLocation()
-      if (userLocation) {
-        latitude = userLocation.lat
-        longitude = userLocation.lng
-      } else {
-        // Sinon, utiliser les coordonnees de la ville
-        const cityCoords = getCityCoordinates(city)
-        if (cityCoords) {
-          latitude = cityCoords.lat
-          longitude = cityCoords.lng
-        }
+      const cityCoords = getCityCoordinates(city)
+      if (cityCoords) {
+        latitude = cityCoords.lat
+        longitude = cityCoords.lng
       }
 
       // Creer l'annonce
