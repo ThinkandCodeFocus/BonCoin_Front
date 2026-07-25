@@ -9,13 +9,14 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Loader2, Camera, Eye, EyeOff } from "lucide-react"
+import { Loader2, Camera, Eye, EyeOff, UserX } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
-import { profileService } from "@/lib/api"
+import { profileService, blockService } from "@/lib/api"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { resolveStorageUrl } from "@/lib/media"
 import { convertHeicIfNeeded } from "@/lib/image"
+import { EmptyState } from "@/components/design-system"
 
 export default function ProfileSettingsPage() {
   const { user, refreshUser, isAuthenticated } = useAuth()
@@ -35,6 +36,9 @@ export default function ProfileSettingsPage() {
     password_confirmation: "",
   })
 
+  const [blockedUsers, setBlockedUsers] = useState<{ id: number; name: string; photo?: string }[]>([])
+  const [isLoadingBlocked, setIsLoadingBlocked] = useState(true)
+
   useEffect(() => {
     if (!isAuthenticated) {
       router.push("/")
@@ -50,7 +54,28 @@ export default function ProfileSettingsPage() {
         password_confirmation: "",
       })
     }
+
+    loadBlockedUsers()
   }, [isAuthenticated, user])
+
+  const loadBlockedUsers = async () => {
+    setIsLoadingBlocked(true)
+    const result = await blockService.getAll()
+    if (result.success && Array.isArray(result.data)) {
+      setBlockedUsers(result.data)
+    }
+    setIsLoadingBlocked(false)
+  }
+
+  const handleUnblock = async (userId: number) => {
+    const result = await blockService.unblock(userId)
+    if (result.success) {
+      setBlockedUsers((prev) => prev.filter((u) => u.id !== userId))
+      toast.success("Utilisateur débloqué")
+    } else {
+      toast.error((result as any).message || "Erreur")
+    }
+  }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -323,6 +348,34 @@ export default function ProfileSettingsPage() {
                   )}
                 </Button>
               </form>
+            </Card>
+
+            <Card className="p-4">
+              <h2 className="text-sm font-semibold mb-3">Utilisateurs bloqués</h2>
+              {isLoadingBlocked ? (
+                <div className="flex justify-center py-4">
+                  <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+                </div>
+              ) : blockedUsers.length === 0 ? (
+                <EmptyState icon={UserX} title="Aucun utilisateur bloqué" />
+              ) : (
+                <div className="space-y-2">
+                  {blockedUsers.map((blocked) => (
+                    <div key={blocked.id} className="flex items-center justify-between gap-3 p-2 border rounded-md">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <Avatar className="w-8 h-8">
+                          <AvatarImage src={blocked.photo ? resolveStorageUrl(blocked.photo) : undefined} />
+                          <AvatarFallback>{blocked.name?.charAt(0).toUpperCase()}</AvatarFallback>
+                        </Avatar>
+                        <span className="text-sm truncate">{blocked.name}</span>
+                      </div>
+                      <Button size="sm" variant="outline" onClick={() => handleUnblock(blocked.id)}>
+                        Débloquer
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </Card>
           </div>
         </AccountLayout>
