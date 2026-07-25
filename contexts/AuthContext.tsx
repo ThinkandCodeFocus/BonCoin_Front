@@ -14,6 +14,7 @@ interface User {
   phone?: string
   photo?: string
   created_at: string
+  user_type?: "buyer" | "seller" | "both"
 }
 
 interface AuthContextType {

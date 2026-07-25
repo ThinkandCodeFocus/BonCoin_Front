@@ -42,7 +42,7 @@ export default function PublishPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [categories, setCategories] = useState<Category[]>([])
   const { toast } = useToast()
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, user } = useAuth()
   const router = useRouter()
   const { t } = useI18n()
 
@@ -78,9 +78,19 @@ export default function PublishPage() {
       router.push("/")
       return
     }
-    
+
+    if (user?.user_type === "buyer") {
+      toast({
+        title: "Compte acheteur",
+        description: "Votre compte est configuré en acheteur uniquement et ne peut pas déposer d'annonce.",
+        variant: "destructive",
+      })
+      router.push("/")
+      return
+    }
+
     loadCategories()
-  }, [isAuthenticated])
+  }, [isAuthenticated, user])
 
   const loadCategories = async () => {
     try {
