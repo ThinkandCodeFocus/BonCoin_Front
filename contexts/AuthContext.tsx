@@ -17,6 +17,10 @@ interface User {
   is_admin?: boolean
   suspended_at?: string | null
   user_type?: "buyer" | "seller" | "both"
+  is_verified?: boolean
+  is_professional?: boolean
+  business_name?: string | null
+  business_registration?: string | null
 }
 
 interface AuthContextType {
