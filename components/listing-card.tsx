@@ -21,6 +21,8 @@ export interface ListingCardData {
     rating?: number
     rating_count?: number
     is_verified?: boolean
+    is_professional?: boolean
+    business_name?: string | null
   }
 }
 
@@ -69,7 +71,12 @@ export function ListingCard({
                 {seller.name.charAt(0).toUpperCase()}
               </span>
             )}
-            <span className="text-xs font-medium truncate">{seller.name}</span>
+            <span className="text-xs font-medium truncate">
+              {seller.is_professional && seller.business_name ? seller.business_name : seller.name}
+            </span>
+            {seller.is_professional && (
+              <span className="text-[10px] font-semibold text-muted-foreground border rounded px-1 shrink-0">Pro</span>
+            )}
             {seller.is_verified && <BadgeCheck className="w-3.5 h-3.5 text-primary shrink-0" aria-label="Vendeur vérifié" />}
             {typeof seller.rating === "number" && (
               <span className="flex items-center gap-0.5 text-xs text-muted-foreground shrink-0">

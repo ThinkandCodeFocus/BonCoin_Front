@@ -18,6 +18,8 @@ interface Seller {
   name: string
   photo?: string
   is_verified?: boolean
+  is_professional?: boolean
+  business_name?: string | null
 }
 
 export default function SellerStorefrontPage() {
@@ -65,10 +67,16 @@ export default function SellerStorefrontPage() {
                   </Avatar>
                   <div>
                     <h1 className="text-lg font-semibold flex items-center gap-1.5">
-                      {seller.name}
+                      {seller.is_professional && seller.business_name ? seller.business_name : seller.name}
+                      {seller.is_professional && (
+                        <span className="text-[10px] font-semibold text-muted-foreground border rounded px-1">Pro</span>
+                      )}
                       {seller.is_verified && <BadgeCheck className="w-4 h-4 text-primary" aria-label="Vendeur vérifié" />}
                     </h1>
-                    <p className="text-sm text-muted-foreground">{listings.length} annonce(s) en ligne</p>
+                    <p className="text-sm text-muted-foreground">
+                      {seller.is_professional ? `${seller.name} · ` : ""}
+                      {listings.length} annonce(s) en ligne
+                    </p>
                   </div>
                 </div>
                 <Button variant="outline" onClick={() => setShowBusinessCard(true)}>

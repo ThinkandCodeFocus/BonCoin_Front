@@ -40,6 +40,8 @@ interface Annonce {
     phone?: string
     photo?: string
     is_verified?: boolean
+    is_professional?: boolean
+    business_name?: string | null
   }
   category: {
     id: number
@@ -350,10 +352,14 @@ export default function ListingDetailPage() {
                     </Avatar>
                     <div>
                       <Link href={`/sellers/${annonce.user.id}`} className="font-medium text-sm hover:underline inline-flex items-center gap-1">
-                        {annonce.user.name}
+                        {annonce.user.is_professional && annonce.user.business_name
+                          ? annonce.user.business_name
+                          : annonce.user.name}
                         {annonce.user.is_verified && <BadgeCheck className="w-3.5 h-3.5 text-primary" aria-label="Vendeur vérifié" />}
                       </Link>
-                      <p className="text-xs text-muted-foreground">Vendeur</p>
+                      <p className="text-xs text-muted-foreground">
+                        {annonce.user.is_professional ? "Vendeur professionnel" : "Vendeur"}
+                      </p>
                     </div>
                   </div>
                   {!isOwner && (

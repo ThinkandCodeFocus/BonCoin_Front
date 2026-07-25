@@ -8,8 +8,9 @@ import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Loader2, Camera, Eye, EyeOff, UserX } from "lucide-react"
+import { Loader2, Camera, Eye, EyeOff, UserX, Store } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 import { profileService, blockService } from "@/lib/api"
 import { useRouter } from "next/navigation"
@@ -36,6 +37,11 @@ export default function ProfileSettingsPage() {
     password_confirmation: "",
   })
 
+  const [isProfessional, setIsProfessional] = useState(false)
+  const [businessName, setBusinessName] = useState("")
+  const [businessRegistration, setBusinessRegistration] = useState("")
+  const [isSavingPro, setIsSavingPro] = useState(false)
+
   const [blockedUsers, setBlockedUsers] = useState<{ id: number; name: string; photo?: string }[]>([])
   const [isLoadingBlocked, setIsLoadingBlocked] = useState(true)
 
@@ -53,6 +59,9 @@ export default function ProfileSettingsPage() {
         password: "",
         password_confirmation: "",
       })
+      setIsProfessional(!!user.is_professional)
+      setBusinessName(user.business_name || "")
+      setBusinessRegistration(user.business_registration || "")
     }
 
     loadBlockedUsers()
@@ -183,6 +192,26 @@ export default function ProfileSettingsPage() {
     }
     
     setIsLoading(false)
+  }
+
+  const handleSaveProfessional = async () => {
+    if (isProfessional && !businessName.trim()) {
+      toast.error("Le nom de la boutique est requis pour un compte professionnel")
+      return
+    }
+    setIsSavingPro(true)
+    const result = await profileService.update({
+      is_professional: isProfessional,
+      business_name: isProfessional ? businessName : "",
+      business_registration: isProfessional ? businessRegistration : "",
+    })
+    setIsSavingPro(false)
+    if (result.success) {
+      toast.success(isProfessional ? "Compte professionnel activé" : "Compte professionnel désactivé")
+      await refreshUser()
+    } else {
+      toast.error(result.message || "Erreur lors de la mise à jour")
+    }
   }
 
   if (!user) {
@@ -348,6 +377,57 @@ export default function ProfileSettingsPage() {
                   )}
                 </Button>
               </form>
+            </Card>
+
+            <Card className="p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Store className="w-4 h-4 text-muted-foreground" />
+                <h2 className="text-sm font-semibold">Compte professionnel</h2>
+              </div>
+              <p className="text-xs text-muted-foreground mb-4">
+                Vous vendez régulièrement au nom d'une boutique ou d'une entreprise ? Activez le compte
+                professionnel pour afficher le nom de votre boutique sur vos annonces.
+              </p>
+              <div className="space-y-4">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="is_professional"
+                    checked={isProfessional}
+                    onCheckedChange={(checked) => setIsProfessional(checked as boolean)}
+                  />
+                  <label htmlFor="is_professional" className="text-sm">
+                    Ceci est un compte professionnel
+                  </label>
+                </div>
+
+                {isProfessional && (
+                  <>
+                    <div className="space-y-2">
+                      <Label htmlFor="business_name">Nom de la boutique *</Label>
+                      <Input
+                        id="business_name"
+                        value={businessName}
+                        onChange={(e) => setBusinessName(e.target.value)}
+                        placeholder="Ex: Boutique Fatou Mode"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="business_registration">NINEA / RCCM (facultatif)</Label>
+                      <Input
+                        id="business_registration"
+                        value={businessRegistration}
+                        onChange={(e) => setBusinessRegistration(e.target.value)}
+                        placeholder="Numéro d'identification de l'entreprise"
+                      />
+                    </div>
+                  </>
+                )}
+
+                <Button onClick={handleSaveProfessional} disabled={isSavingPro} variant="outline" className="w-full">
+                  {isSavingPro && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                  Enregistrer
+                </Button>
+              </div>
             </Card>
 
             <Card className="p-4">

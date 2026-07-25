@@ -714,6 +714,9 @@ export const profileService = {
     password: string
     password_confirmation: string
     language: string
+    is_professional: boolean
+    business_name: string
+    business_registration: string
   }>) {
     try {
       const response = await fetch(`${API_CONFIG.baseURL}/profile`, {
