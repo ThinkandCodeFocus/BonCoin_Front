@@ -1093,12 +1093,6 @@ export const adminService = {
       if (params?.search) query.set('search', params.search)
 
       const response = await fetch(`${API_CONFIG.baseURL}/admin/users?${query.toString()}`, {
- * Service de blocage d'utilisateurs
- */
-export const blockService = {
-  async getAll() {
-    try {
-      const response = await fetch(`${API_CONFIG.baseURL}/blocks`, {
         method: 'GET',
         headers: getHeaders(),
       })
@@ -1135,9 +1129,6 @@ export const blockService = {
   async suspendUser(id: number) {
     try {
       const response = await fetch(`${API_CONFIG.baseURL}/admin/users/${id}/suspend`, {
-  async block(userId: number) {
-    try {
-      const response = await fetch(`${API_CONFIG.baseURL}/blocks/${userId}`, {
         method: 'POST',
         headers: getHeaders(),
       })
@@ -1174,9 +1165,6 @@ export const blockService = {
   async deleteUser(id: number) {
     try {
       const response = await fetch(`${API_CONFIG.baseURL}/admin/users/${id}`, {
-  async unblock(userId: number) {
-    try {
-      const response = await fetch(`${API_CONFIG.baseURL}/blocks/${userId}`, {
         method: 'DELETE',
         headers: getHeaders(),
       })
@@ -1233,6 +1221,65 @@ export const blockService = {
     try {
       const response = await fetch(`${API_CONFIG.baseURL}/admin/logs`, {
         method: 'GET',
+        headers: getHeaders(),
+      })
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw { response: { data: result, status: response.status } }
+      }
+
+      return { success: true, data: result }
+    } catch (error) {
+      return handleError(error)
+    }
+  },
+}
+
+/**
+ * Service de blocage d'utilisateurs
+ */
+export const blockService = {
+  async getAll() {
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/blocks`, {
+        method: 'GET',
+        headers: getHeaders(),
+      })
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw { response: { data: result, status: response.status } }
+      }
+
+      return { success: true, data: result }
+    } catch (error) {
+      return handleError(error)
+    }
+  },
+
+  async block(userId: number) {
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/blocks/${userId}`, {
+        method: 'POST',
+        headers: getHeaders(),
+      })
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw { response: { data: result, status: response.status } }
+      }
+
+      return { success: true, data: result }
+    } catch (error) {
+      return handleError(error)
+    }
+  },
+
+  async unblock(userId: number) {
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/blocks/${userId}`, {
+        method: 'DELETE',
         headers: getHeaders(),
       })
       const result = await response.json()
