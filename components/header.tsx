@@ -21,50 +21,35 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { messageService } from "@/lib/api"
 import { useMessageNotifications } from "@/contexts/MessageNotificationContext"
 import { SearchBar } from "@/components/search-bar"
 import { useCategories } from "@/hooks/use-categories"
+import { useHideOnScroll } from "@/hooks/use-hide-on-scroll"
+import { cn } from "@/lib/utils"
 
 export function Header() {
   const { user, isAuthenticated, logout } = useAuth()
   const { favoriteCount } = useFavorites()
   const { categories } = useCategories()
+  const hidden = useHideOnScroll()
   const { unreadCount: messageCount, notificationCount } = useMessageNotifications()
-  const [latestConversationId, setLatestConversationId] = useState<number | null>(null)
   const [showAuthDialog, setShowAuthDialog] = useState(false)
   const [authTab, setAuthTab] = useState<"login" | "register">("login")
   const { resolvedTheme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
+  const canSell = isAuthenticated && user?.user_type !== "buyer"
 
   useEffect(() => {
     setMounted(true)
   }, [])
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      loadNotifications()
-    }
-  }, [isAuthenticated])
-
-  const loadNotifications = async () => {
-    try {
-      const convResult = await messageService.getConversations()
-      if (convResult.success && Array.isArray((convResult as any).data)) {
-        const convs = (convResult as any).data as any[]
-        let target = convs.find((c) => (c.unread_count || 0) > 0)
-        if (!target) {
-          target = convs.sort((a, b) => new Date(b.updated_at || b.created_at).getTime() - new Date(a.updated_at || a.created_at).getTime())[0]
-        }
-        setLatestConversationId(target ? target.id : null)
-      }
-    } catch (e) {
-      // ignore
-    }
-  }
-
   return (
-    <header className="sticky top-0 z-50 bg-card border-b">
+    <header
+      className={cn(
+        "sticky top-0 z-50 bg-card border-b transition-transform duration-300",
+        hidden ? "-translate-y-full" : "translate-y-0"
+      )}
+    >
       <div className="max-w-7xl mx-auto px-4 lg:px-6">
         <div className="flex items-center justify-between h-16 gap-4">
           <div className="flex items-center gap-4 shrink-0">
@@ -77,6 +62,14 @@ export function Header() {
                 <span data-i18n="publish">Déposer une annonce</span>
               </Button>
             </Link>
+            {canSell && (
+              <Link href="/publish" className="hidden md:block">
+                <Button size="sm" className="gap-1.5">
+                  <Plus className="w-4 h-4" />
+                  Déposer une annonce
+                </Button>
+              </Link>
+            )}
           </div>
 
           <div className="hidden md:block flex-1 max-w-md">
@@ -250,6 +243,14 @@ export function Header() {
                       <span data-i18n="publish">Déposer une annonce</span>
                     </Button>
                   </Link>
+                  {canSell && (
+                    <Link href="/publish">
+                      <Button className="w-full mt-3 gap-1.5">
+                        <Plus className="w-4 h-4" />
+                        Déposer une annonce
+                      </Button>
+                    </Link>
+                  )}
                 </nav>
               </SheetContent>
             </Sheet>

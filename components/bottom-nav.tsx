@@ -4,9 +4,12 @@ import { Home, Search, PlusCircle, Heart, User } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
+import { useAuth } from "@/contexts/AuthContext"
 
 export function BottomNav() {
   const pathname = usePathname()
+  const { user, isAuthenticated } = useAuth()
+  const canSell = isAuthenticated && user?.user_type !== "buyer"
 
   const isActive = (path: string) => {
     if (path === "/") return pathname === "/"
@@ -19,6 +22,11 @@ export function BottomNav() {
     { href: "/publish", icon: PlusCircle, label: "Publier", key: "bottom.publish" },
     { href: "/favorites", icon: Heart, label: "Favoris", key: "bottom.favorites" },
     { href: "/profile", icon: User, label: "Profil", key: "bottom.profile" },
+    { href: "/", icon: Home, label: "Accueil" },
+    { href: "/listings", icon: Search, label: "Recherche" },
+    ...(canSell ? [{ href: "/publish", icon: PlusCircle, label: "Publier" }] : []),
+    { href: "/favorites", icon: Heart, label: "Favoris" },
+    { href: "/profile", icon: User, label: "Profil" },
   ]
 
   return (
@@ -39,6 +47,8 @@ export function BottomNav() {
             >
               <Icon className="w-5 h-5" />
               <span className="text-[10px] font-medium" data-i18n={item.key}>{item.label}</span>
+              <Icon className="w-4 h-4" />
+              <span className="text-[10px] font-medium">{item.label}</span>
             </Link>
           )
         })}

@@ -284,10 +284,12 @@ export const annonceService = {
     user_lat?: number
     user_lng?: number
     distance_km?: number
+    user_id?: number
   }) {
     try {
       const queryParams = new URLSearchParams()
       if (params?.page) queryParams.append('page', params.page.toString())
+      if (params?.user_id !== undefined) queryParams.append('user_id', params.user_id.toString())
       if (params?.category) queryParams.append('category', params.category)
       if (params?.search) queryParams.append('search', params.search)
       if (params?.min_price !== undefined) queryParams.append('min_price', params.min_price.toString())

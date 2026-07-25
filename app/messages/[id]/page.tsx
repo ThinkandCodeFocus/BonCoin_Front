@@ -356,16 +356,21 @@ export default function ConversationPage() {
               )}
 
               {audioBlob && !isRecording && (
-                <div className="flex items-center justify-between rounded-md border p-2">
-                  <span className="text-sm">Vocal prêt ({formatDuration(recordingDuration)})</span>
-                  <div className="flex gap-2">
-                    <Button variant="ghost" size="sm" onClick={cancelRecording}>
-                      Annuler
-                    </Button>
-                    <Button size="sm" onClick={sendAudio} disabled={isSending}>
-                      Envoyer
-                    </Button>
+                <div className="rounded-md border p-2 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">Vocal prêt ({formatDuration(recordingDuration)})</span>
+                    <div className="flex gap-2">
+                      <Button variant="ghost" size="sm" onClick={cancelRecording}>
+                        Annuler
+                      </Button>
+                      <Button size="sm" onClick={sendAudio} disabled={isSending}>
+                        Envoyer
+                      </Button>
+                    </div>
                   </div>
+                  <audio controls className="w-full h-8" src={URL.createObjectURL(audioBlob)}>
+                    Votre navigateur ne supporte pas la lecture audio.
+                  </audio>
                 </div>
               )}
 
