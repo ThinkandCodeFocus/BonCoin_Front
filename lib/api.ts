@@ -1300,6 +1300,79 @@ export const adminService = {
       return handleError(error)
     }
   },
+
+  async getTransactions() {
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/admin/transactions`, {
+        method: 'GET',
+        headers: getHeaders(),
+      })
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw { response: { data: result, status: response.status } }
+      }
+
+      return { success: true, data: result }
+    } catch (error) {
+      return handleError(error)
+    }
+  },
+
+  async resolveDispute(paymentId: number, resolution: 'buyer' | 'seller', adminNotes?: string) {
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/admin/transactions/${paymentId}/resolve-dispute`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({ resolution, admin_notes: adminNotes }),
+      })
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw { response: { data: result, status: response.status } }
+      }
+
+      return { success: true, data: result }
+    } catch (error) {
+      return handleError(error)
+    }
+  },
+
+  async releaseFunds(paymentId: number) {
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/admin/transactions/${paymentId}/release-funds`, {
+        method: 'POST',
+        headers: getHeaders(),
+      })
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw { response: { data: result, status: response.status } }
+      }
+
+      return { success: true, data: result }
+    } catch (error) {
+      return handleError(error)
+    }
+  },
+
+  async refundBuyer(paymentId: number) {
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/admin/transactions/${paymentId}/refund`, {
+        method: 'POST',
+        headers: getHeaders(),
+      })
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw { response: { data: result, status: response.status } }
+      }
+
+      return { success: true, data: result }
+    } catch (error) {
+      return handleError(error)
+    }
+  },
 }
 
 /**
