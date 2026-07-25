@@ -21,6 +21,8 @@ import { ListingRow } from "@/components/listing-row"
 import { ListingPagination } from "@/components/listing-pagination"
 import { SkeletonCard, EmptyState } from "@/components/design-system"
 import { SuggestInput } from "@/components/suggest-input"
+import { CategoryAttributeFilters } from "@/components/category-attribute-filters"
+import { useCategories } from "@/hooks/use-categories"
 
 type SortOption = "recent" | "price_asc" | "price_desc"
 
@@ -37,6 +39,9 @@ function FiltersForm({
   setRadiusKm,
   onUseMyLocation,
   isLocating,
+  selectedCategory,
+  attributeFilters,
+  onAttributeFilterChange,
   onReset,
   onApply,
 }: {
@@ -52,6 +57,9 @@ function FiltersForm({
   setRadiusKm: (v: string) => void
   onUseMyLocation: () => void
   isLocating: boolean
+  selectedCategory: string
+  attributeFilters: Record<string, string>
+  onAttributeFilterChange: (key: string, value: string) => void
   onReset: () => void
   onApply: () => void
 }) {
@@ -106,6 +114,14 @@ function FiltersForm({
         </Select>
       </div>
 
+      {selectedCategory && (
+        <CategoryAttributeFilters
+          categoryId={selectedCategory}
+          values={attributeFilters}
+          onChange={onAttributeFilterChange}
+        />
+      )}
+
       <div>
         <Label htmlFor="radius">Rayon</Label>
         <Select value={radiusKm} onValueChange={setRadiusKm}>
@@ -152,6 +168,7 @@ export default function ListingsPage() {
   const [favorites, setFavorites] = useState<number[]>([])
   const [myPositionCoords, setMyPositionCoords] = useState<{ lat: number; lng: number } | null>(null)
   const [isLocating, setIsLocating] = useState(false)
+  const [attributeFilters, setAttributeFilters] = useState<Record<string, string>>({})
   const { isAuthenticated } = useAuth()
   const { toast } = useToast()
 
@@ -173,7 +190,14 @@ export default function ListingsPage() {
     loadListings(1, coords)
   }
 
+  const { categories } = useCategories()
   const selectedCategory = searchParams.get("category") || ""
+  const selectedCategoryId = (() => {
+    if (!selectedCategory) return ""
+    if (/^\d+$/.test(selectedCategory)) return selectedCategory
+    const match = categories.find((c) => c.name.toLowerCase().includes(selectedCategory.toLowerCase()))
+    return match ? String(match.id) : ""
+  })()
   const urlLocation = searchParams.get("location") || ""
   const urlSearch = searchParams.get("search") || ""
 
@@ -183,6 +207,7 @@ export default function ListingsPage() {
   }, [urlLocation, urlSearch])
 
   useEffect(() => {
+    setAttributeFilters({})
     setCurrentPage(1)
     loadListings(1)
     if (isAuthenticated) {
@@ -190,6 +215,18 @@ export default function ListingsPage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, selectedCategory])
+
+  const handleAttributeFilterChange = (key: string, value: string) => {
+    setAttributeFilters((prev) => {
+      const next = { ...prev }
+      if (value) {
+        next[key] = value
+      } else {
+        delete next[key]
+      }
+      return next
+    })
+  }
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
@@ -201,12 +238,18 @@ export default function ListingsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchQuery])
 
-  const loadListings = async (page = currentPage, positionOverride?: { lat: number; lng: number } | null) => {
+  const loadListings = async (
+    page = currentPage,
+    positionOverride?: { lat: number; lng: number } | null,
+    attributesOverride?: Record<string, string>
+  ) => {
     setIsLoading(true)
     const params: any = { page }
 
     if (searchQuery) params.search = searchQuery
     if (selectedCategory) params.category = selectedCategory
+    const activeAttributes = attributesOverride !== undefined ? attributesOverride : attributeFilters
+    if (Object.keys(activeAttributes).length > 0) params.attributes = activeAttributes
 
     // Filtre par rayon : soit la position précise de l'utilisateur (opt-in,
     // bouton "Utiliser ma position"), soit la ville tapée dans le champ
@@ -333,8 +376,9 @@ export default function ListingsPage() {
     setMyPositionCoords(null)
     setEtatFilter("")
     setRadiusKm("10")
+    setAttributeFilters({})
     setCurrentPage(1)
-    loadListings(1, null)
+    loadListings(1, null, {})
   }
 
   const filteredListings = listings
@@ -407,6 +451,9 @@ export default function ListingsPage() {
                     setRadiusKm={setRadiusKm}
                     onUseMyLocation={useMyLocation}
                     isLocating={isLocating}
+                    selectedCategory={selectedCategoryId}
+                    attributeFilters={attributeFilters}
+                    onAttributeFilterChange={handleAttributeFilterChange}
                     onReset={resetFilters}
                     onApply={() => loadListings(1)}
                   />
@@ -426,11 +473,16 @@ export default function ListingsPage() {
                 priceMax={priceMax}
                 setPriceMax={setPriceMax}
                 locationFilter={locationFilter}
-                setLocationFilter={setLocationFilter}
+                setLocationFilter={handleLocationFilterChange}
                 etatFilter={etatFilter}
                 setEtatFilter={setEtatFilter}
                 radiusKm={radiusKm}
                 setRadiusKm={setRadiusKm}
+                onUseMyLocation={useMyLocation}
+                isLocating={isLocating}
+                selectedCategory={selectedCategoryId}
+                attributeFilters={attributeFilters}
+                onAttributeFilterChange={handleAttributeFilterChange}
                 onReset={resetFilters}
                 onApply={() => loadListings(1)}
               />
