@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext"
 import { useFavorites } from "@/contexts/FavoritesContext"
 import { useToast } from "@/hooks/use-toast"
 import { useI18n } from "@/components/I18nProvider"
+import { useLocationFilter } from "@/hooks/use-location-filter"
 import { annonceService } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { ListingCard, type ListingCardData } from "@/components/listing-card"
@@ -15,20 +16,12 @@ export function FeaturedListings() {
   const [isLoading, setIsLoading] = useState(true)
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
-  const [cityFilter, setCityFilter] = useState("")
-  const [districtFilter, setDistrictFilter] = useState("")
+  const { city: cityFilter, district: districtFilter } = useLocationFilter()
 
   const { isAuthenticated } = useAuth()
   const { isFavorited, addFavorite, removeFavorite } = useFavorites()
   const { toast } = useToast()
   const { t } = useI18n()
-
-  useEffect(() => {
-    const savedCity = localStorage.getItem("location_city") || ""
-    const savedDistrict = localStorage.getItem("location_district") || ""
-    setCityFilter(savedCity)
-    setDistrictFilter(savedDistrict)
-  }, [])
 
   useEffect(() => {
     setCurrentPage(1)
