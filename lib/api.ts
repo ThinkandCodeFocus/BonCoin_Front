@@ -44,6 +44,7 @@ const getHeaders = (includeAuth = true) => {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
+    'Accept-Language': (typeof window !== 'undefined' && localStorage.getItem('lang')) || 'fr',
   }
 
   if (includeAuth) {
