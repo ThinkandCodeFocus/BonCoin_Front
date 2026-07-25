@@ -8,11 +8,12 @@ import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { Package, Heart, Loader2, MapPin, Trash2, Edit3, BellPlus } from "lucide-react"
+import { Package, Heart, Loader2, MapPin, Trash2, Edit3, BellPlus, Rocket } from "lucide-react"
 import Link from "next/link"
 import { useAuth } from "@/contexts/AuthContext"
 import { resolveStorageUrl } from "@/lib/media"
 import { profileService, favoriteService, annonceService, savedSearchService } from "@/lib/api"
+import { BoostDialog } from "@/components/boost-dialog"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import { useFavorites } from "@/contexts/FavoritesContext"
@@ -69,6 +70,7 @@ export default function ProfilePage() {
   const [isLoadingFavorites, setIsLoadingFavorites] = useState(true)
   const [isLoadingSearches, setIsLoadingSearches] = useState(true)
   const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null)
+  const [boostTarget, setBoostTarget] = useState<Annonce | null>(null)
   const { toast } = useToast()
 
   useEffect(() => {
@@ -282,6 +284,10 @@ export default function ProfilePage() {
                                 Modifier
                               </Button>
                             </Link>
+                            <Button size="sm" variant="outline" onClick={() => setBoostTarget(listing)}>
+                              <Rocket className="w-3.5 h-3.5 mr-1" />
+                              Booster
+                            </Button>
                             <Button
                               size="sm"
                               variant="outline"
@@ -368,6 +374,15 @@ export default function ProfilePage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {boostTarget && (
+        <BoostDialog
+          open={!!boostTarget}
+          onOpenChange={(open) => !open && setBoostTarget(null)}
+          annonceId={boostTarget.id}
+          annonceTitle={boostTarget.title}
+        />
+      )}
 
       <BottomNav />
     </div>
