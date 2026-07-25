@@ -7,12 +7,12 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { SlidersHorizontal, Search, LayoutGrid, List as ListIcon } from "lucide-react"
+import { SlidersHorizontal, Search, LayoutGrid, List as ListIcon, BellPlus } from "lucide-react"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import Link from "next/link"
 import { useState, useEffect } from "react"
 import { useSearchParams } from "next/navigation"
-import { annonceService, favoriteService } from "@/lib/api"
+import { annonceService, favoriteService, savedSearchService } from "@/lib/api"
 import { useAuth } from "@/contexts/AuthContext"
 import { useToast } from "@/hooks/use-toast"
 import { getCityCoordinates, SENEGAL_CITIES_COORDS } from "@/lib/geolocation"
@@ -245,6 +245,41 @@ export default function ListingsPage() {
     }
   }
 
+  const saveCurrentSearch = async () => {
+    if (!isAuthenticated) {
+      toast({
+        title: "Connexion requise",
+        description: "Vous devez être connecté pour enregistrer une recherche",
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (!searchQuery && !selectedCategory && !locationFilter) {
+      toast({
+        title: "Recherche vide",
+        description: "Ajoutez un mot-clé, une catégorie ou une ville avant d'enregistrer",
+        variant: "destructive",
+      })
+      return
+    }
+
+    const result = await savedSearchService.create({
+      keyword: searchQuery || undefined,
+      category_id: selectedCategory ? Number(selectedCategory) : undefined,
+      city: locationFilter || undefined,
+      min_price: priceMin ? Number(priceMin) : undefined,
+      max_price: priceMax ? Number(priceMax) : undefined,
+      etat: etatFilter || undefined,
+    })
+
+    if (result.success) {
+      toast({ title: "Recherche enregistrée", description: "Vous serez alerté des nouvelles annonces correspondantes" })
+    } else {
+      toast({ title: "Erreur", description: result.message || "Impossible d'enregistrer la recherche", variant: "destructive" })
+    }
+  }
+
   const resetFilters = () => {
     setPriceMin("")
     setPriceMax("")
@@ -369,6 +404,11 @@ export default function ListingsPage() {
               </div>
 
               <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" onClick={saveCurrentSearch}>
+                  <BellPlus className="w-4 h-4 mr-2" />
+                  Enregistrer cette recherche
+                </Button>
+
                 <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
                   <SelectTrigger className="w-44">
                     <SelectValue />

@@ -1354,3 +1354,71 @@ export const reviewService = {
     }
   },
 }
+
+/**
+ * Service de recherches enregistrées avec alertes
+ */
+export const savedSearchService = {
+  async getAll() {
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/saved-searches`, {
+        method: 'GET',
+        headers: getHeaders(),
+      })
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw { response: { data: result, status: response.status } }
+      }
+
+      return { success: true, data: result }
+    } catch (error) {
+      return handleError(error)
+    }
+  },
+
+  async create(data: {
+    label?: string
+    keyword?: string
+    category_id?: number
+    city?: string
+    min_price?: number
+    max_price?: number
+    etat?: string
+  }) {
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/saved-searches`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(data),
+      })
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw { response: { data: result, status: response.status } }
+      }
+
+      return { success: true, data: result }
+    } catch (error) {
+      return handleError(error)
+    }
+  },
+
+  async delete(id: number) {
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/saved-searches/${id}`, {
+        method: 'DELETE',
+        headers: getHeaders(),
+      })
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw { response: { data: result, status: response.status } }
+      }
+
+      return { success: true, data: result }
+    } catch (error) {
+      return handleError(error)
+    }
+  },
+}
