@@ -92,7 +92,7 @@ export function Footer() {
             <p className="font-semibold">Informations légales</p>
             <div className="flex flex-col gap-1.5 text-muted-foreground">
               <Link href="#" className="hover:text-primary hover:underline">CGU</Link>
-              <Link href="#" className="hover:text-primary hover:underline">Confidentialité</Link>
+              <Link href="#" className="hover:text-primary hover:underline" data-i18n="footer.privacy">Confidentialité</Link>
               <Link href="#" className="hover:text-primary hover:underline">Mentions légales</Link>
               <Link href="#" className="hover:text-primary hover:underline">Cookie Policy</Link>
             </div>
@@ -112,7 +112,7 @@ export function Footer() {
 
       <div className="border-t">
         <div className="max-w-6xl mx-auto px-6 py-3 text-xs text-muted-foreground flex flex-col md:flex-row items-center justify-between gap-2">
-          <span>© 2024 LeMarché. Tous droits réservés.</span>
+          <span data-i18n="footer.copyright">© 2024 LeMarché. Tous droits réservés.</span>
           <span>Dakar, Sénégal</span>
         </div>
       </div>

@@ -14,11 +14,11 @@ export function BottomNav() {
   }
 
   const navItems = [
-    { href: "/", icon: Home, label: "Accueil" },
-    { href: "/listings", icon: Search, label: "Recherche" },
-    { href: "/publish", icon: PlusCircle, label: "Publier" },
-    { href: "/favorites", icon: Heart, label: "Favoris" },
-    { href: "/profile", icon: User, label: "Profil" },
+    { href: "/", icon: Home, label: "Accueil", key: "bottom.home" },
+    { href: "/listings", icon: Search, label: "Recherche", key: "bottom.search" },
+    { href: "/publish", icon: PlusCircle, label: "Publier", key: "bottom.publish" },
+    { href: "/favorites", icon: Heart, label: "Favoris", key: "bottom.favorites" },
+    { href: "/profile", icon: User, label: "Profil", key: "bottom.profile" },
   ]
 
   return (
@@ -38,7 +38,7 @@ export function BottomNav() {
               )}
             >
               <Icon className="w-5 h-5" />
-              <span className="text-[10px] font-medium">{item.label}</span>
+              <span className="text-[10px] font-medium" data-i18n={item.key}>{item.label}</span>
             </Link>
           )
         })}
