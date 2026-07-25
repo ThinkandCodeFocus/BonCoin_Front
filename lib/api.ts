@@ -556,6 +556,27 @@ export const categoryService = {
       return handleError(error)
     }
   },
+
+  /**
+   * Champs specifiques a une categorie (kilometrage, surface, etc.)
+   */
+  async getAttributes(categoryId: number) {
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/categories/${categoryId}/attributes`, {
+        method: 'GET',
+        headers: getHeaders(false),
+      })
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw { response: { data: result, status: response.status } }
+      }
+
+      return { success: true, data: result }
+    } catch (error) {
+      return handleError(error)
+    }
+  },
 }
 
 /**
