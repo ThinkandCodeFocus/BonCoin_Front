@@ -37,7 +37,7 @@ export function Header() {
   const [authTab, setAuthTab] = useState<"login" | "register">("login")
   const { resolvedTheme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
-  const canSell = isAuthenticated && user?.user_type !== "buyer"
+  const showPublishButton = !isAuthenticated || user?.user_type !== "buyer"
 
   useEffect(() => {
     setMounted(true)
@@ -56,17 +56,11 @@ export function Header() {
             <Link href="/" className="flex items-center shrink-0">
               <span className="text-xl font-bold text-primary">LeMarché</span>
             </Link>
-            <Link href="/publish" className="hidden md:block">
-              <Button size="sm" className="gap-1.5">
-                <Plus className="w-4 h-4" />
-                <span data-i18n="publish">Déposer une annonce</span>
-              </Button>
-            </Link>
-            {canSell && (
+            {showPublishButton && (
               <Link href="/publish" className="hidden md:block">
                 <Button size="sm" className="gap-1.5">
                   <Plus className="w-4 h-4" />
-                  Déposer une annonce
+                  <span data-i18n="publish">Déposer une annonce</span>
                 </Button>
               </Link>
             )}
@@ -245,17 +239,11 @@ export function Header() {
                       <span data-i18n="login">Connexion</span>
                     </Button>
                   )}
-                  <Link href="/publish">
-                    <Button className="w-full mt-3 gap-1.5">
-                      <Plus className="w-4 h-4" />
-                      <span data-i18n="publish">Déposer une annonce</span>
-                    </Button>
-                  </Link>
-                  {canSell && (
+                  {showPublishButton && (
                     <Link href="/publish">
                       <Button className="w-full mt-3 gap-1.5">
                         <Plus className="w-4 h-4" />
-                        Déposer une annonce
+                        <span data-i18n="publish">Déposer une annonce</span>
                       </Button>
                     </Link>
                   )}
