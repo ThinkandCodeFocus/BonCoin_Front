@@ -1458,3 +1458,63 @@ export const savedSearchService = {
     }
   },
 }
+
+/**
+ * Service de boost payant (Wave)
+ */
+export const boostService = {
+  async getPlans() {
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/boost/plans`, {
+        method: 'GET',
+        headers: getHeaders(),
+      })
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw { response: { data: result, status: response.status } }
+      }
+
+      return { success: true, data: result }
+    } catch (error) {
+      return handleError(error)
+    }
+  },
+
+  async boostAnnonce(annonceId: number, durationDays: number) {
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/boost/${annonceId}`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({ duration_days: durationDays }),
+      })
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw { response: { data: result, status: response.status } }
+      }
+
+      return { success: true, data: result }
+    } catch (error) {
+      return handleError(error)
+    }
+  },
+
+  async getHistory() {
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/boost/history`, {
+        method: 'GET',
+        headers: getHeaders(),
+      })
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw { response: { data: result, status: response.status } }
+      }
+
+      return { success: true, data: result }
+    } catch (error) {
+      return handleError(error)
+    }
+  },
+}
