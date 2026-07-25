@@ -15,11 +15,12 @@ import { useSearchParams } from "next/navigation"
 import { annonceService, favoriteService } from "@/lib/api"
 import { useAuth } from "@/contexts/AuthContext"
 import { useToast } from "@/hooks/use-toast"
-import { getCityCoordinates } from "@/lib/geolocation"
+import { getCityCoordinates, SENEGAL_CITIES_COORDS } from "@/lib/geolocation"
 import { ListingCard, type ListingCardData } from "@/components/listing-card"
 import { ListingRow } from "@/components/listing-row"
 import { ListingPagination } from "@/components/listing-pagination"
 import { SkeletonCard, EmptyState } from "@/components/design-system"
+import { SuggestInput } from "@/components/suggest-input"
 
 type SortOption = "recent" | "price_asc" | "price_desc"
 
@@ -63,12 +64,13 @@ function FiltersForm({
 
       <div>
         <Label htmlFor="location">Localisation</Label>
-        <Input
+        <SuggestInput
           id="location"
           placeholder="Ville ou code postal"
           className="mt-2"
           value={locationFilter}
-          onChange={(e) => setLocationFilter(e.target.value)}
+          onChange={setLocationFilter}
+          options={Object.keys(SENEGAL_CITIES_COORDS)}
         />
       </div>
 
@@ -169,18 +171,18 @@ export default function ListingsPage() {
     if (searchQuery) params.search = searchQuery
     if (selectedCategory) params.category = selectedCategory
 
-    // Filtre par rayon : basé sur la ville connue (localStorage), jamais sur une
-    // demande de permission de géolocalisation du navigateur (pas obligatoire).
+    // Filtre par rayon : basé sur la ville tapée dans le champ Localisation,
+    // jamais sur une demande de permission de géolocalisation du navigateur
+    // (pas obligatoire). Rien ne renseignait plus "location_city" en
+    // localStorage depuis que la barre de localisation dédiée a été retirée
+    // de l'accueil, donc ce filtre ne faisait plus jamais rien.
     const radius = Number(radiusKm)
-    if (radius > 0) {
-      const savedCity = localStorage.getItem("location_city")
-      if (savedCity) {
-        const cityCoords = getCityCoordinates(savedCity)
-        if (cityCoords) {
-          params.user_lat = cityCoords.lat
-          params.user_lng = cityCoords.lng
-          params.distance_km = radius
-        }
+    if (radius > 0 && locationFilter) {
+      const cityCoords = getCityCoordinates(locationFilter)
+      if (cityCoords) {
+        params.user_lat = cityCoords.lat
+        params.user_lng = cityCoords.lng
+        params.distance_km = radius
       }
     }
 

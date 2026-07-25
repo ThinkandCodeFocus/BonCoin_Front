@@ -21,50 +21,35 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { messageService } from "@/lib/api"
 import { useMessageNotifications } from "@/contexts/MessageNotificationContext"
 import { SearchBar } from "@/components/search-bar"
 import { useCategories } from "@/hooks/use-categories"
+import { useHideOnScroll } from "@/hooks/use-hide-on-scroll"
+import { cn } from "@/lib/utils"
 
 export function Header() {
   const { user, isAuthenticated, logout } = useAuth()
   const { favoriteCount } = useFavorites()
   const { categories } = useCategories()
+  const hidden = useHideOnScroll()
   const { unreadCount: messageCount, notificationCount } = useMessageNotifications()
-  const [latestConversationId, setLatestConversationId] = useState<number | null>(null)
   const [showAuthDialog, setShowAuthDialog] = useState(false)
   const [authTab, setAuthTab] = useState<"login" | "register">("login")
   const { resolvedTheme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
+  const canSell = isAuthenticated && user?.user_type !== "buyer"
 
   useEffect(() => {
     setMounted(true)
   }, [])
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      loadNotifications()
-    }
-  }, [isAuthenticated])
-
-  const loadNotifications = async () => {
-    try {
-      const convResult = await messageService.getConversations()
-      if (convResult.success && Array.isArray((convResult as any).data)) {
-        const convs = (convResult as any).data as any[]
-        let target = convs.find((c) => (c.unread_count || 0) > 0)
-        if (!target) {
-          target = convs.sort((a, b) => new Date(b.updated_at || b.created_at).getTime() - new Date(a.updated_at || a.created_at).getTime())[0]
-        }
-        setLatestConversationId(target ? target.id : null)
-      }
-    } catch (e) {
-      // ignore
-    }
-  }
-
   return (
-    <header className="sticky top-0 z-50 bg-card border-b">
+    <header
+      className={cn(
+        "sticky top-0 z-50 bg-card border-b transition-transform duration-300",
+        hidden ? "-translate-y-full" : "translate-y-0"
+      )}
+    >
       <div className="max-w-7xl mx-auto px-4 lg:px-6">
         <div className="flex items-center justify-between h-16 gap-4">
           <div className="flex items-center gap-4 shrink-0">
@@ -74,9 +59,17 @@ export function Header() {
             <Link href="/publish" className="hidden md:block">
               <Button size="sm" className="gap-1.5">
                 <Plus className="w-4 h-4" />
-                Déposer une annonce
+                <span data-i18n="publish">Déposer une annonce</span>
               </Button>
             </Link>
+            {canSell && (
+              <Link href="/publish" className="hidden md:block">
+                <Button size="sm" className="gap-1.5">
+                  <Plus className="w-4 h-4" />
+                  Déposer une annonce
+                </Button>
+              </Link>
+            )}
           </div>
 
           <div className="hidden md:block flex-1 max-w-md">
@@ -103,7 +96,7 @@ export function Header() {
                 <Link href="/favorites">
                   <Button variant="ghost" size="sm" className="relative gap-1.5">
                     <Heart className="w-4 h-4" />
-                    <span>Favoris</span>
+                    <span data-i18n="favorites">Favoris</span>
                     {favoriteCount > 0 && (
                       <Badge className="ml-1">{favoriteCount}</Badge>
                     )}
@@ -112,7 +105,7 @@ export function Header() {
                 <Link href="/messages">
                   <Button variant="ghost" size="sm" className="relative gap-1.5">
                     <MessageSquare className="w-4 h-4" />
-                    <span>Messages</span>
+                    <span data-i18n="messages">Messages</span>
                     {messageCount > 0 && (
                       <Badge className="ml-1">{messageCount}</Badge>
                     )}
@@ -139,13 +132,13 @@ export function Header() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Mon compte</DropdownMenuLabel>
+                    <DropdownMenuLabel data-i18n="account">Mon compte</DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
-                      <Link href="/profile">Mon profil</Link>
+                      <Link href="/profile" data-i18n="my_profile">Mon profil</Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <Link href="/profile?tab=listings">Mes annonces</Link>
+                      <Link href="/profile?tab=listings" data-i18n="my_listings">Mes annonces</Link>
                     </DropdownMenuItem>
                     {user?.is_admin && (
                       <DropdownMenuItem asChild>
@@ -158,7 +151,7 @@ export function Header() {
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={logout}>
                       <LogOut className="w-4 h-4 mr-2" />
-                      Déconnexion
+                      <span data-i18n="logout">Déconnexion</span>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -175,7 +168,7 @@ export function Header() {
                   className="gap-1.5"
                 >
                   <LogIn className="w-4 h-4" />
-                  Connexion
+                  <span data-i18n="login">Connexion</span>
                 </Button>
                 <Button
                   size="sm"
@@ -184,7 +177,7 @@ export function Header() {
                     setShowAuthDialog(true)
                   }}
                 >
-                  Inscription
+                  <span data-i18n="register">Inscription</span>
                 </Button>
               </>
             )}
@@ -216,27 +209,27 @@ export function Header() {
                   <Link href="/messages">
                     <Button variant="ghost" className="w-full justify-start">
                       <MessageSquare className="w-4 h-4 mr-2" />
-                      Messages
+                      <span data-i18n="messages">Messages</span>
                       {messageCount > 0 && <Badge className="ml-auto">{messageCount}</Badge>}
                     </Button>
                   </Link>
                   <Link href="/notifications">
                     <Button variant="ghost" className="w-full justify-start">
                       <Bell className="w-4 h-4 mr-2" />
-                      Notifications
+                      <span data-i18n="notifications">Notifications</span>
                       {notificationCount > 0 && <Badge className="ml-auto">{notificationCount}</Badge>}
                     </Button>
                   </Link>
                   <Link href="/favorites">
                     <Button variant="ghost" className="w-full justify-start">
                       <Heart className="w-4 h-4 mr-2" />
-                      Favoris
+                      <span data-i18n="favorites">Favoris</span>
                     </Button>
                   </Link>
                   <Link href="/profile">
                     <Button variant="ghost" className="w-full justify-start">
                       <User className="w-4 h-4 mr-2" />
-                      Mon profil
+                      <span data-i18n="my_profile">Mon profil</span>
                     </Button>
                   </Link>
                   {!isAuthenticated && (
@@ -249,15 +242,23 @@ export function Header() {
                       }}
                     >
                       <LogIn className="w-4 h-4 mr-2" />
-                      Connexion
+                      <span data-i18n="login">Connexion</span>
                     </Button>
                   )}
                   <Link href="/publish">
                     <Button className="w-full mt-3 gap-1.5">
                       <Plus className="w-4 h-4" />
-                      Déposer une annonce
+                      <span data-i18n="publish">Déposer une annonce</span>
                     </Button>
                   </Link>
+                  {canSell && (
+                    <Link href="/publish">
+                      <Button className="w-full mt-3 gap-1.5">
+                        <Plus className="w-4 h-4" />
+                        Déposer une annonce
+                      </Button>
+                    </Link>
+                  )}
                 </nav>
               </SheetContent>
             </Sheet>

@@ -44,6 +44,7 @@ const getHeaders = (includeAuth = true) => {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
+    'Accept-Language': (typeof window !== 'undefined' && localStorage.getItem('lang')) || 'fr',
   }
 
   if (includeAuth) {
@@ -283,10 +284,12 @@ export const annonceService = {
     user_lat?: number
     user_lng?: number
     distance_km?: number
+    user_id?: number
   }) {
     try {
       const queryParams = new URLSearchParams()
       if (params?.page) queryParams.append('page', params.page.toString())
+      if (params?.user_id !== undefined) queryParams.append('user_id', params.user_id.toString())
       if (params?.category) queryParams.append('category', params.category)
       if (params?.search) queryParams.append('search', params.search)
       if (params?.min_price !== undefined) queryParams.append('min_price', params.min_price.toString())
@@ -1069,6 +1072,12 @@ export const adminService = {
       if (params?.search) query.set('search', params.search)
 
       const response = await fetch(`${API_CONFIG.baseURL}/admin/users?${query.toString()}`, {
+ * Service de blocage d'utilisateurs
+ */
+export const blockService = {
+  async getAll() {
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/blocks`, {
         method: 'GET',
         headers: getHeaders(),
       })
@@ -1105,6 +1114,9 @@ export const adminService = {
   async suspendUser(id: number) {
     try {
       const response = await fetch(`${API_CONFIG.baseURL}/admin/users/${id}/suspend`, {
+  async block(userId: number) {
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/blocks/${userId}`, {
         method: 'POST',
         headers: getHeaders(),
       })
@@ -1141,6 +1153,9 @@ export const adminService = {
   async deleteUser(id: number) {
     try {
       const response = await fetch(`${API_CONFIG.baseURL}/admin/users/${id}`, {
+  async unblock(userId: number) {
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/blocks/${userId}`, {
         method: 'DELETE',
         headers: getHeaders(),
       })

@@ -16,6 +16,7 @@ interface User {
   created_at: string
   is_admin?: boolean
   suspended_at?: string | null
+  user_type?: "buyer" | "seller" | "both"
 }
 
 interface AuthContextType {

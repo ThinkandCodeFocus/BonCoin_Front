@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Heart, Share2, Flag, MapPin, Phone, MessageCircle, Loader2, ChevronLeft, ChevronRight } from "lucide-react"
+import { Heart, Flag, MapPin, Phone, MessageCircle, Loader2, ChevronLeft, ChevronRight, QrCode } from "lucide-react"
 import { annonceService, favoriteService, messageService } from "@/lib/api"
 import { resolveStorageUrl } from "@/lib/media"
 import { useAuth } from "@/contexts/AuthContext"
@@ -17,6 +17,7 @@ import Link from "next/link"
 import { ReportListingButton } from "@/components/report-listing-button"
 import { formatPrice } from "@/components/design-system"
 import { ListingCard, type ListingCardData } from "@/components/listing-card"
+import { BusinessCardDialog } from "@/components/business-card-dialog"
 
 interface Annonce {
   id: number
@@ -55,6 +56,7 @@ export default function ListingDetailPage() {
   const [isFavorite, setIsFavorite] = useState(false)
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0)
   const [isContacting, setIsContacting] = useState(false)
+  const [showBusinessCard, setShowBusinessCard] = useState(false)
   const [similarListings, setSimilarListings] = useState<ListingCardData[]>([])
 
   useEffect(() => {
@@ -317,8 +319,8 @@ export default function ListingDetailPage() {
                     <Button size="icon" variant="outline" onClick={toggleFavorite}>
                       <Heart className={`w-4 h-4 ${isFavorite ? "fill-current text-destructive" : ""}`} />
                     </Button>
-                    <Button size="icon" variant="outline">
-                      <Share2 className="w-4 h-4" />
+                    <Button size="icon" variant="outline" onClick={() => setShowBusinessCard(true)} title="Carte de visite">
+                      <QrCode className="w-4 h-4" />
                     </Button>
                   </div>
                 </div>
@@ -341,7 +343,9 @@ export default function ListingDetailPage() {
                       <AvatarFallback>{annonce.user.name.charAt(0).toUpperCase()}</AvatarFallback>
                     </Avatar>
                     <div>
-                      <p className="font-medium text-sm">{annonce.user.name}</p>
+                      <Link href={`/sellers/${annonce.user.id}`} className="font-medium text-sm hover:underline">
+                        {annonce.user.name}
+                      </Link>
                       <p className="text-xs text-muted-foreground">Vendeur</p>
                     </div>
                   </div>
@@ -439,6 +443,16 @@ export default function ListingDetailPage() {
           )}
         </div>
       </main>
+
+      <BusinessCardDialog
+        open={showBusinessCard}
+        onOpenChange={setShowBusinessCard}
+        title={annonce.title}
+        subtitle={formatPrice(annonce.price)}
+        imageUrl={photoUrl}
+        url={typeof window !== "undefined" ? `${window.location.origin}/listings/${annonce.id}` : `/listings/${annonce.id}`}
+        fileName={`annonce-${annonce.id}.png`}
+      />
 
       <BottomNav />
     </div>

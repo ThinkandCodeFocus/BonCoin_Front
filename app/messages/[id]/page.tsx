@@ -13,10 +13,20 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Loader2, Mic, Send, ChevronLeft, AudioWaveform, MoreVertical, Flag, UserX } from "lucide-react"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { Loader2, Mic, Send, ChevronLeft, AudioWaveform, MoreVertical, Flag, UserX, UserCheck } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 import { useMessageNotifications } from "@/contexts/MessageNotificationContext"
-import { messageService } from "@/lib/api"
+import { messageService, blockService } from "@/lib/api"
 import { toast } from "sonner"
 import { resolveStorageUrl } from "@/lib/media"
 import { ReportUserButton } from "@/components/report-user-button"
@@ -57,6 +67,9 @@ export default function ConversationPage() {
   const { refreshUnreadCount } = useMessageNotifications()
 
   const [otherUser, setOtherUser] = useState<{ id: number; name: string; photo?: string } | null>(null)
+  const [hasBlockedOther, setHasBlockedOther] = useState(false)
+  const [blockedByOther, setBlockedByOther] = useState(false)
+  const [showBlockConfirm, setShowBlockConfirm] = useState(false)
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -99,7 +112,10 @@ export default function ConversationPage() {
         if (conversationData?.other_user) {
           const other = conversationData.other_user
           setOtherUser({ id: other.id, name: other.name, photo: other.photo })
-        } else if (msgs.length > 0 && user) {
+        }
+        setHasBlockedOther(!!conversationData?.has_blocked_other)
+        setBlockedByOther(!!conversationData?.blocked_by_other)
+        if (!conversationData?.other_user && msgs.length > 0 && user) {
           const otherMsg = msgs.find((m: Message) => m.user_id !== user.id)
           if (otherMsg && otherMsg.user) {
             setOtherUser({ id: otherMsg.user.id, name: otherMsg.user.name, photo: otherMsg.user.photo })
@@ -119,6 +135,30 @@ export default function ConversationPage() {
       if (!silent) toast.error("Erreur de connexion")
     } finally {
       if (!silent) setIsLoading(false)
+    }
+  }
+
+  const handleToggleBlock = async () => {
+    if (!otherUser) return
+
+    if (hasBlockedOther) {
+      const result = await blockService.unblock(otherUser.id)
+      if (result.success) {
+        setHasBlockedOther(false)
+        toast.success("Utilisateur débloqué")
+      } else {
+        toast.error((result as any).message || "Erreur")
+      }
+      return
+    }
+
+    const result = await blockService.block(otherUser.id)
+    if (result.success) {
+      setHasBlockedOther(true)
+      setShowBlockConfirm(false)
+      toast.success("Utilisateur bloqué")
+    } else {
+      toast.error((result as any).message || "Erreur")
     }
   }
 
@@ -275,10 +315,17 @@ export default function ConversationPage() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => toast.info("Fonctionnalité à venir")}>
-                    <UserX className="w-4 h-4 mr-2" />
-                    Bloquer
-                  </DropdownMenuItem>
+                  {hasBlockedOther ? (
+                    <DropdownMenuItem onClick={handleToggleBlock}>
+                      <UserCheck className="w-4 h-4 mr-2" />
+                      Débloquer
+                    </DropdownMenuItem>
+                  ) : (
+                    <DropdownMenuItem onClick={() => setShowBlockConfirm(true)}>
+                      <UserX className="w-4 h-4 mr-2" />
+                      Bloquer
+                    </DropdownMenuItem>
+                  )}
                   <ReportUserButton
                     userId={otherUser?.id || 0}
                     userName={otherUser?.name}
@@ -356,40 +403,69 @@ export default function ConversationPage() {
               )}
 
               {audioBlob && !isRecording && (
-                <div className="flex items-center justify-between rounded-md border p-2">
-                  <span className="text-sm">Vocal prêt ({formatDuration(recordingDuration)})</span>
-                  <div className="flex gap-2">
-                    <Button variant="ghost" size="sm" onClick={cancelRecording}>
-                      Annuler
-                    </Button>
-                    <Button size="sm" onClick={sendAudio} disabled={isSending}>
-                      Envoyer
-                    </Button>
+                <div className="rounded-md border p-2 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">Vocal prêt ({formatDuration(recordingDuration)})</span>
+                    <div className="flex gap-2">
+                      <Button variant="ghost" size="sm" onClick={cancelRecording}>
+                        Annuler
+                      </Button>
+                      <Button size="sm" onClick={sendAudio} disabled={isSending}>
+                        Envoyer
+                      </Button>
+                    </div>
                   </div>
+                  <audio controls className="w-full h-8" src={URL.createObjectURL(audioBlob)}>
+                    Votre navigateur ne supporte pas la lecture audio.
+                  </audio>
                 </div>
               )}
 
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Écrivez votre message..."
-                  value={text}
-                  onChange={(e) => setText(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleSendText()}
-                  disabled={isSending}
-                />
-                {!isRecording && !audioBlob && !text.trim() && (
-                  <Button variant="outline" size="icon" onClick={startRecording} disabled={isSending}>
-                    <Mic className="w-4 h-4" />
+              {hasBlockedOther || blockedByOther ? (
+                <p className="text-sm text-muted-foreground text-center py-2">
+                  {hasBlockedOther
+                    ? "Vous avez bloqué cet utilisateur — débloquez-le pour continuer à échanger."
+                    : "Vous ne pouvez plus échanger avec cet utilisateur."}
+                </p>
+              ) : (
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Écrivez votre message..."
+                    value={text}
+                    onChange={(e) => setText(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleSendText()}
+                    disabled={isSending}
+                  />
+                  {!isRecording && !audioBlob && !text.trim() && (
+                    <Button variant="outline" size="icon" onClick={startRecording} disabled={isSending}>
+                      <Mic className="w-4 h-4" />
+                    </Button>
+                  )}
+                  <Button onClick={handleSendText} disabled={isSending || (!text.trim() && !audioBlob)}>
+                    {isSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                   </Button>
-                )}
-                <Button onClick={handleSendText} disabled={isSending || (!text.trim() && !audioBlob)}>
-                  {isSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                </Button>
-              </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
       </main>
+
+      <AlertDialog open={showBlockConfirm} onOpenChange={setShowBlockConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Bloquer {otherUser?.name} ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Vous ne pourrez plus vous envoyer de messages tant que vous ne l'aurez pas débloqué.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction onClick={handleToggleBlock}>Bloquer</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <BottomNav />
     </div>
   )
