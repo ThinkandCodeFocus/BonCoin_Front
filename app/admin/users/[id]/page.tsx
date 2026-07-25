@@ -29,6 +29,7 @@ interface AdminUser {
   phone?: string
   is_admin: boolean
   suspended_at: string | null
+  is_verified: boolean
   created_at: string
   annonces_count: number
 }
@@ -74,6 +75,22 @@ export default function AdminUserDetailPage() {
     setIsActing(false)
   }
 
+  const handleToggleVerified = async () => {
+    if (!user) return
+    setIsActing(true)
+    const result = user.is_verified
+      ? await adminService.unverifyUser(user.id)
+      : await adminService.verifyUser(user.id)
+
+    if (result.success) {
+      toast.success(user.is_verified ? "Badge vérifié retiré" : "Badge vérifié accordé")
+      await loadUser()
+    } else {
+      toast.error((result as any).message || "Erreur")
+    }
+    setIsActing(false)
+  }
+
   const handleDelete = async () => {
     if (!user) return
     setIsActing(true)
@@ -106,13 +123,16 @@ export default function AdminUserDetailPage() {
             <div className="max-w-xl space-y-4">
               <div className="flex items-center justify-between gap-3 flex-wrap">
                 <h1 className="text-base font-semibold">{user.name}</h1>
-                {user.is_admin ? (
-                  <Badge variant="secondary">Admin</Badge>
-                ) : user.suspended_at ? (
-                  <Badge variant="destructive">Suspendu</Badge>
-                ) : (
-                  <Badge variant="outline">Actif</Badge>
-                )}
+                <div className="flex items-center gap-2">
+                  {user.is_verified && <Badge variant="outline">Vérifié</Badge>}
+                  {user.is_admin ? (
+                    <Badge variant="secondary">Admin</Badge>
+                  ) : user.suspended_at ? (
+                    <Badge variant="destructive">Suspendu</Badge>
+                  ) : (
+                    <Badge variant="outline">Actif</Badge>
+                  )}
+                </div>
               </div>
 
               <Card className="p-4 space-y-2 text-sm">
@@ -141,7 +161,10 @@ export default function AdminUserDetailPage() {
               </Card>
 
               {!user.is_admin && (
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
+                  <Button variant="outline" className="flex-1" onClick={handleToggleVerified} disabled={isActing}>
+                    {user.is_verified ? "Retirer le badge vérifié" : "Accorder le badge vérifié"}
+                  </Button>
                   <Button variant="outline" className="flex-1" onClick={handleToggleSuspend} disabled={isActing}>
                     {user.suspended_at ? "Réactiver" : "Suspendre"}
                   </Button>

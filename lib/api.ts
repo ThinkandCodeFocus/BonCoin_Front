@@ -1162,6 +1162,42 @@ export const adminService = {
     }
   },
 
+  async verifyUser(id: number) {
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/admin/users/${id}/verify`, {
+        method: 'POST',
+        headers: getHeaders(),
+      })
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw { response: { data: result, status: response.status } }
+      }
+
+      return { success: true, data: result }
+    } catch (error) {
+      return handleError(error)
+    }
+  },
+
+  async unverifyUser(id: number) {
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/admin/users/${id}/unverify`, {
+        method: 'POST',
+        headers: getHeaders(),
+      })
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw { response: { data: result, status: response.status } }
+      }
+
+      return { success: true, data: result }
+    } catch (error) {
+      return handleError(error)
+    }
+  },
+
   async deleteUser(id: number) {
     try {
       const response = await fetch(`${API_CONFIG.baseURL}/admin/users/${id}`, {

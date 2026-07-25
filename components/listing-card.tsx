@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { MapPin, Star } from "lucide-react"
+import { MapPin, Star, BadgeCheck } from "lucide-react"
 import { resolveStorageUrl } from "@/lib/media"
 import { formatPrice, TimeAgo, FavoriteButton, BoostedBadge } from "@/components/design-system"
 import { cn } from "@/lib/utils"
@@ -20,6 +20,7 @@ export interface ListingCardData {
     photo?: string
     rating?: number
     rating_count?: number
+    is_verified?: boolean
   }
 }
 
@@ -69,6 +70,7 @@ export function ListingCard({
               </span>
             )}
             <span className="text-xs font-medium truncate">{seller.name}</span>
+            {seller.is_verified && <BadgeCheck className="w-3.5 h-3.5 text-primary shrink-0" aria-label="Vendeur vérifié" />}
             {typeof seller.rating === "number" && (
               <span className="flex items-center gap-0.5 text-xs text-muted-foreground shrink-0">
                 <Star className="w-3 h-3 fill-current" />
