@@ -12,10 +12,12 @@ import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import { ListingCard } from "@/components/listing-card"
 import { EmptyState } from "@/components/design-system"
+import { useI18n } from "@/components/I18nProvider"
 
 export default function FavoritesPage() {
   const { isAuthenticated } = useAuth()
   const { favoriteItems, removeFavorite } = useFavorites()
+  const { t } = useI18n()
   const router = useRouter()
   const { toast } = useToast()
 
@@ -28,7 +30,7 @@ export default function FavoritesPage() {
   const handleRemoveFavorite = async (e: React.MouseEvent, annonceId: number) => {
     e.preventDefault()
     await removeFavorite(annonceId)
-    toast({ title: "Retiré des favoris" })
+    toast({ title: t("toast.removed_fav") })
   }
 
   return (
@@ -37,7 +39,7 @@ export default function FavoritesPage() {
 
       <main className="flex-1 pb-16 md:pb-4 py-6 px-4">
         <div className="max-w-6xl mx-auto">
-          <h1 className="text-xl font-semibold mb-4">Mes favoris</h1>
+          <h1 className="text-xl font-semibold mb-4">{t("favorites.title")}</h1>
 
           {favoriteItems.length === 0 ? (
             <EmptyState
@@ -46,7 +48,7 @@ export default function FavoritesPage() {
               description="Commencez à ajouter des annonces à vos favoris"
               action={
                 <Link href="/listings">
-                  <Button>Parcourir les annonces</Button>
+                  <Button>{t("cta.browse")}</Button>
                 </Link>
               }
             />

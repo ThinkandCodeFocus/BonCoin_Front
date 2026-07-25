@@ -18,6 +18,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import { useFavorites } from "@/contexts/FavoritesContext"
 import { formatPrice, EmptyState } from "@/components/design-system"
+import { useI18n } from "@/components/I18nProvider"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -58,6 +59,7 @@ interface SavedSearch {
 
 export default function ProfilePage() {
   const { user, isAuthenticated } = useAuth()
+  const { t } = useI18n()
   const router = useRouter()
   const searchParams = useSearchParams()
   const tabParam = searchParams.get("tab")
@@ -225,7 +227,7 @@ export default function ProfilePage() {
             </div>
           ) : activeTab === "listings" ? (
             <div className="space-y-3">
-              <h1 className="text-base font-semibold">Mes annonces ({userAnnonces.length})</h1>
+              <h1 className="text-base font-semibold">{t("my_listings")} ({userAnnonces.length})</h1>
               {isLoadingAnnonces ? (
                 <div className="flex justify-center py-8">
                   <Loader2 className="w-6 h-6 animate-spin text-primary" />
@@ -307,7 +309,7 @@ export default function ProfilePage() {
             </div>
           ) : (
             <div className="space-y-3">
-              <h1 className="text-base font-semibold">Favoris ({favorites.length})</h1>
+              <h1 className="text-base font-semibold">{t("favorites")} ({favorites.length})</h1>
               {isLoadingFavorites ? (
                 <div className="flex justify-center py-8">
                   <Loader2 className="w-6 h-6 animate-spin text-primary" />

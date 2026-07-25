@@ -13,9 +13,11 @@ import { Eye, EyeOff } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 import { useRouter } from "next/navigation"
 import { Loader2 } from "lucide-react"
+import { useI18n } from "@/components/I18nProvider"
 
 export default function AuthPage() {
   const { login, register } = useAuth()
+  const { t } = useI18n()
   const router = useRouter()
   const [activeTab, setActiveTab] = useState<"login" | "register">("login")
   const [isLoading, setIsLoading] = useState(false)
@@ -66,12 +68,12 @@ export default function AuthPage() {
       <main className="flex-1 py-12 px-4">
         <div className="max-w-md mx-auto">
           <Card className="p-6">
-            <h1 className="text-lg font-semibold mb-6 text-center">Connexion</h1>
+            <h1 className="text-lg font-semibold mb-6 text-center">{t("login")}</h1>
 
             <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "login" | "register")}>
               <TabsList className="grid w-full grid-cols-2 mb-6">
-                <TabsTrigger value="login">Connexion</TabsTrigger>
-                <TabsTrigger value="register">Inscription</TabsTrigger>
+                <TabsTrigger value="login">{t("login")}</TabsTrigger>
+                <TabsTrigger value="register">{t("register")}</TabsTrigger>
               </TabsList>
 
               <TabsContent value="login">
