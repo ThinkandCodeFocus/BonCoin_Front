@@ -21,6 +21,10 @@ const actionLabels: Record<string, string> = {
   suspend: "a suspendu",
   reactivate: "a réactivé",
   delete: "a supprimé",
+  release_funds: "a versé les fonds pour",
+  refund_buyer: "a remboursé",
+  resolve_dispute_seller: "a résolu (en faveur du vendeur) le litige de",
+  resolve_dispute_buyer: "a résolu (en faveur de l'acheteur) le litige de",
 }
 
 export default function AdminLogsPage() {

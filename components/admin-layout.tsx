@@ -3,13 +3,14 @@
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { useEffect } from "react"
-import { Users, Flag, ScrollText } from "lucide-react"
+import { Users, Flag, ScrollText, Banknote } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useAuth } from "@/contexts/AuthContext"
 
 const navItems = [
   { href: "/admin", label: "Utilisateurs", icon: Users },
   { href: "/admin/reports", label: "Signalements", icon: Flag },
+  { href: "/admin/transactions", label: "Transactions", icon: Banknote },
   { href: "/admin/logs", label: "Journal", icon: ScrollText },
 ]
 
