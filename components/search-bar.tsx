@@ -3,9 +3,10 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Search } from "lucide-react"
-import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { SuggestInput } from "@/components/suggest-input"
 import { useI18n } from "@/components/I18nProvider"
+import { useCategories } from "@/hooks/use-categories"
 
 const RECENT_SEARCHES_KEY = "recent_searches"
 const MAX_RECENT_SEARCHES = 5
@@ -33,6 +34,7 @@ export function SearchBar({ className = "" }: { className?: string }) {
   const router = useRouter()
   const [query, setQuery] = useState("")
   const { t } = useI18n()
+  const { categories } = useCategories()
 
   const runSearch = () => {
     if (query.trim()) pushRecentSearch(query)
@@ -44,12 +46,13 @@ export function SearchBar({ className = "" }: { className?: string }) {
 
   return (
     <div className={`flex items-center border rounded-full bg-background overflow-hidden ${className}`}>
-      <Input
+      <SuggestInput
         placeholder={t("search.placeholder") || "Rechercher sur LeMarché"}
         value={query}
-        onChange={(e) => setQuery(e.target.value)}
+        onChange={setQuery}
+        options={categories.map((c) => c.name)}
         onKeyDown={(e) => e.key === "Enter" && runSearch()}
-        className="border-0 shadow-none focus-visible:ring-0 rounded-none"
+        className="border-0 shadow-none focus-visible:ring-0 rounded-none w-full"
       />
       <Button size="icon" className="rounded-full m-1 shrink-0" onClick={runSearch} aria-label="Rechercher">
         <Search className="w-4 h-4" />
