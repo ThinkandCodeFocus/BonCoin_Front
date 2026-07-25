@@ -1490,12 +1490,12 @@ export const boostService = {
     }
   },
 
-  async boostAnnonce(annonceId: number, durationDays: number) {
+  async boostAnnonce(annonceId: number, durationDays: number, paymentMethod: string = 'wave') {
     try {
       const response = await fetch(`${API_CONFIG.baseURL}/boost/${annonceId}`, {
         method: 'POST',
         headers: getHeaders(),
-        body: JSON.stringify({ duration_days: durationDays }),
+        body: JSON.stringify({ duration_days: durationDays, payment_method: paymentMethod }),
       })
       const result = await response.json()
 
