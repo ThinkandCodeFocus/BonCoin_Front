@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { SlidersHorizontal, Search, LayoutGrid, List as ListIcon, BellPlus } from "lucide-react"
+import { SlidersHorizontal, Search, LayoutGrid, List as ListIcon, BellPlus, LocateFixed } from "lucide-react"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import Link from "next/link"
 import { useState, useEffect } from "react"
@@ -15,7 +15,7 @@ import { useSearchParams } from "next/navigation"
 import { annonceService, favoriteService, savedSearchService } from "@/lib/api"
 import { useAuth } from "@/contexts/AuthContext"
 import { useToast } from "@/hooks/use-toast"
-import { getCityCoordinates, SENEGAL_CITIES_COORDS } from "@/lib/geolocation"
+import { getCityCoordinates, getUserLocation, SENEGAL_CITIES_COORDS } from "@/lib/geolocation"
 import { ListingCard, type ListingCardData } from "@/components/listing-card"
 import { ListingRow } from "@/components/listing-row"
 import { ListingPagination } from "@/components/listing-pagination"
@@ -35,6 +35,8 @@ function FiltersForm({
   setEtatFilter,
   radiusKm,
   setRadiusKm,
+  onUseMyLocation,
+  isLocating,
   onReset,
   onApply,
 }: {
@@ -48,6 +50,8 @@ function FiltersForm({
   setEtatFilter: (v: string) => void
   radiusKm: string
   setRadiusKm: (v: string) => void
+  onUseMyLocation: () => void
+  isLocating: boolean
   onReset: () => void
   onApply: () => void
 }) {
@@ -64,14 +68,27 @@ function FiltersForm({
 
       <div>
         <Label htmlFor="location">Localisation</Label>
-        <SuggestInput
-          id="location"
-          placeholder="Ville ou code postal"
-          className="mt-2"
-          value={locationFilter}
-          onChange={setLocationFilter}
-          options={Object.keys(SENEGAL_CITIES_COORDS)}
-        />
+        <div className="flex items-center gap-2 mt-2">
+          <SuggestInput
+            id="location"
+            placeholder="Ville ou quartier"
+            className="flex-1"
+            value={locationFilter}
+            onChange={setLocationFilter}
+            options={Object.keys(SENEGAL_CITIES_COORDS)}
+          />
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            onClick={onUseMyLocation}
+            disabled={isLocating}
+            title="Utiliser ma position"
+            aria-label="Utiliser ma position"
+          >
+            <LocateFixed className={`w-4 h-4 ${isLocating ? "animate-pulse" : ""}`} />
+          </Button>
+        </div>
       </div>
 
       <div>
@@ -100,7 +117,7 @@ function FiltersForm({
             <SelectItem value="10">10 km</SelectItem>
             <SelectItem value="20">20 km</SelectItem>
             <SelectItem value="50">50 km</SelectItem>
-            <SelectItem value="0">Toute la France</SelectItem>
+            <SelectItem value="0">Tout le Sénégal</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -133,8 +150,28 @@ export default function ListingsPage() {
   const [sortBy, setSortBy] = useState<SortOption>("recent")
   const [viewMode, setViewMode] = useState<"grid" | "list">("list")
   const [favorites, setFavorites] = useState<number[]>([])
+  const [myPositionCoords, setMyPositionCoords] = useState<{ lat: number; lng: number } | null>(null)
+  const [isLocating, setIsLocating] = useState(false)
   const { isAuthenticated } = useAuth()
   const { toast } = useToast()
+
+  const useMyLocation = async () => {
+    setIsLocating(true)
+    const coords = await getUserLocation()
+    setIsLocating(false)
+    if (!coords) {
+      toast({
+        title: "Position indisponible",
+        description: "Impossible d'obtenir votre position. Vérifiez les autorisations de localisation.",
+        variant: "destructive",
+      })
+      return
+    }
+    setMyPositionCoords(coords)
+    setLocationFilter("Ma position actuelle")
+    setCurrentPage(1)
+    loadListings(1, coords)
+  }
 
   const selectedCategory = searchParams.get("category") || ""
   const urlLocation = searchParams.get("location") || ""
@@ -164,20 +201,24 @@ export default function ListingsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchQuery])
 
-  const loadListings = async (page = currentPage) => {
+  const loadListings = async (page = currentPage, positionOverride?: { lat: number; lng: number } | null) => {
     setIsLoading(true)
     const params: any = { page }
 
     if (searchQuery) params.search = searchQuery
     if (selectedCategory) params.category = selectedCategory
 
-    // Filtre par rayon : basé sur la ville tapée dans le champ Localisation,
-    // jamais sur une demande de permission de géolocalisation du navigateur
-    // (pas obligatoire). Rien ne renseignait plus "location_city" en
-    // localStorage depuis que la barre de localisation dédiée a été retirée
-    // de l'accueil, donc ce filtre ne faisait plus jamais rien.
+    // Filtre par rayon : soit la position précise de l'utilisateur (opt-in,
+    // bouton "Utiliser ma position"), soit la ville tapée dans le champ
+    // Localisation. Jamais de demande automatique de géolocalisation au
+    // chargement de la page.
     const radius = Number(radiusKm)
-    if (radius > 0 && locationFilter) {
+    const activeCoords = positionOverride !== undefined ? positionOverride : myPositionCoords
+    if (radius > 0 && activeCoords) {
+      params.user_lat = activeCoords.lat
+      params.user_lng = activeCoords.lng
+      params.distance_km = radius
+    } else if (radius > 0 && locationFilter) {
       const cityCoords = getCityCoordinates(locationFilter)
       if (cityCoords) {
         params.user_lat = cityCoords.lat
@@ -280,14 +321,20 @@ export default function ListingsPage() {
     }
   }
 
+  const handleLocationFilterChange = (value: string) => {
+    setMyPositionCoords(null)
+    setLocationFilter(value)
+  }
+
   const resetFilters = () => {
     setPriceMin("")
     setPriceMax("")
     setLocationFilter("")
+    setMyPositionCoords(null)
     setEtatFilter("")
     setRadiusKm("10")
     setCurrentPage(1)
-    loadListings(1)
+    loadListings(1, null)
   }
 
   const filteredListings = listings
@@ -353,11 +400,13 @@ export default function ListingsPage() {
                     priceMax={priceMax}
                     setPriceMax={setPriceMax}
                     locationFilter={locationFilter}
-                    setLocationFilter={setLocationFilter}
+                    setLocationFilter={handleLocationFilterChange}
                     etatFilter={etatFilter}
                     setEtatFilter={setEtatFilter}
                     radiusKm={radiusKm}
                     setRadiusKm={setRadiusKm}
+                    onUseMyLocation={useMyLocation}
+                    isLocating={isLocating}
                     onReset={resetFilters}
                     onApply={() => loadListings(1)}
                   />
