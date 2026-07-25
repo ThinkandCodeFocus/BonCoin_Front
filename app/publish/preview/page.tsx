@@ -29,6 +29,7 @@ interface PreviewAnnonce {
   hasVideo: boolean
   hasAudio: boolean
   videoPreview?: string
+  attributes?: Record<string, string>
 }
 
 interface PublishDraft {
@@ -110,6 +111,7 @@ export default function PublishPreviewPage() {
         city: data.city,
         district: data.district,
         etat: data.etat,
+        attributes: data.attributes || {},
       }
 
       if (latitude !== undefined && longitude !== undefined) {

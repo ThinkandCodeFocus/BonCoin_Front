@@ -19,6 +19,7 @@ import { useRouter } from "next/navigation"
 import { Checkbox } from "@/components/ui/checkbox"
 import { getCityCoordinates } from "@/lib/geolocation"
 import { convertHeicIfNeeded } from "@/lib/image"
+import { CategoryAttributeFields } from "@/components/category-attribute-fields"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -54,6 +55,7 @@ export default function PublishPage() {
   const [negotiable, setNegotiable] = useState(false)
   const [categoryId, setCategoryId] = useState("")
   const [customCategory, setCustomCategory] = useState("")
+  const [categoryAttributes, setCategoryAttributes] = useState<Record<string, string>>({})
   const [city, setCity] = useState("")
   const [district, setDistrict] = useState("")
   const [etat, setEtat] = useState("")
@@ -331,6 +333,7 @@ export default function PublishPage() {
       hasVideo: !!videoFile,
       hasAudio: !!audioBlob,
       videoPreview: videoPreview || undefined,
+      attributes: categoryAttributes,
     }
     sessionStorage.setItem("preview_annonce", JSON.stringify(payload))
     router.push("/publish/preview")
@@ -374,6 +377,7 @@ export default function PublishPage() {
         city,
         district,
         etat,
+        attributes: categoryAttributes,
       }
 
       // Ajouter les coordonnees si disponibles
@@ -549,7 +553,13 @@ export default function PublishPage() {
 
               <div>
                 <Label htmlFor="category">Catégorie *</Label>
-                <Select value={categoryId} onValueChange={setCategoryId}>
+                <Select
+                  value={categoryId}
+                  onValueChange={(value) => {
+                    setCategoryId(value)
+                    setCategoryAttributes({})
+                  }}
+                >
                   <SelectTrigger id="category" className="mt-2">
                     <SelectValue placeholder="Sélectionner une catégorie" />
                   </SelectTrigger>
@@ -579,6 +589,14 @@ export default function PublishPage() {
                     onChange={(e) => setCustomCategory(e.target.value)}
                   />
                 </div>
+              )}
+
+              {categoryId && (
+                <CategoryAttributeFields
+                  categoryId={categoryId}
+                  values={categoryAttributes}
+                  onChange={(key, value) => setCategoryAttributes((prev) => ({ ...prev, [key]: value }))}
+                />
               )}
 
               <div>

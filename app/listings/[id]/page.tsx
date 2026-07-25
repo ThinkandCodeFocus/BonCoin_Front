@@ -43,6 +43,11 @@ interface Annonce {
     id: number
     name: string
   }
+  attributes?: {
+    key: string
+    label: string
+    value: string
+  }[]
 }
 
 export default function ListingDetailPage() {
@@ -424,6 +429,20 @@ export default function ListingDetailPage() {
                   </div>
                 </div>
               </Card>
+
+              {annonce.attributes && annonce.attributes.length > 0 && (
+                <Card className="p-4">
+                  <h2 className="font-semibold text-sm mb-2">Caractéristiques</h2>
+                  <div className="space-y-1.5 text-sm">
+                    {annonce.attributes.map((attribute) => (
+                      <div key={attribute.key} className="flex justify-between">
+                        <span className="text-muted-foreground">{attribute.label}</span>
+                        <span className="font-medium">{attribute.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+              )}
             </div>
           </div>
 
