@@ -7,9 +7,10 @@ import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Heart, Flag, MapPin, Phone, MessageCircle, Loader2, ChevronLeft, ChevronRight, QrCode, BadgeCheck } from "lucide-react"
+import { Heart, Flag, MapPin, Phone, MessageCircle, MessageSquare, Loader2, ChevronLeft, ChevronRight, QrCode, BadgeCheck } from "lucide-react"
 import { annonceService, favoriteService, messageService } from "@/lib/api"
 import { resolveStorageUrl } from "@/lib/media"
+import { buildWhatsAppLink } from "@/lib/whatsapp"
 import { useAuth } from "@/contexts/AuthContext"
 import { useParams, useRouter } from "next/navigation"
 import { toast } from "sonner"
@@ -373,9 +374,28 @@ export default function ListingDetailPage() {
                 {!isOwner && (
                   <div className="space-y-2">
                     {annonce.user.phone && (
-                      <Button className="w-full" variant="default">
-                        <Phone className="w-4 h-4 mr-2" />
-                        {annonce.user.phone}
+                      <Button className="w-full" variant="default" asChild>
+                        <a href={`tel:${annonce.user.phone}`}>
+                          <Phone className="w-4 h-4 mr-2" />
+                          {annonce.user.phone}
+                        </a>
+                      </Button>
+                    )}
+                    {annonce.user.phone && buildWhatsAppLink(annonce.user.phone) && (
+                      <Button className="w-full bg-[#25D366] hover:bg-[#1ebe57] text-white" asChild>
+                        <a
+                          href={
+                            buildWhatsAppLink(
+                              annonce.user.phone,
+                              `Bonjour, votre annonce "${annonce.title}" sur LeMarché m'intéresse.`
+                            )!
+                          }
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <MessageSquare className="w-4 h-4 mr-2" />
+                          Contacter sur WhatsApp
+                        </a>
                       </Button>
                     )}
                     <Button className="w-full" variant="outline" onClick={contactSeller} disabled={isContacting}>
