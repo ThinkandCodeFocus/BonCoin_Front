@@ -25,9 +25,8 @@ const dmSans = DM_Sans({
 })
 
 export const metadata: Metadata = {
-  title: "Marketplace - Petites annonces",
+  title: "LeMarché - Petites annonces au Sénégal",
   description: "Achat et vente de particulier à particulier au Sénégal",
-  generator: "v0.app",
   icons: {
     icon: [
       {

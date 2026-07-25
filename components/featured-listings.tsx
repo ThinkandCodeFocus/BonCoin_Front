@@ -103,11 +103,12 @@ export function FeaturedListings() {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
-        {listings.map((listing) => (
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-5">
+        {listings.map((listing, i) => (
           <ListingCard
             key={listing.id}
             listing={listing}
+            index={i}
             isFavorited={isFavorited(listing.id)}
             onToggleFavorite={toggleFavorite}
             isRecentlyAdded={isRecentlyAdded(listing.created_at)}
