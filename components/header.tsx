@@ -21,7 +21,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { messageService } from "@/lib/api"
 import { useMessageNotifications } from "@/contexts/MessageNotificationContext"
 import { SearchBar } from "@/components/search-bar"
 import { useCategories } from "@/hooks/use-categories"
@@ -34,7 +33,6 @@ export function Header() {
   const { categories } = useCategories()
   const hidden = useHideOnScroll()
   const { unreadCount: messageCount, notificationCount } = useMessageNotifications()
-  const [latestConversationId, setLatestConversationId] = useState<number | null>(null)
   const [showAuthDialog, setShowAuthDialog] = useState(false)
   const [authTab, setAuthTab] = useState<"login" | "register">("login")
   const { resolvedTheme, setTheme } = useTheme()
@@ -43,28 +41,6 @@ export function Header() {
   useEffect(() => {
     setMounted(true)
   }, [])
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      loadNotifications()
-    }
-  }, [isAuthenticated])
-
-  const loadNotifications = async () => {
-    try {
-      const convResult = await messageService.getConversations()
-      if (convResult.success && Array.isArray((convResult as any).data)) {
-        const convs = (convResult as any).data as any[]
-        let target = convs.find((c) => (c.unread_count || 0) > 0)
-        if (!target) {
-          target = convs.sort((a, b) => new Date(b.updated_at || b.created_at).getTime() - new Date(a.updated_at || a.created_at).getTime())[0]
-        }
-        setLatestConversationId(target ? target.id : null)
-      }
-    } catch (e) {
-      // ignore
-    }
-  }
 
   return (
     <header
