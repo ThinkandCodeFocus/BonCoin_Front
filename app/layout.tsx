@@ -1,6 +1,6 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { Inter } from "next/font/google"
+import { Fraunces, DM_Sans } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import "./globals.css"
 import { Toaster } from "@/components/ui/toaster"
@@ -11,9 +11,17 @@ import { MessageNotificationProvider } from "@/contexts/MessageNotificationConte
 import { MessageNotificationToast } from "@/components/message-notification-toast"
 import { I18nProvider } from "@/components/I18nProvider"
 
-const inter = Inter({
+const fraunces = Fraunces({
   subsets: ["latin"],
-  variable: "--font-inter",
+  variable: "--font-fraunces",
+  weight: "variable",
+  axes: ["opsz", "SOFT", "WONK"],
+  style: ["normal", "italic"],
+})
+
+const dmSans = DM_Sans({
+  subsets: ["latin"],
+  variable: "--font-dm-sans",
 })
 
 export const metadata: Metadata = {
@@ -46,7 +54,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr">
-      <body className={`${inter.variable} font-sans antialiased`}>
+      <body className={`${fraunces.variable} ${dmSans.variable} font-sans antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
           <I18nProvider>
             <AuthProvider>
