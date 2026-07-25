@@ -2,12 +2,13 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Package, Heart, MessageSquare, Settings } from "lucide-react"
+import { Package, Heart, MessageSquare, Settings, BellPlus } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const navItems = [
   { href: "/profile?tab=listings", match: "/profile", label: "Mes annonces", icon: Package },
   { href: "/profile?tab=favorites", match: "/profile", label: "Favoris", icon: Heart },
+  { href: "/profile?tab=searches", match: "/profile", label: "Recherches", icon: BellPlus },
   { href: "/messages", match: "/messages", label: "Messages", icon: MessageSquare },
   { href: "/profile/settings", match: "/profile/settings", label: "Paramètres", icon: Settings },
 ]

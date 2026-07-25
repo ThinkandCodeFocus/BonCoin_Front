@@ -8,11 +8,11 @@ import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { Package, Heart, Loader2, MapPin, Trash2, Edit3 } from "lucide-react"
+import { Package, Heart, Loader2, MapPin, Trash2, Edit3, BellPlus } from "lucide-react"
 import Link from "next/link"
 import { useAuth } from "@/contexts/AuthContext"
 import { resolveStorageUrl } from "@/lib/media"
-import { profileService, favoriteService, annonceService } from "@/lib/api"
+import { profileService, favoriteService, annonceService, savedSearchService } from "@/lib/api"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import { useFavorites } from "@/contexts/FavoritesContext"
@@ -44,16 +44,30 @@ interface Favorite {
   annonce: Annonce
 }
 
+interface SavedSearch {
+  id: number
+  label: string | null
+  keyword: string | null
+  category: { id: number; name: string } | null
+  city: string | null
+  min_price: number | null
+  max_price: number | null
+  etat: string | null
+}
+
 export default function ProfilePage() {
   const { user, isAuthenticated } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
-  const activeTab = searchParams.get("tab") === "favorites" ? "favorites" : "listings"
+  const tabParam = searchParams.get("tab")
+  const activeTab = tabParam === "favorites" ? "favorites" : tabParam === "searches" ? "searches" : "listings"
   const { loadFavorites: reloadFavoritesContext } = useFavorites()
   const [userAnnonces, setUserAnnonces] = useState<Annonce[]>([])
   const [favorites, setFavorites] = useState<Favorite[]>([])
+  const [savedSearches, setSavedSearches] = useState<SavedSearch[]>([])
   const [isLoadingAnnonces, setIsLoadingAnnonces] = useState(true)
   const [isLoadingFavorites, setIsLoadingFavorites] = useState(true)
+  const [isLoadingSearches, setIsLoadingSearches] = useState(true)
   const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null)
   const { toast } = useToast()
 
@@ -65,6 +79,7 @@ export default function ProfilePage() {
 
     loadUserAnnonces()
     loadFavorites()
+    loadSavedSearches()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated])
 
@@ -84,6 +99,37 @@ export default function ProfilePage() {
       setFavorites(Array.isArray(result.data) ? result.data : [])
     }
     setIsLoadingFavorites(false)
+  }
+
+  const loadSavedSearches = async () => {
+    setIsLoadingSearches(true)
+    const result = await savedSearchService.getAll()
+    if (result.success && result.data) {
+      setSavedSearches(result.data.data || [])
+    }
+    setIsLoadingSearches(false)
+  }
+
+  const deleteSavedSearch = async (id: number) => {
+    const result = await savedSearchService.delete(id)
+    if (result.success) {
+      setSavedSearches((prev) => prev.filter((s) => s.id !== id))
+      toast({ title: "Recherche supprimée" })
+    } else {
+      toast({ title: "Erreur", description: result.message || "Suppression échouée", variant: "destructive" })
+    }
+  }
+
+  const describeSavedSearch = (search: SavedSearch) => {
+    const parts: string[] = []
+    if (search.keyword) parts.push(`"${search.keyword}"`)
+    if (search.category) parts.push(search.category.name)
+    if (search.city) parts.push(search.city)
+    if (search.min_price || search.max_price) {
+      parts.push(`${search.min_price ?? 0} - ${search.max_price ?? "∞"} fcfa`)
+    }
+    if (search.etat) parts.push(search.etat)
+    return parts.join(" · ") || "Recherche"
   }
 
   const removeFavorite = async (annonceId: number) => {
@@ -145,7 +191,37 @@ export default function ProfilePage() {
         </div>
 
         <AccountLayout>
-          {activeTab === "listings" ? (
+          {activeTab === "searches" ? (
+            <div className="space-y-3">
+              <h1 className="text-base font-semibold">Recherches enregistrées ({savedSearches.length})</h1>
+              {isLoadingSearches ? (
+                <div className="flex justify-center py-8">
+                  <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                </div>
+              ) : savedSearches.length === 0 ? (
+                <EmptyState
+                  icon={BellPlus}
+                  title="Vous n'avez pas encore de recherche enregistrée"
+                  description="Enregistrez une recherche depuis la page des annonces pour être alerté des nouvelles offres"
+                />
+              ) : (
+                savedSearches.map((search) => (
+                  <Card key={search.id} className="p-3 flex items-center justify-between gap-2">
+                    <p className="text-sm font-medium">{describeSavedSearch(search)}</p>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="text-destructive shrink-0"
+                      onClick={() => deleteSavedSearch(search.id)}
+                    >
+                      <Trash2 className="w-3.5 h-3.5 mr-1" />
+                      Supprimer
+                    </Button>
+                  </Card>
+                ))
+              )}
+            </div>
+          ) : activeTab === "listings" ? (
             <div className="space-y-3">
               <h1 className="text-base font-semibold">Mes annonces ({userAnnonces.length})</h1>
               {isLoadingAnnonces ? (
