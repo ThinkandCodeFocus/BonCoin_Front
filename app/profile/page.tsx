@@ -126,15 +126,22 @@ export default function ProfilePage() {
       <Header />
 
       <main className="flex-1 pb-16 md:pb-4">
-        <div className="max-w-6xl mx-auto px-4 pt-6 flex items-center gap-3">
-          <Avatar className="w-12 h-12">
-            <AvatarImage src={user.photo ? resolveStorageUrl(user.photo) : undefined} />
-            <AvatarFallback>{user.name?.charAt(0).toUpperCase()}</AvatarFallback>
-          </Avatar>
-          <div>
-            <p className="font-semibold">{user.name}</p>
-            <p className="text-sm text-muted-foreground">{user.email}</p>
+        <div className="max-w-6xl mx-auto px-4 pt-6 flex items-center justify-between gap-3 flex-wrap">
+          <div className="flex items-center gap-3">
+            <Avatar className="w-12 h-12">
+              <AvatarImage src={user.photo ? resolveStorageUrl(user.photo) : undefined} />
+              <AvatarFallback>{user.name?.charAt(0).toUpperCase()}</AvatarFallback>
+            </Avatar>
+            <div>
+              <p className="font-semibold">{user.name}</p>
+              <p className="text-sm text-muted-foreground">{user.email}</p>
+            </div>
           </div>
+          <Link href={`/sellers/${user.id}`}>
+            <Button variant="outline" size="sm">
+              Voir ma boutique
+            </Button>
+          </Link>
         </div>
 
         <AccountLayout>
