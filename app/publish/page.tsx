@@ -148,7 +148,7 @@ export default function PublishPage() {
       } catch {
         toast({
           title: t("toast.error") || "Erreur",
-          description: `Impossible de traiter "${file.name}" — essayez un format JPEG ou PNG.`,
+          description: `Impossible de traiter "${file.name}". Essayez un format JPEG ou PNG.`,
           variant: "destructive",
         })
       }

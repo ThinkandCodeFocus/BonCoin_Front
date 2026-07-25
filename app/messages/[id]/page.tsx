@@ -424,7 +424,7 @@ export default function ConversationPage() {
               {hasBlockedOther || blockedByOther ? (
                 <p className="text-sm text-muted-foreground text-center py-2">
                   {hasBlockedOther
-                    ? "Vous avez bloqué cet utilisateur — débloquez-le pour continuer à échanger."
+                    ? "Vous avez bloqué cet utilisateur. Débloquez-le pour continuer à échanger."
                     : "Vous ne pouvez plus échanger avec cet utilisateur."}
                 </p>
               ) : (

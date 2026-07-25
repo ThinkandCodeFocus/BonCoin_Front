@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Download, Share2, Loader2 } from "lucide-react"
@@ -25,34 +25,30 @@ export function BusinessCardDialog({
   url,
   fileName = "carte-de-visite.png",
 }: BusinessCardDialogProps) {
-  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const [canvasEl, setCanvasEl] = useState<HTMLCanvasElement | null>(null)
   const [isGenerating, setIsGenerating] = useState(true)
 
   useEffect(() => {
-    if (!open) return
+    if (!open || !canvasEl) return
     setIsGenerating(true)
-    const canvas = canvasRef.current
-    if (!canvas) return
-    drawBusinessCard(canvas, { title, subtitle, imageUrl, url }).finally(() => setIsGenerating(false))
-  }, [open, title, subtitle, imageUrl, url])
+    drawBusinessCard(canvasEl, { title, subtitle, imageUrl, url }).finally(() => setIsGenerating(false))
+  }, [open, canvasEl, title, subtitle, imageUrl, url])
 
   const handleDownload = () => {
-    const canvas = canvasRef.current
-    if (!canvas) return
+    if (!canvasEl) return
     const link = document.createElement("a")
     link.download = fileName
-    link.href = canvas.toDataURL("image/png")
+    link.href = canvasEl.toDataURL("image/png")
     link.click()
   }
 
   const handleShare = async () => {
-    const canvas = canvasRef.current
-    if (!canvas) return
+    if (!canvasEl) return
 
     try {
-      const file = await canvasToFile(canvas, fileName)
+      const file = await canvasToFile(canvasEl, fileName)
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({ files: [file], title, text: `${title} — ${subtitle}` })
+        await navigator.share({ files: [file], title, text: `${title} (${subtitle})` })
         return
       }
     } catch {
@@ -61,7 +57,7 @@ export function BusinessCardDialog({
 
     // Repli : WhatsApp Web/app avec le lien (le partage de fichier n'est pas
     // possible via une simple URL wa.me, seul le texte l'est).
-    const text = encodeURIComponent(`${title} — ${subtitle}\n${url}`)
+    const text = encodeURIComponent(`${title} (${subtitle})\n${url}`)
     window.open(`https://wa.me/?text=${text}`, "_blank")
   }
 
@@ -71,7 +67,7 @@ export function BusinessCardDialog({
         <DialogHeader>
           <DialogTitle>Carte de visite</DialogTitle>
           <DialogDescription>
-            Téléchargez ou partagez cette carte — le QR code renvoie directement ici.
+            Téléchargez ou partagez cette carte. Le QR code renvoie directement ici.
           </DialogDescription>
         </DialogHeader>
 
@@ -81,7 +77,7 @@ export function BusinessCardDialog({
               <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
             </div>
           )}
-          <canvas ref={canvasRef} className="w-full max-w-[300px] h-auto border rounded-sm" />
+          <canvas ref={setCanvasEl} className="w-full max-w-[300px] h-auto border rounded-sm" />
         </div>
 
         <div className="flex gap-2">
