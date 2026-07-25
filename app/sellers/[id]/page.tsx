@@ -12,6 +12,7 @@ import { resolveStorageUrl } from "@/lib/media"
 import { ListingCard, type ListingCardData } from "@/components/listing-card"
 import { EmptyState } from "@/components/design-system"
 import { BusinessCardDialog } from "@/components/business-card-dialog"
+import { SellerReviews } from "@/components/seller-reviews"
 
 interface Seller {
   name: string
@@ -76,6 +77,11 @@ export default function SellerStorefrontPage() {
                 {listings.map((listing) => (
                   <ListingCard key={listing.id} listing={listing} />
                 ))}
+              </div>
+
+              <div className="mt-10 max-w-2xl">
+                <h2 className="text-base font-semibold mb-4">Avis</h2>
+                <SellerReviews sellerId={sellerId} />
               </div>
             </>
           )}

@@ -1294,3 +1294,63 @@ export const blockService = {
     }
   },
 }
+
+/**
+ * Service d'avis et de notation vendeur
+ */
+export const reviewService = {
+  async getSellerReviews(sellerId: number, page = 1) {
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/sellers/${sellerId}/reviews?page=${page}`, {
+        method: 'GET',
+        headers: getHeaders(false),
+      })
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw { response: { data: result, status: response.status } }
+      }
+
+      return { success: true, data: result }
+    } catch (error) {
+      return handleError(error)
+    }
+  },
+
+  async submitReview(sellerId: number, data: { rating: number; comment?: string; annonce_id?: number }) {
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/sellers/${sellerId}/reviews`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(data),
+      })
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw { response: { data: result, status: response.status } }
+      }
+
+      return { success: true, data: result }
+    } catch (error) {
+      return handleError(error)
+    }
+  },
+
+  async deleteReview(id: number) {
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/reviews/${id}`, {
+        method: 'DELETE',
+        headers: getHeaders(),
+      })
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw { response: { data: result, status: response.status } }
+      }
+
+      return { success: true, data: result }
+    } catch (error) {
+      return handleError(error)
+    }
+  },
+}
