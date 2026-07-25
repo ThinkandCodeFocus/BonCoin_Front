@@ -7,7 +7,7 @@ import { FeaturedListings } from "@/components/featured-listings"
 import { BottomNav } from "@/components/bottom-nav"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
-import { Plus, Sparkles } from "lucide-react"
+import { Plus } from "lucide-react"
 import Link from "next/link"
 
 export default function HomePage() {
@@ -44,10 +44,6 @@ export default function HomePage() {
                 />
               </svg>
 
-              <span className="relative inline-flex items-center gap-1.5 rounded-full border border-current/25 bg-background/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide">
-                <Sparkles className="w-3 h-3" />
-                Sénégal · 100% local
-              </span>
               <h1 className="relative font-display text-3xl md:text-5xl font-bold leading-[1.05] max-w-lg">
                 C'est le moment de vendre
               </h1>
