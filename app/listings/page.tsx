@@ -15,11 +15,12 @@ import { useSearchParams } from "next/navigation"
 import { annonceService, favoriteService } from "@/lib/api"
 import { useAuth } from "@/contexts/AuthContext"
 import { useToast } from "@/hooks/use-toast"
-import { getCityCoordinates } from "@/lib/geolocation"
+import { getCityCoordinates, SENEGAL_CITIES_COORDS } from "@/lib/geolocation"
 import { ListingCard, type ListingCardData } from "@/components/listing-card"
 import { ListingRow } from "@/components/listing-row"
 import { ListingPagination } from "@/components/listing-pagination"
 import { SkeletonCard, EmptyState } from "@/components/design-system"
+import { SuggestInput } from "@/components/suggest-input"
 
 type SortOption = "recent" | "price_asc" | "price_desc"
 
@@ -63,12 +64,13 @@ function FiltersForm({
 
       <div>
         <Label htmlFor="location">Localisation</Label>
-        <Input
+        <SuggestInput
           id="location"
           placeholder="Ville ou code postal"
           className="mt-2"
           value={locationFilter}
-          onChange={(e) => setLocationFilter(e.target.value)}
+          onChange={setLocationFilter}
+          options={Object.keys(SENEGAL_CITIES_COORDS)}
         />
       </div>
 
