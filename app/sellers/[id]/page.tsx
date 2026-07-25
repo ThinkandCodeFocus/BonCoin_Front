@@ -6,7 +6,7 @@ import { Header } from "@/components/header"
 import { BottomNav } from "@/components/bottom-nav"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
-import { QrCode, Loader2 } from "lucide-react"
+import { QrCode, Loader2, BadgeCheck } from "lucide-react"
 import { annonceService } from "@/lib/api"
 import { resolveStorageUrl } from "@/lib/media"
 import { ListingCard, type ListingCardData } from "@/components/listing-card"
@@ -17,6 +17,7 @@ import { SellerReviews } from "@/components/seller-reviews"
 interface Seller {
   name: string
   photo?: string
+  is_verified?: boolean
 }
 
 export default function SellerStorefrontPage() {
@@ -63,7 +64,10 @@ export default function SellerStorefrontPage() {
                     <AvatarFallback className="text-lg">{seller.name.charAt(0).toUpperCase()}</AvatarFallback>
                   </Avatar>
                   <div>
-                    <h1 className="text-lg font-semibold">{seller.name}</h1>
+                    <h1 className="text-lg font-semibold flex items-center gap-1.5">
+                      {seller.name}
+                      {seller.is_verified && <BadgeCheck className="w-4 h-4 text-primary" aria-label="Vendeur vérifié" />}
+                    </h1>
                     <p className="text-sm text-muted-foreground">{listings.length} annonce(s) en ligne</p>
                   </div>
                 </div>

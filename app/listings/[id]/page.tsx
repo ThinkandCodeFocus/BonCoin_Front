@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Heart, Flag, MapPin, Phone, MessageCircle, Loader2, ChevronLeft, ChevronRight, QrCode } from "lucide-react"
+import { Heart, Flag, MapPin, Phone, MessageCircle, Loader2, ChevronLeft, ChevronRight, QrCode, BadgeCheck } from "lucide-react"
 import { annonceService, favoriteService, messageService } from "@/lib/api"
 import { resolveStorageUrl } from "@/lib/media"
 import { useAuth } from "@/contexts/AuthContext"
@@ -39,6 +39,7 @@ interface Annonce {
     name: string
     phone?: string
     photo?: string
+    is_verified?: boolean
   }
   category: {
     id: number
@@ -348,8 +349,9 @@ export default function ListingDetailPage() {
                       <AvatarFallback>{annonce.user.name.charAt(0).toUpperCase()}</AvatarFallback>
                     </Avatar>
                     <div>
-                      <Link href={`/sellers/${annonce.user.id}`} className="font-medium text-sm hover:underline">
+                      <Link href={`/sellers/${annonce.user.id}`} className="font-medium text-sm hover:underline inline-flex items-center gap-1">
                         {annonce.user.name}
+                        {annonce.user.is_verified && <BadgeCheck className="w-3.5 h-3.5 text-primary" aria-label="Vendeur vérifié" />}
                       </Link>
                       <p className="text-xs text-muted-foreground">Vendeur</p>
                     </div>

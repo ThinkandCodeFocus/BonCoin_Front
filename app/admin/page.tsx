@@ -7,7 +7,7 @@ import { BottomNav } from "@/components/bottom-nav"
 import { AdminLayout } from "@/components/admin-layout"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Search, Loader2 } from "lucide-react"
+import { Search, Loader2, BadgeCheck } from "lucide-react"
 import { adminService } from "@/lib/api"
 import { ListingPagination } from "@/components/listing-pagination"
 import { EmptyState } from "@/components/design-system"
@@ -19,6 +19,7 @@ interface AdminUser {
   phone?: string
   is_admin: boolean
   suspended_at: string | null
+  is_verified: boolean
   created_at: string
   annonces_count: number
 }
@@ -91,8 +92,9 @@ export default function AdminUsersPage() {
                     {users.map((u) => (
                       <tr key={u.id} className="border-t">
                         <td className="px-3 py-2">
-                          <Link href={`/admin/users/${u.id}`} className="font-medium hover:underline">
+                          <Link href={`/admin/users/${u.id}`} className="font-medium hover:underline inline-flex items-center gap-1">
                             {u.name}
+                            {u.is_verified && <BadgeCheck className="w-3.5 h-3.5 text-primary" aria-label="Vérifié" />}
                           </Link>
                         </td>
                         <td className="px-3 py-2 text-muted-foreground">
