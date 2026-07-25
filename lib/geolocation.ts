@@ -14,6 +14,16 @@ export const SENEGAL_CITIES_COORDS: Record<string, { lat: number; lng: number }>
   'Kaffrine': { lat: 14.1064, lng: -15.5503 },
   'Kédougou': { lat: 12.5578, lng: -12.1744 },
   'Sédhiou': { lat: 12.7077, lng: -15.5567 },
+  'Rufisque': { lat: 14.7167, lng: -17.2667 },
+  'Guédiawaye': { lat: 14.7833, lng: -17.4100 },
+  'Pikine': { lat: 14.7549, lng: -17.3900 },
+  'Touba': { lat: 14.8667, lng: -15.8833 },
+  'Mbour': { lat: 14.4198, lng: -16.9645 },
+  'Tivaouane': { lat: 14.9500, lng: -16.8167 },
+  'Mbacké': { lat: 14.7936, lng: -15.9067 },
+  'Bambey': { lat: 14.7000, lng: -16.4500 },
+  'Richard-Toll': { lat: 16.4625, lng: -15.7003 },
+  'Joal-Fadiouth': { lat: 14.1667, lng: -16.8333 },
 }
 
 /**
