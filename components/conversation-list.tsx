@@ -9,6 +9,7 @@ import { messageService } from "@/lib/api"
 import { resolveStorageUrl } from "@/lib/media"
 import { EmptyState } from "@/components/design-system"
 import { cn } from "@/lib/utils"
+import { useI18n } from "@/components/I18nProvider"
 
 interface Conversation {
   id: number
@@ -48,6 +49,7 @@ function formatTime(dateString: string) {
 
 export function ConversationList({ activeId }: { activeId?: number }) {
   const { user } = useAuth()
+  const { t } = useI18n()
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(true)
   const [conversations, setConversations] = useState<Conversation[]>([])
@@ -132,7 +134,7 @@ export function ConversationList({ activeId }: { activeId?: number }) {
         {isLoading ? (
           <div className="p-4 text-sm text-muted-foreground">Chargement...</div>
         ) : filteredConversations.length === 0 ? (
-          <EmptyState title="Aucun message" description="Les conversations apparaîtront ici" />
+          <EmptyState title={t("messages.empty_title")} description="Les conversations apparaîtront ici" />
         ) : (
           filteredConversations.map((conv) => {
             const otherUser = getOtherUser(conv)

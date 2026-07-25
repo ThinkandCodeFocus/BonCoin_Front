@@ -145,4 +145,8 @@
   "bottom.publish": "Publier",
   "bottom.favorites": "Favoris",
   "bottom.profile": "Profil"
+  ,
+  "notifications.empty": "Aucune notification pour le moment",
+  "favorites.title": "Mes favoris",
+  "messages.empty_title": "Aucun message"
 }

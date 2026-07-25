@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation"
 import { notificationService } from "@/lib/api"
 import { EmptyState } from "@/components/design-system"
 import { cn } from "@/lib/utils"
+import { useI18n } from "@/components/I18nProvider"
 
 interface Notification {
   id: number
@@ -23,6 +24,7 @@ interface Notification {
 
 export default function NotificationsPage() {
   const { isAuthenticated } = useAuth()
+  const { t } = useI18n()
   const router = useRouter()
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -99,12 +101,12 @@ export default function NotificationsPage() {
       <main className="flex-1 pb-16 md:pb-4 py-6 px-4">
         <div className="max-w-3xl mx-auto">
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-xl font-semibold">Notifications</h1>
+            <h1 className="text-xl font-semibold">{t("notifications")}</h1>
             <Badge variant="secondary">{notifications.filter((n) => !n.read_at).length} non lues</Badge>
           </div>
 
           {notifications.length === 0 ? (
-            <EmptyState icon={Package} title="Aucune notification pour le moment" />
+            <EmptyState icon={Package} title={t("notifications.empty")} />
           ) : (
             <div className="border rounded-lg divide-y overflow-hidden">
               {notifications.map((notification) => {

@@ -145,4 +145,8 @@
   "bottom.publish": "Siiwal",
   "bottom.favorites": "Yiga taamu",
   "bottom.profile": "Kontu"
+  ,
+  "notifications.empty": "Amul benn yéglewaay ci jamono jii.",
+  "favorites.title": "Samay yiga taamu",
+  "messages.empty_title": "Amul bataaxal"
 }
