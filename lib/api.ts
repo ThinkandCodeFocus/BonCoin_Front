@@ -285,6 +285,7 @@ export const annonceService = {
     user_lng?: number
     distance_km?: number
     user_id?: number
+    attributes?: Record<string, string>
   }) {
     try {
       const queryParams = new URLSearchParams()
@@ -303,6 +304,11 @@ export const annonceService = {
       if (params?.user_lat !== undefined) queryParams.append('user_lat', params.user_lat.toString())
       if (params?.user_lng !== undefined) queryParams.append('user_lng', params.user_lng.toString())
       if (params?.distance_km !== undefined) queryParams.append('distance_km', params.distance_km.toString())
+      if (params?.attributes) {
+        Object.entries(params.attributes).forEach(([key, value]) => {
+          if (value) queryParams.append(`attributes[${key}]`, value)
+        })
+      }
 
       const response = await fetch(
         `${API_CONFIG.baseURL}/annonces?${queryParams.toString()}`,
