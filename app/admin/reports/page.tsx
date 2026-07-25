@@ -95,7 +95,7 @@ export default function AdminReportsPage() {
                           <p className="text-sm text-muted-foreground mt-1">{report.description}</p>
                         )}
                         <p className="text-xs text-muted-foreground mt-2">
-                          Signalé par {report.reporter?.name || "—"} · {formatDate(report.created_at)}
+                          Signalé par {report.reporter?.name || "Utilisateur inconnu"} · {formatDate(report.created_at)}
                         </p>
                       </div>
                       {report.status === "pending" && (

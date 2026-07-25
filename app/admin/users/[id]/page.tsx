@@ -142,7 +142,7 @@ export default function AdminUserDetailPage() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Téléphone</span>
-                  <span>{user.phone || "—"}</span>
+                  <span>{user.phone || "Non renseigné"}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Membre depuis</span>
