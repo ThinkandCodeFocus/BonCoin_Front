@@ -16,6 +16,7 @@ interface Notification {
   type: string
   title: string
   body: string
+  link?: string | null
   read_at: string | null
   created_at: string
 }
@@ -47,9 +48,12 @@ export default function NotificationsPage() {
     if (!notification.read_at) {
       await notificationService.markAsRead(notification.id)
       // Mettre à jour localement
-      setNotifications(notifications.map(n => 
+      setNotifications(notifications.map(n =>
         n.id === notification.id ? { ...n, read_at: new Date().toISOString() } : n
       ))
+    }
+    if (notification.link) {
+      router.push(notification.link)
     }
   }
 
