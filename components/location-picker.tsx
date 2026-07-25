@@ -63,7 +63,9 @@ export function LocationPicker() {
         )}
       </div>
 
-      <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 snap-x [scrollbar-width:none]">
+      <div
+        className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 snap-x [scrollbar-width:none] [mask-image:linear-gradient(to_right,transparent,black_16px,black_calc(100%-28px),transparent)] [-webkit-mask-image:linear-gradient(to_right,transparent,black_16px,black_calc(100%-28px),transparent)]"
+      >
         {DAKAR_QUARTIERS.map((quartier) => (
           <button
             key={quartier}
