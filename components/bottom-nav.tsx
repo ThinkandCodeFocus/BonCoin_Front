@@ -19,18 +19,13 @@ export function BottomNav() {
   const navItems = [
     { href: "/", icon: Home, label: "Accueil", key: "bottom.home" },
     { href: "/listings", icon: Search, label: "Recherche", key: "bottom.search" },
-    { href: "/publish", icon: PlusCircle, label: "Publier", key: "bottom.publish" },
+    ...(canSell ? [{ href: "/publish", icon: PlusCircle, label: "Publier", key: "bottom.publish" }] : []),
     { href: "/favorites", icon: Heart, label: "Favoris", key: "bottom.favorites" },
     { href: "/profile", icon: User, label: "Profil", key: "bottom.profile" },
-    { href: "/", icon: Home, label: "Accueil" },
-    { href: "/listings", icon: Search, label: "Recherche" },
-    ...(canSell ? [{ href: "/publish", icon: PlusCircle, label: "Publier" }] : []),
-    { href: "/favorites", icon: Heart, label: "Favoris" },
-    { href: "/profile", icon: User, label: "Profil" },
   ]
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 pb-safe bg-card border-t">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 pb-safe bg-card border-t-2 border-ink">
       <div className="flex items-stretch h-14">
         {navItems.map((item) => {
           const active = isActive(item.href)
@@ -47,8 +42,6 @@ export function BottomNav() {
             >
               <Icon className="w-5 h-5" />
               <span className="text-[10px] font-medium" data-i18n={item.key}>{item.label}</span>
-              <Icon className="w-4 h-4" />
-              <span className="text-[10px] font-medium">{item.label}</span>
             </Link>
           )
         })}

@@ -42,7 +42,7 @@ const taxonomy = [
 
 export function Footer() {
   return (
-    <footer className="mt-12 bg-muted/40 border-t">
+    <footer className="mt-12 bg-muted/40 border-t-2 border-ink">
       <div className="max-w-6xl mx-auto px-6 py-6 text-sm text-muted-foreground border-b">
         Avec LeMarché, trouvez la bonne affaire près de chez vous. Des milliers de petites annonces de particulier à
         particulier et de professionnels dans toutes les catégories : <Link href="/listings?category=Véhicules" className="text-primary hover:underline">véhicules</Link>,{" "}
@@ -72,7 +72,7 @@ export function Footer() {
       <div className="border-t">
         <div className="max-w-6xl mx-auto px-6 py-8 grid gap-8 md:grid-cols-4 text-sm">
           <div className="space-y-3">
-            <p className="text-lg font-bold text-primary">LeMarché</p>
+            <p className="font-display text-xl font-bold text-primary">LeMarché</p>
             <p className="text-muted-foreground">
               La marketplace C2C leader au Sénégal. Simple, rapide et local.
             </p>

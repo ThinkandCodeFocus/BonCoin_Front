@@ -46,7 +46,7 @@ export function Header() {
   return (
     <header
       className={cn(
-        "sticky top-0 z-50 bg-card border-b transition-transform duration-300",
+        "sticky top-0 z-50 bg-card border-b-2 border-ink transition-transform duration-300",
         hidden ? "-translate-y-full" : "translate-y-0"
       )}
     >
@@ -54,7 +54,7 @@ export function Header() {
         <div className="flex items-center justify-between h-16 gap-4">
           <div className="flex items-center gap-4 shrink-0">
             <Link href="/" className="flex items-center shrink-0">
-              <span className="text-xl font-bold text-primary">LeMarché</span>
+              <span className="font-display text-2xl font-bold text-primary -rotate-1">LeMarché</span>
             </Link>
             {showPublishButton && (
               <Link href="/publish" className="hidden md:block">

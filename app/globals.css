@@ -5,44 +5,50 @@
 
 :root {
   /* ============================================
-     COULEURS - THEME CLAIR
-     Palette neutre + une seule couleur d'accent
+     COULEURS - "TERRE DE TERANGA"
+     Blanc casse chaud + fusain, accents terreux
+     (ocre sable / vert foret / brique-safran)
      ============================================ */
 
-  --background: oklch(0.98 0.008 60);
-  --foreground: oklch(0.2 0.01 60);
+  --background: oklch(0.97 0.016 80);
+  --foreground: oklch(0.22 0.03 55);
 
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.2 0.01 60);
+  --card: oklch(0.985 0.012 80);
+  --card-foreground: oklch(0.22 0.03 55);
 
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.2 0.01 60);
+  --popover: oklch(0.985 0.012 80);
+  --popover-foreground: oklch(0.22 0.03 55);
 
-  /* Accent unique : rouille/orange */
-  --primary: oklch(0.5 0.15 40);
-  --primary-foreground: oklch(0.98 0.005 60);
+  /* Ocre sable */
+  --primary: oklch(0.64 0.135 68);
+  --primary-foreground: oklch(0.18 0.03 55);
 
-  --secondary: oklch(0.95 0.005 60);
-  --secondary-foreground: oklch(0.25 0.01 60);
+  /* Vert foret profond */
+  --secondary: oklch(0.32 0.06 152);
+  --secondary-foreground: oklch(0.97 0.014 80);
 
-  --muted: oklch(0.96 0.005 60);
-  --muted-foreground: oklch(0.5 0.01 60);
+  --muted: oklch(0.92 0.022 75);
+  --muted-foreground: oklch(0.44 0.03 60);
 
-  --accent: oklch(0.5 0.15 40);
-  --accent-foreground: oklch(0.98 0.005 60);
+  /* Brique / safran */
+  --accent: oklch(0.5 0.155 42);
+  --accent-foreground: oklch(0.98 0.012 80);
 
-  --destructive: oklch(0.55 0.2 25);
-  --destructive-foreground: oklch(0.98 0.005 60);
+  --destructive: oklch(0.52 0.19 27);
+  --destructive-foreground: oklch(0.98 0.012 80);
 
-  --border: oklch(0.89 0.006 60);
-  --input: oklch(0.89 0.006 60);
-  --ring: oklch(0.5 0.15 40);
+  --border: oklch(0.82 0.03 68);
+  --input: oklch(0.8 0.03 68);
+  --ring: oklch(0.64 0.135 68);
 
-  --chart-1: oklch(0.5 0.15 40);
-  --chart-2: oklch(0.45 0.03 240);
-  --chart-3: oklch(0.6 0.02 60);
-  --chart-4: oklch(0.7 0.02 60);
-  --chart-5: oklch(0.35 0.02 60);
+  /* Fusain : pour bordures/ombres marquees, distinct de --foreground */
+  --ink: oklch(0.22 0.03 55);
+
+  --chart-1: oklch(0.64 0.135 68);
+  --chart-2: oklch(0.32 0.06 152);
+  --chart-3: oklch(0.5 0.155 42);
+  --chart-4: oklch(0.7 0.05 75);
+  --chart-5: oklch(0.4 0.02 60);
 
   --radius: 0.5rem;
 }
@@ -51,40 +57,43 @@
    THEME SOMBRE (DARK MODE)
    ============================================ */
 .dark {
-  --background: oklch(0.16 0.005 60);
-  --foreground: oklch(0.94 0.005 60);
+  --background: oklch(0.19 0.02 50);
+  --foreground: oklch(0.94 0.016 78);
 
-  --card: oklch(0.2 0.006 60);
-  --card-foreground: oklch(0.94 0.005 60);
+  --card: oklch(0.23 0.022 50);
+  --card-foreground: oklch(0.94 0.016 78);
 
-  --popover: oklch(0.2 0.006 60);
-  --popover-foreground: oklch(0.94 0.005 60);
+  --popover: oklch(0.23 0.022 50);
+  --popover-foreground: oklch(0.94 0.016 78);
 
-  --primary: oklch(0.62 0.14 40);
-  --primary-foreground: oklch(0.16 0.005 60);
+  --primary: oklch(0.7 0.13 68);
+  --primary-foreground: oklch(0.19 0.02 50);
 
-  --secondary: oklch(0.26 0.006 60);
-  --secondary-foreground: oklch(0.94 0.005 60);
+  --secondary: oklch(0.42 0.065 152);
+  --secondary-foreground: oklch(0.95 0.014 80);
 
-  --muted: oklch(0.24 0.006 60);
-  --muted-foreground: oklch(0.68 0.008 60);
+  --muted: oklch(0.28 0.022 55);
+  --muted-foreground: oklch(0.72 0.02 70);
 
-  --accent: oklch(0.62 0.14 40);
-  --accent-foreground: oklch(0.16 0.005 60);
+  --accent: oklch(0.6 0.15 42);
+  --accent-foreground: oklch(0.19 0.02 50);
 
-  --destructive: oklch(0.55 0.18 25);
-  --destructive-foreground: oklch(0.98 0.005 60);
+  --destructive: oklch(0.58 0.18 27);
+  --destructive-foreground: oklch(0.97 0.012 80);
 
-  --border: oklch(0.3 0.006 60);
-  --input: oklch(0.28 0.006 60);
-  --ring: oklch(0.62 0.14 40);
+  --border: oklch(0.36 0.025 55);
+  --input: oklch(0.34 0.025 55);
+  --ring: oklch(0.7 0.13 68);
+
+  --ink: oklch(0.94 0.016 78);
 }
 
 /* ============================================
    THEME TAILWIND
    ============================================ */
 @theme inline {
-  --font-sans: var(--font-inter);
+  --font-sans: var(--font-dm-sans);
+  --font-display: var(--font-fraunces);
   --font-mono: "Geist Mono", "Geist Mono Fallback";
 
   --color-background: var(--background);
@@ -106,6 +115,7 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-ink: var(--ink);
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
@@ -134,8 +144,59 @@
   h2,
   h3,
   h4 {
-    letter-spacing: -0.01em;
+    font-family: var(--font-display);
+    letter-spacing: -0.015em;
+    font-weight: 600;
   }
+}
+
+/* ============================================
+   TEXTURE GRAIN — casse l'effet "pixel parfait"
+   Fond fixe en arriere-plan du body (pas un overlay a
+   z-index eleve, pour ne jamais passer au-dessus des
+   dialogs/toasts).
+   ============================================ */
+body {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/></svg>");
+  background-attachment: fixed;
+  background-repeat: repeat;
+}
+
+/* ============================================
+   ELEMENTS GRAPHIQUES "INDIE" — bordures epaisses,
+   ombres portees marquees et decalees
+   ============================================ */
+
+.border-thick {
+  border: 2px solid var(--ink);
+}
+
+/* Ombre portee dure, sans flou, decalee - "bento box indie" */
+.shadow-hard {
+  box-shadow: 5px 5px 0 0 var(--ink);
+}
+
+.shadow-hard-sm {
+  box-shadow: 3px 3px 0 0 var(--ink);
+}
+
+/* Effet de "pression" au clic : l'ombre se retracte, l'element se decale */
+.press-hard {
+  transition: transform 90ms steps(2), box-shadow 90ms steps(2);
+}
+
+.press-hard:active {
+  transform: translate(3px, 3px);
+  box-shadow: 0 0 0 0 var(--ink) !important;
+}
+
+/* Rayon asymetrique pour boutons/cartes "faits main" */
+.radius-indie {
+  border-radius: 14px 6px 14px 6px;
+}
+
+.radius-indie-alt {
+  border-radius: 6px 16px 6px 16px;
 }
 
 /* ============================================

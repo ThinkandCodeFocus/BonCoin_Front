@@ -49,7 +49,7 @@ export function ListingCard({
     <Link
       href={`/listings/${listing.id}`}
       className={cn(
-        "block border rounded-lg overflow-hidden card-interactive",
+        "block bg-card border-2 border-ink radius-indie overflow-hidden shadow-hard-sm press-hard",
         variant === "carousel" && "w-40 shrink-0 snap-start"
       )}
     >
@@ -103,7 +103,7 @@ export function ListingCard({
       </div>
 
       <div className="p-3">
-        <p className="text-lg font-bold">{formatPrice(listing.price)}</p>
+        <p className="font-display text-xl font-semibold">{formatPrice(listing.price)}</p>
         <h3 className="text-sm mt-0.5 line-clamp-2 leading-snug">{listing.title}</h3>
         <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
           <span className="flex items-center gap-1 truncate">
