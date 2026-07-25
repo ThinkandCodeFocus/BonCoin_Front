@@ -7,6 +7,8 @@ import {
   Music,
   Briefcase,
   Dog,
+  PawPrint,
+  Gamepad2,
   MoreHorizontal,
   Gift,
   type LucideIcon,
@@ -21,10 +23,14 @@ const ICONS: Record<string, LucideIcon> = {
   music: Music,
   briefcase: Briefcase,
   dog: Dog,
+  pawprint: PawPrint,
+  "paw-print": PawPrint,
+  gamepad2: Gamepad2,
+  gamepad: Gamepad2,
   "more-horizontal": MoreHorizontal,
 }
 
 export function CategoryIcon({ icon, className }: { icon?: string; className?: string }) {
-  const Icon = (icon && ICONS[icon]) || Gift
+  const Icon = (icon && ICONS[icon.toLowerCase()]) || Gift
   return <Icon className={className} />
 }

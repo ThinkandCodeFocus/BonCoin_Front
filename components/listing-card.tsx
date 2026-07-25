@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { MapPin, Star, BadgeCheck } from "lucide-react"
 import { resolveStorageUrl } from "@/lib/media"
-import { formatPrice, TimeAgo, FavoriteButton, BoostedBadge } from "@/components/design-system"
+import { TimeAgo, FavoriteButton, BoostedBadge } from "@/components/design-system"
 import { cn } from "@/lib/utils"
 
 export interface ListingCardData {
@@ -32,6 +32,7 @@ interface ListingCardProps {
   onToggleFavorite?: (e: React.MouseEvent, id: number) => void
   isRecentlyAdded?: boolean
   variant?: "grid" | "carousel"
+  index?: number
 }
 
 export function ListingCard({
@@ -40,17 +41,31 @@ export function ListingCard({
   onToggleFavorite,
   isRecentlyAdded,
   variant = "grid",
+  index,
 }: ListingCardProps) {
   const photoUrl = resolveStorageUrl(listing.photos?.[0])
   const isBoosted = !!listing.boosted_until && new Date(listing.boosted_until) > new Date()
   const seller = listing.user
+  const tilt =
+    variant === "grid" && typeof index === "number"
+      ? index % 3 === 1
+        ? "md:-rotate-[0.35deg]"
+        : index % 3 === 2
+          ? "md:rotate-[0.35deg]"
+          : ""
+      : ""
+  const priceParts = (() => {
+    const value = typeof listing.price === "string" ? Number(listing.price) : listing.price
+    return Number.isFinite(value) ? new Intl.NumberFormat("fr-FR").format(value) : String(listing.price)
+  })()
 
   return (
     <Link
       href={`/listings/${listing.id}`}
       className={cn(
         "block bg-card border-2 border-ink radius-indie overflow-hidden shadow-hard-sm press-hard",
-        variant === "carousel" && "w-40 shrink-0 snap-start"
+        variant === "carousel" && "w-40 shrink-0 snap-start",
+        tilt
       )}
     >
       <div className="relative aspect-square bg-muted">
@@ -63,15 +78,19 @@ export function ListingCard({
           className="w-full h-full object-cover"
         />
         {seller?.name && (
-          <div className="absolute top-2 left-2 flex items-center gap-1.5 bg-card/95 border rounded-full pl-1 pr-2 py-1 max-w-[85%]">
+          <div className="absolute top-2 left-2 flex items-center gap-1.5 bg-card/95 border-2 border-ink rounded-full pl-1 pr-2 py-1 max-w-[85%] shadow-hard-sm">
             {seller.photo ? (
-              <img src={resolveStorageUrl(seller.photo)} alt="" className="w-5 h-5 rounded-full object-cover shrink-0" />
+              <img
+                src={resolveStorageUrl(seller.photo)}
+                alt=""
+                className="w-6 h-6 rounded-full object-cover shrink-0 border border-ink/20"
+              />
             ) : (
-              <span className="w-5 h-5 rounded-full bg-muted flex items-center justify-center text-[10px] font-semibold shrink-0">
+              <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-[11px] font-bold shrink-0">
                 {seller.name.charAt(0).toUpperCase()}
               </span>
             )}
-            <span className="text-xs font-medium truncate">
+            <span className="text-xs font-semibold truncate">
               {seller.is_professional && seller.business_name ? seller.business_name : seller.name}
             </span>
             {seller.is_professional && (
@@ -103,8 +122,13 @@ export function ListingCard({
       </div>
 
       <div className="p-3">
-        <p className="font-display text-xl font-semibold">{formatPrice(listing.price)}</p>
-        <h3 className="text-sm mt-0.5 line-clamp-2 leading-snug">{listing.title}</h3>
+        <p className="font-display text-2xl font-bold tracking-tight tabular-nums leading-none">
+          {priceParts}
+          <span className="ml-1 font-sans text-[11px] font-semibold tracking-wide text-muted-foreground align-super">
+            FCFA
+          </span>
+        </p>
+        <h3 className="text-sm mt-1.5 line-clamp-2 leading-snug">{listing.title}</h3>
         <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
           <span className="flex items-center gap-1 truncate">
             <MapPin className="w-3 h-3 shrink-0" />
