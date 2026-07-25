@@ -1062,6 +1062,16 @@ export const reportService = {
 }
 
 /**
+ * Service d'administration (réservé aux comptes is_admin)
+ */
+export const adminService = {
+  async getUsers(params?: { page?: number; search?: string }) {
+    try {
+      const query = new URLSearchParams()
+      if (params?.page) query.set('page', String(params.page))
+      if (params?.search) query.set('search', params.search)
+
+      const response = await fetch(`${API_CONFIG.baseURL}/admin/users?${query.toString()}`, {
  * Service de blocage d'utilisateurs
  */
 export const blockService = {
@@ -1083,6 +1093,27 @@ export const blockService = {
     }
   },
 
+  async getUser(id: number) {
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/admin/users/${id}`, {
+        method: 'GET',
+        headers: getHeaders(),
+      })
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw { response: { data: result, status: response.status } }
+      }
+
+      return { success: true, data: result }
+    } catch (error) {
+      return handleError(error)
+    }
+  },
+
+  async suspendUser(id: number) {
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/admin/users/${id}/suspend`, {
   async block(userId: number) {
     try {
       const response = await fetch(`${API_CONFIG.baseURL}/blocks/${userId}`, {
@@ -1101,10 +1132,86 @@ export const blockService = {
     }
   },
 
+  async reactivateUser(id: number) {
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/admin/users/${id}/reactivate`, {
+        method: 'POST',
+        headers: getHeaders(),
+      })
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw { response: { data: result, status: response.status } }
+      }
+
+      return { success: true, data: result }
+    } catch (error) {
+      return handleError(error)
+    }
+  },
+
+  async deleteUser(id: number) {
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/admin/users/${id}`, {
   async unblock(userId: number) {
     try {
       const response = await fetch(`${API_CONFIG.baseURL}/blocks/${userId}`, {
         method: 'DELETE',
+        headers: getHeaders(),
+      })
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw { response: { data: result, status: response.status } }
+      }
+
+      return { success: true, data: result }
+    } catch (error) {
+      return handleError(error)
+    }
+  },
+
+  async getReports() {
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/admin/reports`, {
+        method: 'GET',
+        headers: getHeaders(),
+      })
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw { response: { data: result, status: response.status } }
+      }
+
+      return { success: true, data: result }
+    } catch (error) {
+      return handleError(error)
+    }
+  },
+
+  async reviewReport(id: number, data: { status: 'reviewed' | 'resolved' | 'dismissed'; admin_notes?: string }) {
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/admin/reports/${id}/review`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(data),
+      })
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw { response: { data: result, status: response.status } }
+      }
+
+      return { success: true, data: result }
+    } catch (error) {
+      return handleError(error)
+    }
+  },
+
+  async getLogs() {
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/admin/logs`, {
+        method: 'GET',
         headers: getHeaders(),
       })
       const result = await response.json()
