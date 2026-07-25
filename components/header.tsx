@@ -1,6 +1,6 @@
 "use client"
 
-import { Bell, Heart, MessageSquare, User, Menu, LogOut, LogIn, Moon, Sun, Plus } from "lucide-react"
+import { Bell, Heart, MessageSquare, User, Menu, LogOut, LogIn, Moon, Sun, Plus, ShieldCheck } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
@@ -147,6 +147,14 @@ export function Header() {
                     <DropdownMenuItem asChild>
                       <Link href="/profile?tab=listings">Mes annonces</Link>
                     </DropdownMenuItem>
+                    {user?.is_admin && (
+                      <DropdownMenuItem asChild>
+                        <Link href="/admin">
+                          <ShieldCheck className="w-4 h-4 mr-2" />
+                          Administration
+                        </Link>
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={logout}>
                       <LogOut className="w-4 h-4 mr-2" />
