@@ -43,7 +43,7 @@ export default function PublishPreviewPage() {
   const [data, setData] = useState<PreviewAnnonce | null>(null)
   const [draft, setDraft] = useState<PublishDraft | null>(null)
   const [isLoading, setIsLoading] = useState(false)
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, user } = useAuth()
   const { toast } = useToast()
   const { t } = useI18n()
 
@@ -69,6 +69,16 @@ export default function PublishPreviewPage() {
       toast({
         title: t("toast.login_required") || "Connexion requise",
         description: t("toast.login_required_desc") || "Vous devez etre connecte pour publier une annonce",
+        variant: "destructive",
+      })
+      router.push("/")
+      return
+    }
+
+    if (user?.user_type === "buyer") {
+      toast({
+        title: "Compte acheteur",
+        description: "Votre compte est configuré en acheteur uniquement et ne peut pas déposer d'annonce.",
         variant: "destructive",
       })
       router.push("/")

@@ -36,6 +36,7 @@ export function Header() {
   const [authTab, setAuthTab] = useState<"login" | "register">("login")
   const { resolvedTheme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
+  const canSell = isAuthenticated && user?.user_type !== "buyer"
 
   useEffect(() => {
     setMounted(true)
@@ -71,12 +72,14 @@ export function Header() {
             <Link href="/" className="flex items-center shrink-0">
               <span className="text-xl font-bold text-primary">LeMarché</span>
             </Link>
-            <Link href="/publish" className="hidden md:block">
-              <Button size="sm" className="gap-1.5">
-                <Plus className="w-4 h-4" />
-                Déposer une annonce
-              </Button>
-            </Link>
+            {canSell && (
+              <Link href="/publish" className="hidden md:block">
+                <Button size="sm" className="gap-1.5">
+                  <Plus className="w-4 h-4" />
+                  Déposer une annonce
+                </Button>
+              </Link>
+            )}
           </div>
 
           <div className="hidden md:block flex-1 max-w-md">
@@ -244,12 +247,14 @@ export function Header() {
                       Connexion
                     </Button>
                   )}
-                  <Link href="/publish">
-                    <Button className="w-full mt-3 gap-1.5">
-                      <Plus className="w-4 h-4" />
-                      Déposer une annonce
-                    </Button>
-                  </Link>
+                  {canSell && (
+                    <Link href="/publish">
+                      <Button className="w-full mt-3 gap-1.5">
+                        <Plus className="w-4 h-4" />
+                        Déposer une annonce
+                      </Button>
+                    </Link>
+                  )}
                 </nav>
               </SheetContent>
             </Sheet>
