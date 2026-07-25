@@ -25,11 +25,14 @@ import { messageService } from "@/lib/api"
 import { useMessageNotifications } from "@/contexts/MessageNotificationContext"
 import { SearchBar } from "@/components/search-bar"
 import { useCategories } from "@/hooks/use-categories"
+import { useHideOnScroll } from "@/hooks/use-hide-on-scroll"
+import { cn } from "@/lib/utils"
 
 export function Header() {
   const { user, isAuthenticated, logout } = useAuth()
   const { favoriteCount } = useFavorites()
   const { categories } = useCategories()
+  const hidden = useHideOnScroll()
   const { unreadCount: messageCount, notificationCount } = useMessageNotifications()
   const [latestConversationId, setLatestConversationId] = useState<number | null>(null)
   const [showAuthDialog, setShowAuthDialog] = useState(false)
@@ -64,7 +67,12 @@ export function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-50 bg-card border-b">
+    <header
+      className={cn(
+        "sticky top-0 z-50 bg-card border-b transition-transform duration-300",
+        hidden ? "-translate-y-full" : "translate-y-0"
+      )}
+    >
       <div className="max-w-7xl mx-auto px-4 lg:px-6">
         <div className="flex items-center justify-between h-16 gap-4">
           <div className="flex items-center gap-4 shrink-0">
