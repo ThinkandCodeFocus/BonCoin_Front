@@ -59,16 +59,16 @@ export function ConversationList({ activeId }: { activeId?: number }) {
   const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
-    loadConversations()
-    refreshIntervalRef.current = setInterval(loadConversations, 10000)
+    loadConversations(true)
+    refreshIntervalRef.current = setInterval(() => loadConversations(false), 10000)
     return () => {
       if (refreshIntervalRef.current) clearInterval(refreshIntervalRef.current)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  async function loadConversations() {
-    setIsLoading(true)
+  async function loadConversations(showLoading: boolean) {
+    if (showLoading) setIsLoading(true)
     try {
       const result = await messageService.getConversations()
       if (result.success && Array.isArray((result as any).data)) {
@@ -77,27 +77,29 @@ export function ConversationList({ activeId }: { activeId?: number }) {
         const newUnreadCounts: Record<number, number> = {}
         const newLastMessages: Record<number, MessageData> = {}
 
-        for (const conv of convs) {
-          try {
-            const messagesResult = await messageService.getMessages(conv.id)
-            if (messagesResult.success && Array.isArray((messagesResult as any).data)) {
-              const messages = (messagesResult as any).data as MessageData[]
-              if (messages.length > 0) {
-                newLastMessages[conv.id] = messages[messages.length - 1]
-                newUnreadCounts[conv.id] = messages.filter((m) => m.user_id !== user?.id && !m.read_at).length
+        await Promise.all(
+          convs.map(async (conv) => {
+            try {
+              const messagesResult = await messageService.getMessages(conv.id)
+              if (messagesResult.success && Array.isArray((messagesResult as any).data)) {
+                const messages = (messagesResult as any).data as MessageData[]
+                if (messages.length > 0) {
+                  newLastMessages[conv.id] = messages[messages.length - 1]
+                  newUnreadCounts[conv.id] = messages.filter((m) => m.user_id !== user?.id && !m.read_at).length
+                }
               }
+            } catch {
+              // ignore une conversation en erreur
             }
-          } catch {
-            // ignore une conversation en erreur
-          }
-        }
+          })
+        )
 
         setConversations(convs)
         setUnreadCounts(newUnreadCounts)
         setLastMessages(newLastMessages)
       }
     } finally {
-      setIsLoading(false)
+      if (showLoading) setIsLoading(false)
     }
   }
 
