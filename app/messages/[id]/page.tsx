@@ -31,6 +31,7 @@ import { toast } from "sonner"
 import { resolveStorageUrl } from "@/lib/media"
 import { ReportUserButton } from "@/components/report-user-button"
 import { EmptyState } from "@/components/design-system"
+import { TransactionBanner, type TransactionData } from "@/components/transaction-banner"
 import { cn } from "@/lib/utils"
 
 interface Message {
@@ -71,6 +72,10 @@ export default function ConversationPage() {
   const [blockedByOther, setBlockedByOther] = useState(false)
   const [showBlockConfirm, setShowBlockConfirm] = useState(false)
 
+  const [annonce, setAnnonce] = useState<{ id: number; title: string; price: number; status: string } | null>(null)
+  const [transaction, setTransaction] = useState<TransactionData | null>(null)
+  const [isBuyer, setIsBuyer] = useState(false)
+
   useEffect(() => {
     if (!isAuthenticated) {
       router.push("/")
@@ -82,8 +87,20 @@ export default function ConversationPage() {
       return
     }
     loadMessages()
+    loadConversation()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, conversationId])
+
+  const loadConversation = async () => {
+    const result = await messageService.getConversation(conversationId)
+    if (result.success && (result as any).data) {
+      const data = (result as any).data
+      const conv = data.conversation
+      setAnnonce(conv?.annonce || null)
+      setIsBuyer(!!user && conv?.buyer_id === user.id)
+      setTransaction(data.transaction || null)
+    }
+  }
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -339,6 +356,16 @@ export default function ConversationPage() {
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
+
+            {annonce && (
+              <TransactionBanner
+                conversationId={conversationId}
+                annonce={annonce}
+                transaction={transaction}
+                isBuyer={isBuyer}
+                onUpdate={loadConversation}
+              />
+            )}
 
             <div className="flex-1 overflow-y-auto p-4 space-y-3">
               {isLoading ? (

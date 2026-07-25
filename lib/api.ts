@@ -906,7 +906,28 @@ export const messageService = {
         headers: getHeaders(),
       })
       const result = await response.json()
-      
+
+      if (!response.ok) {
+        throw { response: { data: result, status: response.status } }
+      }
+
+      return { success: true, data: result }
+    } catch (error) {
+      return handleError(error)
+    }
+  },
+
+  /**
+   * Récupérer une conversation (annonce + transaction escrow liée)
+   */
+  async getConversation(conversationId: number) {
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/conversations/${conversationId}`, {
+        method: 'GET',
+        headers: getHeaders(),
+      })
+      const result = await response.json()
+
       if (!response.ok) {
         throw { response: { data: result, status: response.status } }
       }
@@ -1514,6 +1535,100 @@ export const boostService = {
       const response = await fetch(`${API_CONFIG.baseURL}/boost/history`, {
         method: 'GET',
         headers: getHeaders(),
+      })
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw { response: { data: result, status: response.status } }
+      }
+
+      return { success: true, data: result }
+    } catch (error) {
+      return handleError(error)
+    }
+  },
+}
+
+export const transactionService = {
+  async initiate(conversationId: number, paymentMethod: string = 'wave') {
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/conversations/${conversationId}/transaction`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({ payment_method: paymentMethod }),
+      })
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw { response: { data: result, status: response.status } }
+      }
+
+      return { success: true, data: result }
+    } catch (error) {
+      return handleError(error)
+    }
+  },
+
+  async getHistory() {
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/transactions/history`, {
+        method: 'GET',
+        headers: getHeaders(),
+      })
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw { response: { data: result, status: response.status } }
+      }
+
+      return { success: true, data: result }
+    } catch (error) {
+      return handleError(error)
+    }
+  },
+
+  async getTransaction(paymentId: number) {
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/transactions/${paymentId}`, {
+        method: 'GET',
+        headers: getHeaders(),
+      })
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw { response: { data: result, status: response.status } }
+      }
+
+      return { success: true, data: result }
+    } catch (error) {
+      return handleError(error)
+    }
+  },
+
+  async confirmReceipt(paymentId: number) {
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/transactions/${paymentId}/confirm-receipt`, {
+        method: 'POST',
+        headers: getHeaders(),
+      })
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw { response: { data: result, status: response.status } }
+      }
+
+      return { success: true, data: result }
+    } catch (error) {
+      return handleError(error)
+    }
+  },
+
+  async openDispute(paymentId: number, reason: string) {
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/transactions/${paymentId}/dispute`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({ reason }),
       })
       const result = await response.json()
 
