@@ -174,12 +174,15 @@ export function TransactionBanner({ conversationId, annonce, transaction, isBuye
   return (
     <div className="px-4 py-3 border-b shrink-0 space-y-2">
       {content}
+      {/* Paiement désactivé : en attente de l'intégration des API Wave / Orange Money.
+          Décommenter une fois le circuit de paiement actif.
       {showPayButton && (
         <Button size="sm" onClick={() => setShowPayDialog(true)} className="gap-1.5">
           <Wallet className="w-3.5 h-3.5" />
           Payer maintenant
         </Button>
       )}
+      */}
       {showConfirmRow && (
         <div className="flex flex-wrap gap-2">
           <Button size="sm" onClick={() => setShowConfirmDialog(true)}>
