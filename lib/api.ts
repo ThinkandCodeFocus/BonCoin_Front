@@ -1264,6 +1264,24 @@ export const adminService = {
     }
   },
 
+  async scrapeSync() {
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/admin/scrape-sync`, {
+        method: 'POST',
+        headers: getHeaders(),
+      })
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw { response: { data: result, status: response.status } }
+      }
+
+      return { success: true, data: result }
+    } catch (error) {
+      return handleError(error)
+    }
+  },
+
   async getReports() {
     try {
       const response = await fetch(`${API_CONFIG.baseURL}/admin/reports`, {

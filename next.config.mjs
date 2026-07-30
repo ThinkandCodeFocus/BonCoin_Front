@@ -36,6 +36,21 @@ const nextConfig = {
         pathname: '/storage/**',
       },
       {
+        protocol: 'https',
+        hostname: 'kabirex.com',
+        pathname: '/wp-content/uploads/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'soumari.com',
+        pathname: '/wp-content/uploads/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'digitalstores.sn',
+        pathname: '/wp-content/uploads/**',
+      },
+      {
         protocol: 'http',
         hostname: '127.0.0.1',
         port: '8000',

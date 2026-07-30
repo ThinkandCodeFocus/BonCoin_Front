@@ -12,7 +12,7 @@ const navItems = [
   { href: "/admin/reports", label: "Signalements", icon: Flag },
   { href: "/admin/transactions", label: "Transactions", icon: Banknote },
   { href: "/admin/logs", label: "Journal", icon: ScrollText },
-  { href: "/admin/texpress", label: "Import T-Express", icon: RefreshCw },
+  { href: "/admin/texpress", label: "Import produits", icon: RefreshCw },
 ]
 
 export function AdminLayout({ children }: { children: React.ReactNode }) {
