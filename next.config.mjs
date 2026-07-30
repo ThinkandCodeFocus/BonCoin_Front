@@ -6,7 +6,10 @@ const nextConfig = {
   // Proxy des images vers Laravel pour éviter les problèmes CORS
   async rewrites() {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api';
-    const backendUrl = apiUrl.replace('/api', '');
+    // Ne retirer que le suffixe "/api" final : un simple .replace('/api', '')
+    // matche par erreur le premier "/api" rencontré, ce qui casse les hôtes
+    // commençant par "api." (ex: https://api.think-and-code.com/api).
+    const backendUrl = apiUrl.replace(/\/api\/?$/, '');
     
     return [
       {
