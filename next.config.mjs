@@ -26,6 +26,16 @@ const nextConfig = {
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     remotePatterns: [
       {
+        protocol: 'https',
+        hostname: 'api.think-and-code.com',
+        pathname: '/storage/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 't-express-backend.onrender.com',
+        pathname: '/storage/**',
+      },
+      {
         protocol: 'http',
         hostname: '127.0.0.1',
         port: '8000',
