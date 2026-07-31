@@ -27,8 +27,9 @@ export async function generateMetadata({
     return { title: "Annonce introuvable | LeMarché" }
   }
 
-  const isJob = !!annonce.apply_url
-  const priceLabel = isJob ? "" : ` - ${new Intl.NumberFormat("fr-FR").format(Number(annonce.price) || 0)} FCFA`
+  const priceLabel = annonce.is_job_listing
+    ? ""
+    : ` - ${new Intl.NumberFormat("fr-FR").format(Number(annonce.price) || 0)} FCFA`
   const title = `${annonce.title}${priceLabel} | LeMarché`
   const rawDescription = (annonce.description || "").replace(/\s+/g, " ").trim()
   const description = rawDescription

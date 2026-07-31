@@ -28,6 +28,7 @@ const actionLabels: Record<string, string> = {
   texpress_sync: "a synchronisé les offres T-Express",
   scrape_sync: "a lancé le scraping des sites partenaires",
   job_sync: "a importé les offres d'emploi",
+  real_estate_sync: "a importé des biens immobiliers",
 }
 
 export default function AdminLogsPage() {
@@ -68,7 +69,7 @@ export default function AdminLogsPage() {
                   <div key={log.id} className="p-3 text-sm">
                     <span className="font-medium">{log.admin?.name || "Admin"}</span>{" "}
                     {actionLabels[log.action] || log.action}{" "}
-                    {!["texpress_sync", "scrape_sync", "job_sync"].includes(log.action) && (
+                    {!["texpress_sync", "scrape_sync", "job_sync", "real_estate_sync"].includes(log.action) && (
                       <span className="font-medium">{log.target_user?.name || "un compte supprimé"}</span>
                     )}
                     {log.details && <p className="text-xs text-muted-foreground mt-1">{log.details}</p>}

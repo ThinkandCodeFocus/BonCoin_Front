@@ -5,7 +5,7 @@ import { Header } from "@/components/header"
 import { BottomNav } from "@/components/bottom-nav"
 import { AdminLayout } from "@/components/admin-layout"
 import { Button } from "@/components/ui/button"
-import { Loader2, RefreshCw, Globe, Briefcase, CheckCircle2, AlertCircle } from "lucide-react"
+import { Loader2, RefreshCw, Globe, Briefcase, Home, CheckCircle2, AlertCircle } from "lucide-react"
 import { adminService } from "@/lib/api"
 
 function ResultBanner({ children }: { children: React.ReactNode }) {
@@ -82,6 +82,10 @@ export default function AdminTexpressPage() {
   const [jobsResult, setJobsResult] = useState<{ created: number; updated: number; errors: string[] } | null>(null)
   const [jobsError, setJobsError] = useState<string | null>(null)
 
+  const [realEstateLoading, setRealEstateLoading] = useState(false)
+  const [realEstateResult, setRealEstateResult] = useState<{ created: number; updated: number; errors: string[] } | null>(null)
+  const [realEstateError, setRealEstateError] = useState<string | null>(null)
+
   const handleSyncTexpress = async () => {
     setTexpressLoading(true)
     setTexpressResult(null)
@@ -112,6 +116,22 @@ export default function AdminTexpressPage() {
     }
 
     setJobsLoading(false)
+  }
+
+  const handleRealEstateSync = async () => {
+    setRealEstateLoading(true)
+    setRealEstateResult(null)
+    setRealEstateError(null)
+
+    const response = await adminService.syncRealEstate()
+
+    if (response.success && response.data) {
+      setRealEstateResult(response.data)
+    } else {
+      setRealEstateError((response as { message?: string }).message || "Échec de l'import")
+    }
+
+    setRealEstateLoading(false)
   }
 
   return (
@@ -184,6 +204,33 @@ export default function AdminTexpressPage() {
                 </ResultBanner>
               )}
               {jobsError && <ErrorBanner message={jobsError} />}
+            </div>
+
+            <div className="space-y-4 border-t pt-6">
+              <h2 className="text-base font-semibold">Immobilier</h2>
+              <p className="text-sm text-muted-foreground">
+                Importe des biens depuis des agences partenaires (2S Immobilier). Comme pour l'emploi, le lien vers
+                l'annonce d'origine est public (bouton "Voir l'annonce sur le site") — pas de messagerie, impossible
+                de livrer un bien immobilier. Contrairement à l'emploi, le prix reste affiché.
+              </p>
+
+              <Button onClick={handleRealEstateSync} disabled={realEstateLoading} variant="secondary" className="gap-2">
+                {realEstateLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Home className="w-4 h-4" />}
+                Récupérer les biens immobiliers
+              </Button>
+
+              {realEstateResult && (
+                <ResultBanner>
+                  <p className="font-medium">Import terminé</p>
+                  <p className="text-muted-foreground">
+                    {realEstateResult.created} bien(s) créé(s), {realEstateResult.updated} mise(s) à jour.
+                  </p>
+                  {realEstateResult.errors.length > 0 && (
+                    <p className="text-destructive mt-1">{realEstateResult.errors.join(" · ")}</p>
+                  )}
+                </ResultBanner>
+              )}
+              {realEstateError && <ErrorBanner message={realEstateError} />}
             </div>
           </div>
         </AdminLayout>

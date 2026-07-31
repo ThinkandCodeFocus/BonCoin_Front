@@ -25,7 +25,7 @@ export function ListingRow({ listing, isFavorited = false, onToggleFavorite }: L
         <ListingThumbnail
           src={listing.photos?.[0] ? photoUrl : undefined}
           alt={listing.title}
-          isJob={!!listing.apply_url}
+          isJob={!!listing.is_job_listing}
           className="w-full h-full"
         />
       </div>
@@ -33,7 +33,7 @@ export function ListingRow({ listing, isFavorited = false, onToggleFavorite }: L
       <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
         <div>
           <h3 className="font-medium line-clamp-1">{listing.title}</h3>
-          {listing.apply_url ? (
+          {listing.is_job_listing ? (
             <p className="text-sm font-bold mt-1 text-primary">Offre d'emploi</p>
           ) : (
             <p className="text-lg font-bold mt-1">{formatPrice(listing.price)}</p>

@@ -44,6 +44,7 @@ interface Annonce {
   custom_category: string | null
   created_at: string
   apply_url?: string | null
+  is_job_listing?: boolean
   photos?: string[]
   videos?: string[]
   audios?: string[]
@@ -273,7 +274,7 @@ export function ListingDetailClient() {
                 <ListingThumbnail
                   src={annonce.photos?.[currentPhotoIndex] ? photoUrl : undefined}
                   alt={annonce.title}
-                  isJob={!!annonce.apply_url}
+                  isJob={!!annonce.is_job_listing}
                   className="w-full h-full"
                 />
                 {annonce.photos && annonce.photos.length > 1 && (
@@ -345,7 +346,7 @@ export function ListingDetailClient() {
                 <div className="flex items-start justify-between gap-3 mb-3">
                   <div className="flex-1 min-w-0">
                     <h1 className="text-xl font-semibold mb-1 line-clamp-3 break-words">{annonce.title}</h1>
-                    {!annonce.apply_url && <p className="text-2xl font-bold">{formatPrice(annonce.price)}</p>}
+                    {!annonce.is_job_listing && <p className="text-2xl font-bold">{formatPrice(annonce.price)}</p>}
                     {annonce.negotiable && (
                       <Badge variant="secondary" className="mt-2">
                         Prix négociable
@@ -404,11 +405,13 @@ export function ListingDetailClient() {
                     <Button className="w-full" variant="default" asChild>
                       <a href={annonce.apply_url} target="_blank" rel="noopener noreferrer">
                         <ExternalLink className="w-4 h-4 mr-2" />
-                        Postuler sur le site
+                        {annonce.is_job_listing ? "Postuler sur le site" : "Voir l'annonce sur le site"}
                       </a>
                     </Button>
                     <p className="text-xs text-muted-foreground text-center">
-                      Vous serez redirigé vers le site où l'offre a été publiée.
+                      {annonce.is_job_listing
+                        ? "Vous serez redirigé vers le site où l'offre a été publiée."
+                        : "Vous serez redirigé vers le site de l'agence pour la contacter."}
                     </p>
                   </div>
                 )}

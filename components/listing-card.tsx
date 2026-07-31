@@ -17,6 +17,7 @@ export interface ListingCardData {
   photos?: string[]
   created_at: string
   apply_url?: string | null
+  is_job_listing?: boolean
   user?: {
     name: string
     photo?: string
@@ -74,7 +75,7 @@ export function ListingCard({
         <ListingThumbnail
           src={listing.photos?.[0] ? photoUrl : undefined}
           alt={listing.title}
-          isJob={!!listing.apply_url}
+          isJob={!!listing.is_job_listing}
           className="w-full h-full"
         />
         {seller?.name && (
@@ -122,7 +123,7 @@ export function ListingCard({
       </div>
 
       <div className="p-3">
-        {listing.apply_url ? (
+        {listing.is_job_listing ? (
           <p className="font-display text-sm font-bold tracking-tight leading-none text-primary">Offre d'emploi</p>
         ) : (
           <p className="font-display text-2xl font-bold tracking-tight tabular-nums leading-none">

@@ -41,6 +41,7 @@ interface Annonce {
   city: string
   district: string
   apply_url?: string | null
+  is_job_listing?: boolean
 }
 
 interface Favorite {
@@ -254,14 +255,14 @@ export default function ProfilePage() {
                         <ListingThumbnail
                           src={listing.photos?.[0] ? photoUrl : undefined}
                           alt={listing.title}
-                          isJob={!!listing.apply_url}
+                          isJob={!!listing.is_job_listing}
                           className="w-24 h-24 rounded-md border shrink-0"
                         />
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between gap-2 mb-1">
                             <div className="flex-1 min-w-0">
                               <h3 className="font-medium line-clamp-2 break-words">{listing.title}</h3>
-                              {!listing.apply_url && <p className="text-lg font-bold">{formatPrice(listing.price)}</p>}
+                              {!listing.is_job_listing && <p className="text-lg font-bold">{formatPrice(listing.price)}</p>}
                             </div>
                             <Badge variant={listing.status === "Disponible" ? "default" : "secondary"}>
                               {listing.status}
@@ -328,7 +329,7 @@ export default function ProfilePage() {
                           <ListingThumbnail
                             src={annonce.photos?.[0] ? photoUrl : undefined}
                             alt={annonce.title}
-                            isJob={!!annonce.apply_url}
+                            isJob={!!annonce.is_job_listing}
                             className="w-full aspect-square"
                           />
                         </Link>
@@ -336,7 +337,7 @@ export default function ProfilePage() {
                           <Link href={`/listings/${annonce.id}`}>
                             <h3 className="font-medium mb-1 line-clamp-2 text-sm">{annonce.title}</h3>
                           </Link>
-                          {!annonce.apply_url && <p className="text-lg font-bold mb-1">{formatPrice(annonce.price)}</p>}
+                          {!annonce.is_job_listing && <p className="text-lg font-bold mb-1">{formatPrice(annonce.price)}</p>}
                           <div className="flex items-center text-xs text-muted-foreground mb-2">
                             <MapPin className="w-3 h-3 mr-1" />
                             {annonce.city}, {annonce.district}
