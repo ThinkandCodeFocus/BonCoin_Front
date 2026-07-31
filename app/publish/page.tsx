@@ -15,7 +15,8 @@ import { useToast } from "@/hooks/use-toast"
 import { useI18n } from "@/components/I18nProvider"
 import { useAuth } from "@/contexts/AuthContext"
 import { annonceService, categoryService } from "@/lib/api"
-import { useRouter } from "next/navigation"
+import { resolveStorageUrl } from "@/lib/media"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Checkbox } from "@/components/ui/checkbox"
 import { getCityCoordinates } from "@/lib/geolocation"
 import { convertHeicIfNeeded } from "@/lib/image"
@@ -45,7 +46,13 @@ export default function PublishPage() {
   const { toast } = useToast()
   const { isAuthenticated, user } = useAuth()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { t } = useI18n()
+
+  const editId = searchParams.get("edit")
+  const isEditMode = !!editId
+  const [isLoadingExisting, setIsLoadingExisting] = useState(isEditMode)
+  const [existingPhotoUrls, setExistingPhotoUrls] = useState<string[]>([])
 
   // Form state
   const [showPublishConfirm, setShowPublishConfirm] = useState(false)
@@ -94,6 +101,50 @@ export default function PublishPage() {
     loadCategories()
   }, [isAuthenticated, user])
 
+  useEffect(() => {
+    if (!editId) return
+
+    const loadExisting = async () => {
+      setIsLoadingExisting(true)
+      const result = await annonceService.getById(Number(editId))
+      const annonce = (result as any).data?.data || (result as any).data
+
+      if (!result.success || !annonce) {
+        toast({
+          title: t("toast.error") || "Erreur",
+          description: "Impossible de charger l'annonce à modifier",
+          variant: "destructive",
+        })
+        router.push("/profile?tab=listings")
+        return
+      }
+
+      setTitle(annonce.title || "")
+      setDescription(annonce.description || "")
+      setPrice(annonce.price !== undefined ? String(annonce.price) : "")
+      setNegotiable(!!annonce.negotiable)
+      setCategoryId(annonce.category?.id ? String(annonce.category.id) : "")
+      setCustomCategory(annonce.custom_category || "")
+      setCity(annonce.city || "")
+      setDistrict(annonce.district || "")
+      setEtat(annonce.etat || "")
+      setExistingPhotoUrls(annonce.photos || [])
+
+      if (Array.isArray(annonce.attributes)) {
+        const attrs: Record<string, string> = {}
+        for (const a of annonce.attributes) {
+          if (a?.key) attrs[a.key] = a.value ?? ""
+        }
+        setCategoryAttributes(attrs)
+      }
+
+      setIsLoadingExisting(false)
+    }
+
+    loadExisting()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editId])
+
   const loadCategories = async () => {
     try {
       const result = await categoryService.getAll()
@@ -137,7 +188,7 @@ export default function PublishPage() {
     const files = e.target.files
     if (!files) return
 
-    const selectedFiles = Array.from(files).slice(0, 5 - imageFiles.length)
+    const selectedFiles = Array.from(files).slice(0, 5 - existingPhotoUrls.length - imageFiles.length)
 
     // Convertit les photos HEIC/HEIF (format par défaut iPhone) en JPEG : sans
     // ça, l'aperçu reste vide et l'upload peut être rejeté par le serveur.
@@ -280,7 +331,7 @@ export default function PublishPage() {
       return false
     }
 
-    if (imageFiles.length < 2) {
+    if (existingPhotoUrls.length + imageFiles.length < 2) {
       toast({
         title: t("publish.photos_required") || "Photos obligatoires",
         description: t("publish.photos_required_desc") || "Veuillez ajouter au moins 2 photos",
@@ -396,19 +447,21 @@ export default function PublishPage() {
         annonceData.longitude = longitude
       }
 
-      console.log('Creating annonce with data:', annonceData)
-      const result = await annonceService.create(annonceData)
-      console.log('Create result:', result)
-      
-      const annonceId = result.data?.data?.id || result.data?.id
-      if (!result.success && !annonceId) {
-        const errorMessage = result.errors 
+      console.log(isEditMode ? 'Updating annonce with data:' : 'Creating annonce with data:', annonceData)
+      const result = isEditMode
+        ? await annonceService.update(Number(editId), annonceData)
+        : await annonceService.create(annonceData)
+      console.log('Result:', result)
+
+      const annonceId = isEditMode ? Number(editId) : (result.data?.data?.id || result.data?.id)
+      if (!result.success && (isEditMode || !annonceId)) {
+        const errorMessage = result.errors
           ? Object.entries(result.errors).map(([field, messages]) => {
               return `${field}: ${Array.isArray(messages) ? messages.join(', ') : messages}`
             }).join('\n')
-          : result.message || "Erreur lors de la creation"
+          : result.message || (isEditMode ? "Erreur lors de la modification" : "Erreur lors de la creation")
         toast({
-          title: t("publish.create_error") || "Erreur de creation",
+          title: t("publish.create_error") || (isEditMode ? "Erreur de modification" : "Erreur de creation"),
           description: errorMessage,
           variant: "destructive",
         })
@@ -469,8 +522,10 @@ export default function PublishPage() {
       }
 
       toast({
-        title: t("publish.create_success") || "Creation avec succes",
-        description: t("publish.create_success_desc") || "Votre annonce est maintenant en ligne",
+        title: isEditMode ? "Modification enregistrée" : (t("publish.create_success") || "Creation avec succes"),
+        description: isEditMode
+          ? "Votre annonce a été mise à jour"
+          : (t("publish.create_success_desc") || "Votre annonce est maintenant en ligne"),
       })
 
       router.push(`/listings/${annonceId}`)
@@ -494,14 +549,24 @@ export default function PublishPage() {
 
       <main className="flex-1 pb-16 md:pb-4 py-6 px-4">
         <div className="max-w-2xl mx-auto">
-          <h1 className="text-xl font-semibold mb-6">Déposer une annonce</h1>
+          <h1 className="text-xl font-semibold mb-6">{isEditMode ? "Modifier l'annonce" : "Déposer une annonce"}</h1>
 
+          {isLoadingExisting ? (
+            <div className="flex justify-center py-16">
+              <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : (
           <form onSubmit={handleSubmit} className="space-y-6">
             <section className="space-y-4">
               <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Photos</h2>
               <div>
                 <Label>Photos (min 2, max 5) *</Label>
                 <div className="mt-2 grid grid-cols-3 md:grid-cols-5 gap-3">
+                  {existingPhotoUrls.map((url, idx) => (
+                    <div key={`existing-${idx}`} className="relative aspect-square rounded-md overflow-hidden border">
+                      <img src={resolveStorageUrl(url)} alt="" className="w-full h-full object-cover" />
+                    </div>
+                  ))}
                   {imagePreviews.map((img, idx) => (
                     <div key={idx} className="relative aspect-square rounded-md overflow-hidden border">
                       <img src={img} alt="" className="w-full h-full object-cover" />
@@ -516,7 +581,7 @@ export default function PublishPage() {
                       </Button>
                     </div>
                   ))}
-                  {imageFiles.length < 5 && (
+                  {existingPhotoUrls.length + imageFiles.length < 5 && (
                     <label className="aspect-square rounded-md border-2 border-dashed flex items-center justify-center cursor-pointer hover:bg-muted transition-colors">
                       <Upload className="w-5 h-5 text-muted-foreground" />
                       <input type="file" accept="image/*" multiple className="hidden" onChange={handleImageUpload} />
@@ -800,26 +865,29 @@ export default function PublishPage() {
                     Publication...
                   </>
                 ) : (
-                  "Publier l'annonce"
+                  isEditMode ? "Enregistrer les modifications" : "Publier l'annonce"
                 )}
               </Button>
             </div>
           </form>
+          )}
         </div>
       </main>
 
       <AlertDialog open={showPublishConfirm} onOpenChange={setShowPublishConfirm}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirmer la publication</AlertDialogTitle>
+            <AlertDialogTitle>{isEditMode ? "Confirmer les modifications" : "Confirmer la publication"}</AlertDialogTitle>
             <AlertDialogDescription>
-              Voulez-vous publier cette annonce maintenant ?
+              {isEditMode
+                ? "Voulez-vous enregistrer les modifications de cette annonce ?"
+                : "Voulez-vous publier cette annonce maintenant ?"}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isLoading}>Annuler</AlertDialogCancel>
             <AlertDialogAction onClick={publishAnnonce} disabled={isLoading}>
-              Publier
+              {isEditMode ? "Enregistrer" : "Publier"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

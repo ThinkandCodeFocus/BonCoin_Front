@@ -20,6 +20,16 @@ import { formatPrice } from "@/components/design-system"
 import { ListingCard, type ListingCardData } from "@/components/listing-card"
 import { ListingThumbnail } from "@/components/listing-thumbnail"
 import { BusinessCardDialog } from "@/components/business-card-dialog"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 interface Annonce {
   id: number
@@ -68,6 +78,8 @@ export default function ListingDetailPage() {
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0)
   const [isContacting, setIsContacting] = useState(false)
   const [showBusinessCard, setShowBusinessCard] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
   const [similarListings, setSimilarListings] = useState<ListingCardData[]>([])
 
   useEffect(() => {
@@ -181,6 +193,22 @@ export default function ListingDetailPage() {
       toast.error("Erreur lors de la création de la conversation")
     } finally {
       setIsContacting(false)
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!annonce) return
+
+    setIsDeleting(true)
+    const result = await annonceService.delete(annonce.id)
+    setIsDeleting(false)
+    setShowDeleteConfirm(false)
+
+    if (result.success) {
+      toast.success("Annonce supprimée")
+      router.push("/profile?tab=listings")
+    } else {
+      toast.error((result as any).message || "Suppression échouée")
     }
   }
 
@@ -428,7 +456,13 @@ export default function ListingDetailPage() {
                         Modifier
                       </Button>
                     </Link>
-                    <Button className="w-full" variant="destructive">
+                    <Button
+                      className="w-full"
+                      variant="destructive"
+                      onClick={() => setShowDeleteConfirm(true)}
+                      disabled={isDeleting}
+                    >
+                      {isDeleting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
                       Supprimer
                     </Button>
                   </div>
@@ -513,6 +547,21 @@ export default function ListingDetailPage() {
         url={typeof window !== "undefined" ? `${window.location.origin}/listings/${annonce.id}` : `/listings/${annonce.id}`}
         fileName={`annonce-${annonce.id}.png`}
       />
+
+      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Supprimer l'annonce</AlertDialogTitle>
+            <AlertDialogDescription>
+              Cette action est définitive. Voulez-vous vraiment supprimer cette annonce ?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete}>Supprimer</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <BottomNav />
     </div>

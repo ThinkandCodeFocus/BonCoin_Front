@@ -431,9 +431,13 @@ export const annonceService = {
     price: number
     negotiable: boolean
     category_id: number
+    custom_category: string | null
     city: string
     district: string
+    latitude: number
+    longitude: number
     etat: string
+    attributes: Record<string, string>
   }>) {
     try {
       const response = await fetch(`${API_CONFIG.baseURL}/annonces/${id}`, {
