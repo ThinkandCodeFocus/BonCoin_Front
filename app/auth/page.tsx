@@ -2,7 +2,8 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
+import Script from "next/script"
 import { Header } from "@/components/header"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -15,12 +16,53 @@ import { useRouter } from "next/navigation"
 import { Loader2 } from "lucide-react"
 import { useI18n } from "@/components/I18nProvider"
 
+declare global {
+  interface Window {
+    google?: {
+      accounts: {
+        id: {
+          initialize: (config: {
+            client_id: string
+            callback: (response: { credential: string }) => void
+          }) => void
+          renderButton: (parent: HTMLElement, options: Record<string, unknown>) => void
+        }
+      }
+    }
+  }
+}
+
 export default function AuthPage() {
-  const { login, register } = useAuth()
+  const { login, loginWithGoogle, register } = useAuth()
   const { t } = useI18n()
   const router = useRouter()
   const [activeTab, setActiveTab] = useState<"login" | "register">("login")
   const [isLoading, setIsLoading] = useState(false)
+  const [googleScriptLoaded, setGoogleScriptLoaded] = useState(false)
+  const googleButtonRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
+    if (!googleScriptLoaded || !clientId || !googleButtonRef.current || !window.google) return
+
+    window.google.accounts.id.initialize({
+      client_id: clientId,
+      callback: async (response) => {
+        setIsLoading(true)
+        await loginWithGoogle(response.credential)
+        setIsLoading(false)
+      },
+    })
+    window.google.accounts.id.renderButton(googleButtonRef.current, {
+      type: "standard",
+      theme: "outline",
+      size: "large",
+      width: 360,
+      text: "continue_with",
+      locale: "fr",
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [googleScriptLoaded])
 
   const [loginIdentifier, setLoginIdentifier] = useState("")
   const [loginPassword, setLoginPassword] = useState("")
@@ -65,10 +107,28 @@ export default function AuthPage() {
     <div className="min-h-screen flex flex-col">
       <Header />
 
+      <Script
+        src="https://accounts.google.com/gsi/client"
+        strategy="afterInteractive"
+        onLoad={() => setGoogleScriptLoaded(true)}
+      />
+
       <main className="flex-1 py-12 px-4">
         <div className="max-w-md mx-auto">
           <Card className="p-6">
             <h1 className="text-lg font-semibold mb-6 text-center">{t("login")}</h1>
+
+            <div className="flex justify-center mb-4">
+              <div ref={googleButtonRef} />
+            </div>
+            <div className="relative mb-6">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-card px-2 text-muted-foreground">ou</span>
+              </div>
+            </div>
 
             <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "login" | "register")}>
               <TabsList className="grid w-full grid-cols-2 mb-6">

@@ -202,6 +202,39 @@ export const authService = {
   },
 
   /**
+   * Connexion / inscription via Google (credential = ID token du bouton Google)
+   */
+  async loginWithGoogle(credential: string) {
+    try {
+      const body = new URLSearchParams()
+      body.set('credential', credential)
+
+      const headers = getHeaders(false)
+      headers['Content-Type'] = 'application/x-www-form-urlencoded;charset=UTF-8'
+
+      const response = await fetch(`${API_CONFIG.baseURL}/auth/google`, {
+        method: 'POST',
+        headers,
+        body: body.toString(),
+      })
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw { response: { data: result, status: response.status } }
+      }
+
+      if (result.access_token) {
+        localStorage.setItem('auth_token', result.access_token)
+        localStorage.setItem('user', JSON.stringify(result.user))
+      }
+
+      return { success: true, data: result }
+    } catch (error) {
+      return handleError(error)
+    }
+  },
+
+  /**
    * Déconnexion
    */
   async logout() {
