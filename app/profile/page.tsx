@@ -274,7 +274,7 @@ export default function ProfilePage() {
                               {listing.city}, {listing.district}
                             </span>
                           </div>
-                          <div className="flex gap-2">
+                          <div className="flex flex-wrap gap-2">
                             <Link href={`/listings/${listing.id}`}>
                               <Button size="sm" variant="outline">
                                 Voir
