@@ -15,6 +15,7 @@ export interface ListingCardData {
   boosted_until?: string | null
   photos?: string[]
   created_at: string
+  apply_url?: string | null
   user?: {
     name: string
     photo?: string
@@ -122,12 +123,16 @@ export function ListingCard({
       </div>
 
       <div className="p-3">
-        <p className="font-display text-2xl font-bold tracking-tight tabular-nums leading-none">
-          {priceParts}
-          <span className="ml-1 font-sans text-[11px] font-semibold tracking-wide text-muted-foreground align-super">
-            FCFA
-          </span>
-        </p>
+        {listing.apply_url ? (
+          <p className="font-display text-sm font-bold tracking-tight leading-none text-primary">Offre d'emploi</p>
+        ) : (
+          <p className="font-display text-2xl font-bold tracking-tight tabular-nums leading-none">
+            {priceParts}
+            <span className="ml-1 font-sans text-[11px] font-semibold tracking-wide text-muted-foreground align-super">
+              FCFA
+            </span>
+          </p>
+        )}
         <h3 className="text-sm mt-1.5 line-clamp-2 leading-snug">{listing.title}</h3>
         <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
           <span className="flex items-center gap-1 truncate">

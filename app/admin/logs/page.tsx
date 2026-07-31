@@ -25,6 +25,9 @@ const actionLabels: Record<string, string> = {
   refund_buyer: "a remboursé",
   resolve_dispute_seller: "a résolu (en faveur du vendeur) le litige de",
   resolve_dispute_buyer: "a résolu (en faveur de l'acheteur) le litige de",
+  texpress_sync: "a synchronisé les offres T-Express",
+  scrape_sync: "a lancé le scraping des sites partenaires",
+  job_sync: "a importé les offres d'emploi",
 }
 
 export default function AdminLogsPage() {
@@ -65,7 +68,9 @@ export default function AdminLogsPage() {
                   <div key={log.id} className="p-3 text-sm">
                     <span className="font-medium">{log.admin?.name || "Admin"}</span>{" "}
                     {actionLabels[log.action] || log.action}{" "}
-                    <span className="font-medium">{log.target_user?.name || "un compte supprimé"}</span>
+                    {!["texpress_sync", "scrape_sync", "job_sync"].includes(log.action) && (
+                      <span className="font-medium">{log.target_user?.name || "un compte supprimé"}</span>
+                    )}
                     {log.details && <p className="text-xs text-muted-foreground mt-1">{log.details}</p>}
                     <p className="text-xs text-muted-foreground mt-1">{formatDate(log.created_at)}</p>
                   </div>
