@@ -5,7 +5,7 @@ import { Header } from "@/components/header"
 import { BottomNav } from "@/components/bottom-nav"
 import { AdminLayout } from "@/components/admin-layout"
 import { Button } from "@/components/ui/button"
-import { Loader2, RefreshCw, Globe, CheckCircle2, AlertCircle } from "lucide-react"
+import { Loader2, RefreshCw, Globe, Briefcase, CheckCircle2, AlertCircle } from "lucide-react"
 import { adminService } from "@/lib/api"
 
 function ResultBanner({ children }: { children: React.ReactNode }) {
@@ -34,6 +34,10 @@ export default function AdminTexpressPage() {
   const [scrapeLoading, setScrapeLoading] = useState(false)
   const [scrapeResult, setScrapeResult] = useState<{ created: number; updated: number; errors: string[] } | null>(null)
   const [scrapeError, setScrapeError] = useState<string | null>(null)
+
+  const [jobsLoading, setJobsLoading] = useState(false)
+  const [jobsResult, setJobsResult] = useState<{ created: number; updated: number; errors: string[] } | null>(null)
+  const [jobsError, setJobsError] = useState<string | null>(null)
 
   const handleSyncTexpress = async () => {
     setTexpressLoading(true)
@@ -65,6 +69,22 @@ export default function AdminTexpressPage() {
     }
 
     setScrapeLoading(false)
+  }
+
+  const handleJobSync = async () => {
+    setJobsLoading(true)
+    setJobsResult(null)
+    setJobsError(null)
+
+    const response = await adminService.syncJobs()
+
+    if (response.success && response.data) {
+      setJobsResult(response.data)
+    } else {
+      setJobsError((response as { message?: string }).message || "Échec de l'import")
+    }
+
+    setJobsLoading(false)
   }
 
   return (
@@ -123,6 +143,33 @@ export default function AdminTexpressPage() {
                 </ResultBanner>
               )}
               {scrapeError && <ErrorBanner message={scrapeError} />}
+            </div>
+
+            <div className="space-y-4 border-t pt-6">
+              <h2 className="text-base font-semibold">Offres d'emploi</h2>
+              <p className="text-sm text-muted-foreground">
+                Importe des offres d'emploi depuis des sites partenaires (Wiijob, Offre-Emploi.sn, Humanis Intérim).
+                Contrairement aux produits, le lien vers l'offre d'origine est affiché publiquement sur l'annonce
+                (bouton "Postuler") — pas de messagerie, c'est un pur agrégateur.
+              </p>
+
+              <Button onClick={handleJobSync} disabled={jobsLoading} variant="secondary" className="gap-2">
+                {jobsLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Briefcase className="w-4 h-4" />}
+                Récupérer les offres d'emploi
+              </Button>
+
+              {jobsResult && (
+                <ResultBanner>
+                  <p className="font-medium">Import terminé</p>
+                  <p className="text-muted-foreground">
+                    {jobsResult.created} offre(s) créée(s), {jobsResult.updated} mise(s) à jour.
+                  </p>
+                  {jobsResult.errors.length > 0 && (
+                    <p className="text-destructive mt-1">{jobsResult.errors.join(" · ")}</p>
+                  )}
+                </ResultBanner>
+              )}
+              {jobsError && <ErrorBanner message={jobsError} />}
             </div>
           </div>
         </AdminLayout>

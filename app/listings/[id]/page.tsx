@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Heart, Flag, MapPin, Phone, MessageCircle, MessageSquare, Loader2, ChevronLeft, ChevronRight, QrCode, BadgeCheck } from "lucide-react"
+import { Heart, Flag, MapPin, Phone, MessageCircle, MessageSquare, Loader2, ChevronLeft, ChevronRight, QrCode, BadgeCheck, ExternalLink } from "lucide-react"
 import { annonceService, favoriteService, messageService } from "@/lib/api"
 import { resolveStorageUrl } from "@/lib/media"
 import { buildWhatsAppLink } from "@/lib/whatsapp"
@@ -32,6 +32,7 @@ interface Annonce {
   status: string
   custom_category: string | null
   created_at: string
+  apply_url?: string | null
   photos?: string[]
   videos?: string[]
   audios?: string[]
@@ -317,7 +318,7 @@ export default function ListingDetailPage() {
                 <div className="flex items-start justify-between gap-3 mb-3">
                   <div className="flex-1 min-w-0">
                     <h1 className="text-xl font-semibold mb-1 line-clamp-3 break-words">{annonce.title}</h1>
-                    <p className="text-2xl font-bold">{formatPrice(annonce.price)}</p>
+                    {!annonce.apply_url && <p className="text-2xl font-bold">{formatPrice(annonce.price)}</p>}
                     {annonce.negotiable && (
                       <Badge variant="secondary" className="mt-2">
                         Prix négociable
@@ -371,7 +372,20 @@ export default function ListingDetailPage() {
                     </ReportListingButton>
                   )}
                 </div>
-                {!isOwner && (
+                {!isOwner && annonce.apply_url && (
+                  <div className="space-y-2">
+                    <Button className="w-full" variant="default" asChild>
+                      <a href={annonce.apply_url} target="_blank" rel="noopener noreferrer">
+                        <ExternalLink className="w-4 h-4 mr-2" />
+                        Postuler sur le site
+                      </a>
+                    </Button>
+                    <p className="text-xs text-muted-foreground text-center">
+                      Vous serez redirigé vers le site où l'offre a été publiée.
+                    </p>
+                  </div>
+                )}
+                {!isOwner && !annonce.apply_url && (
                   <div className="space-y-2">
                     {annonce.user.phone && (
                       <Button className="w-full" variant="default" asChild>
