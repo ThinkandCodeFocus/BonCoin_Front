@@ -1297,11 +1297,12 @@ export const adminService = {
     }
   },
 
-  async scrapeSync() {
+  async scrapeSync(sites?: string[]) {
     try {
       const response = await fetch(`${API_CONFIG.baseURL}/admin/scrape-sync`, {
         method: 'POST',
         headers: getHeaders(),
+        body: JSON.stringify(sites ? { sites } : {}),
       })
       const result = await response.json()
 

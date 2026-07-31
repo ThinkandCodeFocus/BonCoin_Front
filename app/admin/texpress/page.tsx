@@ -26,14 +26,57 @@ function ErrorBanner({ message }: { message: string }) {
   )
 }
 
+const SCRAPE_GROUPS = [
+  { key: "electronique-maison", label: "Électronique & Maison", sites: ["kabirex", "soumari", "digitalstores"] },
+  { key: "mode-beaute", label: "Mode & Beauté", sites: ["jouanecain", "baneskincare", "universcosmetix"] },
+]
+
+function ScrapeGroupButton({ label, sites }: { label: string; sites: string[] }) {
+  const [isLoading, setIsLoading] = useState(false)
+  const [result, setResult] = useState<{ created: number; updated: number; errors: string[] } | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  const handleClick = async () => {
+    setIsLoading(true)
+    setResult(null)
+    setError(null)
+
+    const response = await adminService.scrapeSync(sites)
+
+    if (response.success && response.data) {
+      setResult(response.data)
+    } else {
+      setError((response as { message?: string }).message || "Échec du scraping")
+    }
+
+    setIsLoading(false)
+  }
+
+  return (
+    <div className="space-y-2">
+      <Button onClick={handleClick} disabled={isLoading} variant="secondary" className="gap-2">
+        {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Globe className="w-4 h-4" />}
+        Scraper {label}
+      </Button>
+
+      {result && (
+        <ResultBanner>
+          <p className="font-medium">Scraping terminé</p>
+          <p className="text-muted-foreground">
+            {result.created} annonce(s) créée(s), {result.updated} mise(s) à jour.
+          </p>
+          {result.errors.length > 0 && <p className="text-destructive mt-1">{result.errors.join(" · ")}</p>}
+        </ResultBanner>
+      )}
+      {error && <ErrorBanner message={error} />}
+    </div>
+  )
+}
+
 export default function AdminTexpressPage() {
   const [texpressLoading, setTexpressLoading] = useState(false)
   const [texpressResult, setTexpressResult] = useState<{ created: number; updated: number; products_found: number } | null>(null)
   const [texpressError, setTexpressError] = useState<string | null>(null)
-
-  const [scrapeLoading, setScrapeLoading] = useState(false)
-  const [scrapeResult, setScrapeResult] = useState<{ created: number; updated: number; errors: string[] } | null>(null)
-  const [scrapeError, setScrapeError] = useState<string | null>(null)
 
   const [jobsLoading, setJobsLoading] = useState(false)
   const [jobsResult, setJobsResult] = useState<{ created: number; updated: number; errors: string[] } | null>(null)
@@ -53,22 +96,6 @@ export default function AdminTexpressPage() {
     }
 
     setTexpressLoading(false)
-  }
-
-  const handleScrape = async () => {
-    setScrapeLoading(true)
-    setScrapeResult(null)
-    setScrapeError(null)
-
-    const response = await adminService.scrapeSync()
-
-    if (response.success && response.data) {
-      setScrapeResult(response.data)
-    } else {
-      setScrapeError((response as { message?: string }).message || "Échec du scraping")
-    }
-
-    setScrapeLoading(false)
   }
 
   const handleJobSync = async () => {
@@ -120,29 +147,16 @@ export default function AdminTexpressPage() {
             <div className="space-y-4 border-t pt-6">
               <h2 className="text-base font-semibold">Scraping sites partenaires</h2>
               <p className="text-sm text-muted-foreground">
-                Importe des produits en stock depuis des sites e-commerce partenaires (Kabirex, Soumari, Digital
-                Stores) avec la même marge. Chaque annonce garde un lien interne vers la fiche produit d'origine,
-                visible uniquement par toi dans la conversation liée — jamais envoyé au client — pour passer la
-                commande et organiser la livraison.
+                Importe des produits en stock depuis des sites e-commerce partenaires, un bouton par catégorie. Chaque
+                annonce garde un lien interne vers la fiche produit d'origine, visible uniquement par toi dans la
+                conversation liée — jamais envoyé au client — pour passer la commande et organiser la livraison.
               </p>
 
-              <Button onClick={handleScrape} disabled={scrapeLoading} variant="secondary" className="gap-2">
-                {scrapeLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Globe className="w-4 h-4" />}
-                Lancer le scraping
-              </Button>
-
-              {scrapeResult && (
-                <ResultBanner>
-                  <p className="font-medium">Scraping terminé</p>
-                  <p className="text-muted-foreground">
-                    {scrapeResult.created} annonce(s) créée(s), {scrapeResult.updated} mise(s) à jour.
-                  </p>
-                  {scrapeResult.errors.length > 0 && (
-                    <p className="text-destructive mt-1">{scrapeResult.errors.join(" · ")}</p>
-                  )}
-                </ResultBanner>
-              )}
-              {scrapeError && <ErrorBanner message={scrapeError} />}
+              <div className="flex flex-wrap gap-4">
+                {SCRAPE_GROUPS.map((group) => (
+                  <ScrapeGroupButton key={group.key} label={group.label} sites={group.sites} />
+                ))}
+              </div>
             </div>
 
             <div className="space-y-4 border-t pt-6">
