@@ -18,6 +18,7 @@ import Link from "next/link"
 import { ReportListingButton } from "@/components/report-listing-button"
 import { formatPrice } from "@/components/design-system"
 import { ListingCard, type ListingCardData } from "@/components/listing-card"
+import { ListingThumbnail } from "@/components/listing-thumbnail"
 import { BusinessCardDialog } from "@/components/business-card-dialog"
 
 interface Annonce {
@@ -241,13 +242,11 @@ export default function ListingDetailPage() {
             {/* Galerie photos */}
             <div>
               <div className="relative aspect-square rounded-lg overflow-hidden bg-muted mb-3 border">
-                <img
-                  src={photoUrl}
+                <ListingThumbnail
+                  src={annonce.photos?.[currentPhotoIndex] ? photoUrl : undefined}
                   alt={annonce.title}
-                  onError={(e) => {
-                    e.currentTarget.src = "/placeholder.svg"
-                  }}
-                  className="w-full h-full object-cover"
+                  isJob={!!annonce.apply_url}
+                  className="w-full h-full"
                 />
                 {annonce.photos && annonce.photos.length > 1 && (
                   <>

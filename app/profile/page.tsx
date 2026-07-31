@@ -12,6 +12,7 @@ import { Package, Heart, Loader2, MapPin, Trash2, Edit3, BellPlus, Rocket } from
 import Link from "next/link"
 import { useAuth } from "@/contexts/AuthContext"
 import { resolveStorageUrl } from "@/lib/media"
+import { ListingThumbnail } from "@/components/listing-thumbnail"
 import { profileService, favoriteService, annonceService, savedSearchService } from "@/lib/api"
 import { BoostDialog } from "@/components/boost-dialog"
 import { useRouter, useSearchParams } from "next/navigation"
@@ -39,6 +40,7 @@ interface Annonce {
   views: number
   city: string
   district: string
+  apply_url?: string | null
 }
 
 interface Favorite {
@@ -249,19 +251,17 @@ export default function ProfilePage() {
                   return (
                     <Card key={listing.id} className="p-3">
                       <div className="flex gap-3">
-                        <img
-                          src={photoUrl}
+                        <ListingThumbnail
+                          src={listing.photos?.[0] ? photoUrl : undefined}
                           alt={listing.title}
-                          onError={(e) => {
-                            e.currentTarget.src = "/placeholder.svg"
-                          }}
-                          className="w-24 h-24 object-cover rounded-md border shrink-0"
+                          isJob={!!listing.apply_url}
+                          className="w-24 h-24 rounded-md border shrink-0"
                         />
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between gap-2 mb-1">
                             <div className="flex-1 min-w-0">
                               <h3 className="font-medium line-clamp-2 break-words">{listing.title}</h3>
-                              <p className="text-lg font-bold">{formatPrice(listing.price)}</p>
+                              {!listing.apply_url && <p className="text-lg font-bold">{formatPrice(listing.price)}</p>}
                             </div>
                             <Badge variant={listing.status === "Disponible" ? "default" : "secondary"}>
                               {listing.status}
@@ -325,20 +325,18 @@ export default function ProfilePage() {
                     return (
                       <Card key={item.id} className="overflow-hidden p-0">
                         <Link href={`/listings/${annonce.id}`}>
-                          <img
-                            src={photoUrl}
+                          <ListingThumbnail
+                            src={annonce.photos?.[0] ? photoUrl : undefined}
                             alt={annonce.title}
-                            onError={(e) => {
-                              e.currentTarget.src = "/placeholder.svg"
-                            }}
-                            className="w-full aspect-square object-cover"
+                            isJob={!!annonce.apply_url}
+                            className="w-full aspect-square"
                           />
                         </Link>
                         <div className="p-3">
                           <Link href={`/listings/${annonce.id}`}>
                             <h3 className="font-medium mb-1 line-clamp-2 text-sm">{annonce.title}</h3>
                           </Link>
-                          <p className="text-lg font-bold mb-1">{formatPrice(annonce.price)}</p>
+                          {!annonce.apply_url && <p className="text-lg font-bold mb-1">{formatPrice(annonce.price)}</p>}
                           <div className="flex items-center text-xs text-muted-foreground mb-2">
                             <MapPin className="w-3 h-3 mr-1" />
                             {annonce.city}, {annonce.district}

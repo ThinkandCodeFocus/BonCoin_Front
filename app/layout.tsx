@@ -52,8 +52,8 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="fr">
-      <body className={`${fraunces.variable} ${dmSans.variable} font-sans antialiased`}>
+    <html lang="fr" className="overflow-x-hidden">
+      <body className={`${fraunces.variable} ${dmSans.variable} font-sans antialiased overflow-x-hidden`}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
           <I18nProvider>
             <AuthProvider>

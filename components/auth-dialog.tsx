@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useAuth } from "@/contexts/AuthContext"
 import { Eye, EyeOff, Loader2 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { GoogleSignInButton } from "@/components/google-sign-in-button"
 
 interface AuthDialogProps {
   open: boolean
@@ -18,10 +19,19 @@ interface AuthDialogProps {
 }
 
 export function AuthDialog({ open, onOpenChange, defaultTab = "login" }: AuthDialogProps) {
-  const { login, register } = useAuth()
+  const { login, loginWithGoogle, register } = useAuth()
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
   const [activeTab, setActiveTab] = useState(defaultTab)
+
+  const handleGoogleCredential = async (credential: string) => {
+    setIsLoading(true)
+    const success = await loginWithGoogle(credential)
+    setIsLoading(false)
+    if (success) {
+      onOpenChange(false)
+    }
+  }
 
   const [loginIdentifier, setLoginIdentifier] = useState("")
   const [loginPassword, setLoginPassword] = useState("")
@@ -88,6 +98,16 @@ export function AuthDialog({ open, onOpenChange, defaultTab = "login" }: AuthDia
           <DialogTitle>Connexion / Inscription</DialogTitle>
           <DialogDescription>Connectez-vous ou créez un compte pour continuer</DialogDescription>
         </DialogHeader>
+
+        <GoogleSignInButton onCredential={handleGoogleCredential} />
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-card px-2 text-muted-foreground">ou</span>
+          </div>
+        </div>
 
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "login" | "register")}>
           <TabsList className="grid w-full grid-cols-2">

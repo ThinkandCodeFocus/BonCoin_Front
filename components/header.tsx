@@ -226,6 +226,20 @@ export function Header() {
                       <span data-i18n="my_profile">Mon profil</span>
                     </Button>
                   </Link>
+                  {isAuthenticated && user?.is_admin && (
+                    <Link href="/admin">
+                      <Button variant="ghost" className="w-full justify-start">
+                        <ShieldCheck className="w-4 h-4 mr-2" />
+                        Administration
+                      </Button>
+                    </Link>
+                  )}
+                  {isAuthenticated && (
+                    <Button variant="ghost" className="w-full justify-start" onClick={logout}>
+                      <LogOut className="w-4 h-4 mr-2" />
+                      <span data-i18n="logout">Déconnexion</span>
+                    </Button>
+                  )}
                   {!isAuthenticated && (
                     <Button
                       variant="ghost"

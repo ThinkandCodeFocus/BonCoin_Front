@@ -4,6 +4,7 @@ import Link from "next/link"
 import { MapPin, Star, BadgeCheck } from "lucide-react"
 import { resolveStorageUrl } from "@/lib/media"
 import { TimeAgo, FavoriteButton, BoostedBadge } from "@/components/design-system"
+import { ListingThumbnail } from "@/components/listing-thumbnail"
 import { cn } from "@/lib/utils"
 
 export interface ListingCardData {
@@ -70,13 +71,11 @@ export function ListingCard({
       )}
     >
       <div className="relative aspect-square bg-muted">
-        <img
-          src={photoUrl}
+        <ListingThumbnail
+          src={listing.photos?.[0] ? photoUrl : undefined}
           alt={listing.title}
-          onError={(e) => {
-            e.currentTarget.src = "/placeholder.svg"
-          }}
-          className="w-full h-full object-cover"
+          isJob={!!listing.apply_url}
+          className="w-full h-full"
         />
         {seller?.name && (
           <div className="absolute top-2 left-2 flex items-center gap-1.5 bg-card/95 border-2 border-ink rounded-full pl-1 pr-2 py-1 max-w-[85%] shadow-hard-sm">
