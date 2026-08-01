@@ -64,12 +64,13 @@ export async function drawBusinessCard(canvas: HTMLCanvasElement, options: Busin
   // Titre
   ctx.fillStyle = "#1a1a1a"
   ctx.font = "bold 28px Arial, sans-serif"
-  wrapText(ctx, options.title, 32, photoHeight + 55, WIDTH - 64, 34)
+  const titleBottomY = wrapText(ctx, options.title, 32, photoHeight + 55, WIDTH - 64, 34, 2)
 
-  // Sous-titre (prix ou info vendeur)
+  // Sous-titre (prix ou info vendeur) : positionne sous le titre quel que
+  // soit son nombre de lignes, pour ne jamais chevaucher un titre long.
   ctx.fillStyle = "#e8622c"
   ctx.font = "bold 24px Arial, sans-serif"
-  ctx.fillText(options.subtitle, 32, photoHeight + 110)
+  ctx.fillText(options.subtitle, 32, titleBottomY + 55)
 
   // QR code
   const qrDataUrl = await QRCode.toDataURL(options.url, {
@@ -98,28 +99,44 @@ export async function drawBusinessCard(canvas: HTMLCanvasElement, options: Busin
   ctx.textAlign = "left"
 }
 
-function wrapText(ctx: CanvasRenderingContext2D, text: string, x: number, y: number, maxWidth: number, lineHeight: number) {
+/**
+ * Retourne le y de la derniere ligne dessinee, pour permettre de
+ * positionner le contenu suivant sous le texte quel que soit le nombre
+ * de lignes reellement utilisees.
+ */
+function wrapText(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  x: number,
+  y: number,
+  maxWidth: number,
+  lineHeight: number,
+  maxLines = 2,
+): number {
   const words = text.split(" ")
+  const lines: string[] = []
   let line = ""
-  let currentY = y
-  let lines = 0
 
   for (const word of words) {
     const testLine = line ? `${line} ${word}` : word
     if (ctx.measureText(testLine).width > maxWidth && line) {
-      ctx.fillText(line, x, currentY)
+      lines.push(line)
       line = word
-      currentY += lineHeight
-      lines += 1
-      if (lines >= 2) {
-        ctx.fillText(line + "…", x, currentY)
-        return
-      }
     } else {
       line = testLine
     }
   }
-  if (line) ctx.fillText(line, x, currentY)
+  lines.push(line)
+
+  const visibleLines = lines.slice(0, maxLines)
+  const truncated = lines.length > maxLines
+
+  visibleLines.forEach((l, i) => {
+    const isLast = i === visibleLines.length - 1
+    ctx.fillText(isLast && truncated ? `${l}…` : l, x, y + i * lineHeight)
+  })
+
+  return y + (visibleLines.length - 1) * lineHeight
 }
 
 export function canvasToFile(canvas: HTMLCanvasElement, filename: string): Promise<File> {
