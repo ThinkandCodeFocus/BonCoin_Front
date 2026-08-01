@@ -10,6 +10,24 @@ export interface BusinessCardOptions {
 const WIDTH = 600
 const HEIGHT = 800
 
+/**
+ * Les photos de produits scrapes sont hebergees sur le site fournisseur
+ * d'origine, qui n'envoie generalement pas d'en-tetes CORS : le canvas ne
+ * peut alors pas la charger et la carte affiche un bandeau de secours.
+ * On passe ces URLs externes par notre proxy (meme origine, donc pas de
+ * probleme CORS) ; les URLs deja relatives (notre propre stockage) sont
+ * laissees telles quelles.
+ */
+function toCanvasSafeUrl(src: string): string {
+  if (!src.startsWith("http")) return src
+  try {
+    if (new URL(src).origin === window.location.origin) return src
+  } catch {
+    return src
+  }
+  return `/api/image-proxy?url=${encodeURIComponent(src)}`
+}
+
 function loadImage(src: string): Promise<HTMLImageElement | null> {
   return new Promise((resolve) => {
     const img = new Image()
@@ -44,7 +62,7 @@ export async function drawBusinessCard(canvas: HTMLCanvasElement, options: Busin
   // Photo (ou bandeau de couleur si indisponible)
   const photoHeight = 340
   if (options.imageUrl) {
-    const img = await loadImage(options.imageUrl)
+    const img = await loadImage(toCanvasSafeUrl(options.imageUrl))
     if (img) {
       const scale = Math.max(WIDTH / img.width, photoHeight / img.height)
       const sw = WIDTH / scale
