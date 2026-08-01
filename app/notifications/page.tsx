@@ -31,7 +31,7 @@ export default function NotificationsPage() {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      router.push("/")
+      router.push("/auth")
       return
     }
     loadNotifications()

@@ -11,7 +11,7 @@ import { SlidersHorizontal, Search, LayoutGrid, List as ListIcon, BellPlus, Loca
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import Link from "next/link"
 import { useState, useEffect } from "react"
-import { useSearchParams } from "next/navigation"
+import { useSearchParams, useRouter } from "next/navigation"
 import { annonceService, favoriteService, savedSearchService } from "@/lib/api"
 import { useAuth } from "@/contexts/AuthContext"
 import { useToast } from "@/hooks/use-toast"
@@ -171,6 +171,7 @@ export default function ListingsPage() {
   const [attributeFilters, setAttributeFilters] = useState<Record<string, string>>({})
   const { isAuthenticated } = useAuth()
   const { toast } = useToast()
+  const router = useRouter()
 
   const useMyLocation = async () => {
     setIsLocating(true)
@@ -300,11 +301,7 @@ export default function ListingsPage() {
     e.preventDefault()
 
     if (!isAuthenticated) {
-      toast({
-        title: "Connexion requise",
-        description: "Vous devez être connecté pour ajouter aux favoris",
-        variant: "destructive",
-      })
+      router.push("/auth")
       return
     }
 
@@ -331,11 +328,7 @@ export default function ListingsPage() {
 
   const saveCurrentSearch = async () => {
     if (!isAuthenticated) {
-      toast({
-        title: "Connexion requise",
-        description: "Vous devez être connecté pour enregistrer une recherche",
-        variant: "destructive",
-      })
+      router.push("/auth")
       return
     }
 

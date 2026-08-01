@@ -80,12 +80,7 @@ export default function PublishPage() {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      toast({
-        title: t("toast.login_required") || "Connexion requise",
-        description: t("toast.login_required_desc") || "Vous devez être connecté pour publier une annonce",
-        variant: "destructive",
-      })
-      router.push("/")
+      router.push("/auth")
       return
     }
 

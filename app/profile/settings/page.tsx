@@ -47,7 +47,7 @@ export default function ProfileSettingsPage() {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      router.push("/")
+      router.push("/auth")
       return
     }
 

@@ -85,7 +85,7 @@ export default function ConversationPage() {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      router.push("/")
+      router.push("/auth")
       return
     }
     if (Number.isNaN(conversationId) || conversationId === 0) {

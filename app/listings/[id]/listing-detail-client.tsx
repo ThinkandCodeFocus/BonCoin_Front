@@ -137,7 +137,7 @@ export function ListingDetailClient() {
 
   const toggleFavorite = async () => {
     if (!isAuthenticated) {
-      toast.error("Connexion requise")
+      router.push("/auth")
       return
     }
 
@@ -162,7 +162,6 @@ export function ListingDetailClient() {
 
   const contactSeller = async () => {
     if (!isAuthenticated) {
-      toast.error("Connexion requise")
       router.push("/auth")
       return
     }

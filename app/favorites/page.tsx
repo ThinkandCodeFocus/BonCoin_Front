@@ -23,7 +23,7 @@ export default function FavoritesPage() {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      router.push("/")
+      router.push("/auth")
     }
   }, [isAuthenticated, router])
 

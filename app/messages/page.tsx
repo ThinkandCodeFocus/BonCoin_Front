@@ -15,7 +15,7 @@ export default function MessagesPage() {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      router.push("/")
+      router.push("/auth")
     }
   }, [isAuthenticated, router])
 

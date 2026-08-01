@@ -67,12 +67,7 @@ export default function PublishPreviewPage() {
     }
 
     if (!isAuthenticated) {
-      toast({
-        title: t("toast.login_required") || "Connexion requise",
-        description: t("toast.login_required_desc") || "Vous devez etre connecte pour publier une annonce",
-        variant: "destructive",
-      })
-      router.push("/")
+      router.push("/auth")
       return
     }
 
