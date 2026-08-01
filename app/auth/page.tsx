@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Eye, EyeOff } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
+import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { Loader2 } from "lucide-react"
 import { useI18n } from "@/components/I18nProvider"
@@ -53,11 +54,17 @@ export default function AuthPage() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    if (!registerEmail.trim() && !registerPhone.trim()) {
+      toast.error("Renseignez au moins un email ou un numéro de téléphone")
+      return
+    }
+
     setIsLoading(true)
     const success = await register({
       name: registerName,
-      email: registerEmail,
-      phone: registerPhone,
+      email: registerEmail.trim() || undefined,
+      phone: registerPhone.trim() || undefined,
       password: registerPassword,
       password_confirmation: registerPasswordConfirmation,
       language: "fr",
@@ -156,25 +163,23 @@ export default function AuthPage() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="register-email">Email</Label>
+                    <Label htmlFor="register-email">Email (ou téléphone ci-dessous)</Label>
                     <Input
                       id="register-email"
                       type="email"
                       placeholder="email@example.com"
                       value={registerEmail}
                       onChange={(e) => setRegisterEmail(e.target.value)}
-                      required
                     />
                   </div>
                   <div>
-                    <Label htmlFor="register-phone">Téléphone</Label>
+                    <Label htmlFor="register-phone">Téléphone (ou email ci-dessus)</Label>
                     <Input
                       id="register-phone"
                       type="tel"
-                      placeholder="+221771234567"
+                      placeholder="771234567"
                       value={registerPhone}
                       onChange={(e) => setRegisterPhone(e.target.value)}
-                      required
                     />
                   </div>
                   <div>

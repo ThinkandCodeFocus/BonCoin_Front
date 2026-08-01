@@ -60,21 +60,31 @@ export function AuthDialog({ open, onOpenChange, defaultTab = "login" }: AuthDia
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
-    const phoneRegex = /^(77|78|76|70|75|33)[0-9]{7}$/;
-    if (!phoneRegex.test(registerPhone)) {
+
+    if (!registerEmail.trim() && !registerPhone.trim()) {
+      toast({
+        title: "Email ou téléphone requis",
+        description: "Renseignez au moins l'un des deux pour vous inscrire.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    const phoneRegex = /^(77|78|76|70|75|33)[0-9]{7}$/
+    if (registerPhone.trim() && !phoneRegex.test(registerPhone)) {
       toast({
         title: "Numéro invalide",
         description: "Format Sénégal requis (ex: 771234567)",
         variant: "destructive",
-      });
-      setIsLoading(false);
-      return;
+      })
+      return
     }
+
     setIsLoading(true)
     const success = await register({
       name: registerName,
-      email: registerEmail,
-      phone: registerPhone,
+      email: registerEmail.trim() || undefined,
+      phone: registerPhone.trim() || undefined,
       password: registerPassword,
       password_confirmation: registerPasswordConfirmation,
       language: "fr",
@@ -179,26 +189,24 @@ export function AuthDialog({ open, onOpenChange, defaultTab = "login" }: AuthDia
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="register-email">Email</Label>
+                <Label htmlFor="register-email">Email (ou téléphone ci-dessous)</Label>
                 <Input
                   id="register-email"
                   type="email"
                   placeholder="email@example.com"
                   value={registerEmail}
                   onChange={(e) => setRegisterEmail(e.target.value)}
-                  required
                   disabled={isLoading}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="register-phone">Téléphone</Label>
+                <Label htmlFor="register-phone">Téléphone (ou email ci-dessus)</Label>
                 <Input
                   id="register-phone"
                   type="tel"
-                  placeholder="+221771234567"
+                  placeholder="771234567"
                   value={registerPhone}
                   onChange={(e) => setRegisterPhone(e.target.value)}
-                  required
                   disabled={isLoading}
                 />
               </div>

@@ -121,8 +121,8 @@ export const authService = {
    */
   async register(data: {
     name: string
-    email: string
-    phone: string
+    email?: string
+    phone?: string
     password: string
     password_confirmation: string
     language?: string
@@ -132,8 +132,8 @@ export const authService = {
       // Backend expects form-encoded payload (not JSON) for auth endpoints.
       const body = new URLSearchParams()
       body.set('name', data.name)
-      body.set('email', data.email)
-      body.set('phone', data.phone)
+      if (data.email) body.set('email', data.email)
+      if (data.phone) body.set('phone', data.phone)
       body.set('password', data.password)
       body.set('password_confirmation', data.password_confirmation)
       if (data.language) body.set('language', data.language)
