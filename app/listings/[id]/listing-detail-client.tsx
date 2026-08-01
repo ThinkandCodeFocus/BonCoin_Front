@@ -37,6 +37,7 @@ interface Annonce {
   description: string | null
   price: number
   negotiable: boolean
+  whatsapp_contact?: boolean
   city: string
   district: string
   etat: string
@@ -425,7 +426,7 @@ export function ListingDetailClient() {
                         </a>
                       </Button>
                     )}
-                    {annonce.user.phone && buildWhatsAppLink(annonce.user.phone) && (
+                    {annonce.whatsapp_contact !== false && annonce.user.phone && buildWhatsAppLink(annonce.user.phone) && (
                       <Button className="w-full bg-[#25D366] hover:bg-[#1ebe57] text-white" asChild>
                         <a
                           href={

@@ -396,6 +396,7 @@ export const annonceService = {
     description: string
     price: number
     negotiable?: boolean
+    whatsapp_contact?: boolean
     category_id: number
     custom_category?: string | null
     city: string
@@ -430,6 +431,7 @@ export const annonceService = {
     description: string
     price: number
     negotiable: boolean
+    whatsapp_contact: boolean
     category_id: number
     custom_category: string | null
     city: string

@@ -60,6 +60,7 @@ export default function PublishPage() {
   const [description, setDescription] = useState("")
   const [price, setPrice] = useState("")
   const [negotiable, setNegotiable] = useState(false)
+  const [whatsappContact, setWhatsappContact] = useState(true)
   const [categoryId, setCategoryId] = useState("")
   const [customCategory, setCustomCategory] = useState("")
   const [categoryAttributes, setCategoryAttributes] = useState<Record<string, string>>({})
@@ -123,6 +124,7 @@ export default function PublishPage() {
       setDescription(annonce.description || "")
       setPrice(annonce.price !== undefined ? String(annonce.price) : "")
       setNegotiable(!!annonce.negotiable)
+      setWhatsappContact(annonce.whatsapp_contact ?? true)
       setCategoryId(annonce.category?.id ? String(annonce.category.id) : "")
       setCustomCategory(annonce.custom_category || "")
       setCity(annonce.city || "")
@@ -433,6 +435,7 @@ export default function PublishPage() {
           : "Description vocale enregistree - Ecoutez l'audio pour plus de details",
         price: parseFloat(price),
         negotiable,
+        whatsapp_contact: whatsappContact,
         category_id: parseInt(categoryId),
         custom_category: isAutreCategory ? customCategory : null,
         city,
@@ -812,6 +815,17 @@ export default function PublishPage() {
                     Prix négociable
                   </label>
                 </div>
+              </div>
+
+              <div className="flex items-center space-x-2 rounded-md border p-3">
+                <Checkbox
+                  id="whatsappContact"
+                  checked={whatsappContact}
+                  onCheckedChange={(checked) => setWhatsappContact(checked as boolean)}
+                />
+                <label htmlFor="whatsappContact" className="text-sm font-medium leading-none flex-1">
+                  Autoriser les acheteurs à me contacter sur WhatsApp
+                </label>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
