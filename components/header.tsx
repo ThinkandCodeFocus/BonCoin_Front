@@ -25,9 +25,11 @@ import { useMessageNotifications } from "@/contexts/MessageNotificationContext"
 import { SearchBar } from "@/components/search-bar"
 import { useCategories } from "@/hooks/use-categories"
 import { useHideOnScroll } from "@/hooks/use-hide-on-scroll"
+import { useI18n } from "@/components/I18nProvider"
 import { cn } from "@/lib/utils"
 
 export function Header() {
+  const { t } = useI18n()
   const { user, isAuthenticated, logout } = useAuth()
   const { favoriteCount } = useFavorites()
   const { categories } = useCategories()
@@ -75,7 +77,7 @@ export function Header() {
               variant="ghost"
               size="icon"
               onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-              aria-label="Basculer le thème"
+              aria-label={t("toggle_theme")}
             >
               {mounted && resolvedTheme === "dark" ? (
                 <Sun className="w-4 h-4" />
@@ -138,7 +140,7 @@ export function Header() {
                       <DropdownMenuItem asChild>
                         <Link href="/admin">
                           <ShieldCheck className="w-4 h-4 mr-2" />
-                          Administration
+                          <span data-i18n="administration">Administration</span>
                         </Link>
                       </DropdownMenuItem>
                     )}
@@ -184,7 +186,7 @@ export function Header() {
               variant="ghost"
               size="icon"
               onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-              aria-label="Basculer le thème"
+              aria-label={t("toggle_theme")}
             >
               {mounted && resolvedTheme === "dark" ? (
                 <Sun className="w-4 h-4" />
@@ -230,7 +232,7 @@ export function Header() {
                     <Link href="/admin">
                       <Button variant="ghost" className="w-full justify-start">
                         <ShieldCheck className="w-4 h-4 mr-2" />
-                        Administration
+                        <span data-i18n="administration">Administration</span>
                       </Button>
                     </Link>
                   )}
