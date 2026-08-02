@@ -4,17 +4,19 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Package, Heart, MessageSquare, Settings, BellPlus } from "lucide-react"
 import { cn } from "@/lib/utils"
-
-const navItems = [
-  { href: "/profile?tab=listings", match: "/profile", label: "Mes annonces", icon: Package },
-  { href: "/profile?tab=favorites", match: "/profile", label: "Favoris", icon: Heart },
-  { href: "/profile?tab=searches", match: "/profile", label: "Recherches", icon: BellPlus },
-  { href: "/messages", match: "/messages", label: "Messages", icon: MessageSquare },
-  { href: "/profile/settings", match: "/profile/settings", label: "Paramètres", icon: Settings },
-]
+import { useI18n } from "@/components/I18nProvider"
 
 export function AccountLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  const { t } = useI18n()
+
+  const navItems = [
+    { href: "/profile?tab=listings", match: "/profile", label: t("my_listings"), icon: Package },
+    { href: "/profile?tab=favorites", match: "/profile", label: t("favorites"), icon: Heart },
+    { href: "/profile?tab=searches", match: "/profile", label: t("profile.searches_nav"), icon: BellPlus },
+    { href: "/messages", match: "/messages", label: t("messages"), icon: MessageSquare },
+    { href: "/profile/settings", match: "/profile/settings", label: t("profile.settings_nav"), icon: Settings },
+  ]
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-6 grid grid-cols-1 md:grid-cols-[220px_1fr] gap-6">
