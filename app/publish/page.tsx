@@ -86,8 +86,8 @@ export default function PublishPage() {
 
     if (user?.user_type === "buyer") {
       toast({
-        title: "Compte acheteur",
-        description: "Votre compte est configuré en acheteur uniquement et ne peut pas déposer d'annonce.",
+        title: t("publish.buyer_account_title"),
+        description: t("publish.buyer_account_desc"),
         variant: "destructive",
       })
       router.push("/")
@@ -108,7 +108,7 @@ export default function PublishPage() {
       if (!result.success || !annonce) {
         toast({
           title: t("toast.error") || "Erreur",
-          description: "Impossible de charger l'annonce à modifier",
+          description: t("publish.load_error"),
           variant: "destructive",
         })
         router.push("/profile?tab=listings")
@@ -238,7 +238,7 @@ export default function PublishPage() {
       } catch {
         toast({
           title: t("toast.error") || "Erreur",
-          description: `Impossible de traiter "${file.name}". Essayez un format JPEG ou PNG.`,
+          description: `${t("publish.file_error_prefix")} "${file.name}"${t("publish.file_error_suffix")}`,
           variant: "destructive",
         })
       }
@@ -506,9 +506,9 @@ export default function PublishPage() {
           ? Object.entries(result.errors).map(([field, messages]) => {
               return `${field}: ${Array.isArray(messages) ? messages.join(', ') : messages}`
             }).join('\n')
-          : result.message || (isEditMode ? "Erreur lors de la modification" : "Erreur lors de la creation")
+          : result.message || (isEditMode ? t("publish.update_error_title") : "Erreur lors de la creation")
         toast({
-          title: t("publish.create_error") || (isEditMode ? "Erreur de modification" : "Erreur de creation"),
+          title: isEditMode ? t("publish.update_error_title") : (t("publish.create_error") || "Erreur de creation"),
           description: errorMessage,
           variant: "destructive",
         })
@@ -569,9 +569,9 @@ export default function PublishPage() {
       }
 
       toast({
-        title: isEditMode ? "Modification enregistrée" : (t("publish.create_success") || "Creation avec succes"),
+        title: isEditMode ? t("publish.update_success_title") : (t("publish.create_success") || "Creation avec succes"),
         description: isEditMode
-          ? "Votre annonce a été mise à jour"
+          ? t("publish.update_success_desc")
           : (t("publish.create_success_desc") || "Votre annonce est maintenant en ligne"),
       })
 
@@ -598,7 +598,7 @@ export default function PublishPage() {
 
       <main className="flex-1 pb-16 md:pb-4 py-6 px-4">
         <div className="max-w-2xl mx-auto">
-          <h1 className="text-xl font-semibold mb-6">{isEditMode ? "Modifier l'annonce" : "Déposer une annonce"}</h1>
+          <h1 className="text-xl font-semibold mb-6">{isEditMode ? t("publish.edit_title") : t("publish")}</h1>
 
           {isLoadingExisting ? (
             <div className="flex justify-center py-16">
@@ -609,7 +609,7 @@ export default function PublishPage() {
             <section className="space-y-4">
               <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Photos</h2>
               <div>
-                <Label>Photos (min 2, max 5) *</Label>
+                <Label>{t("publish.photos_label")}</Label>
                 <div className="mt-2 grid grid-cols-3 md:grid-cols-5 gap-3">
                   {existingPhotoUrls.map((url, idx) => (
                     <div key={`existing-${idx}`} className="relative aspect-square rounded-md overflow-hidden border">
@@ -640,12 +640,12 @@ export default function PublishPage() {
               </div>
 
               <div>
-                <Label>Vidéo (optionnel)</Label>
+                <Label>{t("publish.video_optional")}</Label>
                 {!videoFile ? (
                   <div className="mt-2">
                     <label className="flex items-center gap-3 w-full rounded-md border-2 border-dashed p-4 cursor-pointer hover:bg-muted transition-colors">
                       <Video className="w-5 h-5 text-muted-foreground" />
-                      <span className="text-sm text-muted-foreground">Ajouter une vidéo (mp4/mpeg, max 10MB)</span>
+                      <span className="text-sm text-muted-foreground">{t("publish.add_video")}</span>
                       <input
                         type="file"
                         accept="video/mp4,video/mpeg"
@@ -664,7 +664,7 @@ export default function PublishPage() {
                     <div className="flex items-center justify-between text-sm text-muted-foreground">
                       <span>{videoFile.name}</span>
                       <Button type="button" variant="destructive" size="sm" onClick={removeVideo}>
-                        Retirer la vidéo
+                        {t("publish.remove_video")}
                       </Button>
                     </div>
                   </div>
@@ -673,10 +673,10 @@ export default function PublishPage() {
             </section>
 
             <section className="space-y-4 border-t pt-6">
-              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Description</h2>
+              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{t("publish.section_description")}</h2>
 
               <div>
-                <Label htmlFor="category">Catégorie *</Label>
+                <Label htmlFor="category">{t("publish.category_label")}</Label>
                 <Select
                   value={categoryId}
                   onValueChange={(value) => {
@@ -685,11 +685,11 @@ export default function PublishPage() {
                   }}
                 >
                   <SelectTrigger id="category" className="mt-2">
-                    <SelectValue placeholder="Sélectionner une catégorie" />
+                    <SelectValue placeholder={t("publish.select_category")} />
                   </SelectTrigger>
                   <SelectContent>
                     {categories.length === 0 ? (
-                      <div className="p-2 text-sm text-muted-foreground">Chargement...</div>
+                      <div className="p-2 text-sm text-muted-foreground">{t("publish.loading")}</div>
                     ) : (
                       categories.map((cat) => (
                         <SelectItem key={cat.id} value={cat.id.toString()}>
@@ -703,7 +703,7 @@ export default function PublishPage() {
 
               {categoryId && isCustomCategory && (
                 <div>
-                  <Label htmlFor="customCategory">Précisez la catégorie *</Label>
+                  <Label htmlFor="customCategory">{t("publish.specify_category")}</Label>
                   <Input
                     id="customCategory"
                     placeholder="Ex: Bijoux, Art, Sport..."
@@ -724,7 +724,7 @@ export default function PublishPage() {
               )}
 
               <div>
-                <Label htmlFor="title">Titre de l'annonce * (10-100 caractères)</Label>
+                <Label htmlFor="title">{t("publish.title_label")}</Label>
                 <Input
                   id="title"
                   placeholder="Ex: iPhone 14 Pro Max en excellent état"
@@ -739,7 +739,7 @@ export default function PublishPage() {
 
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <Label htmlFor="description">Description *</Label>
+                  <Label htmlFor="description">{t("publish.description_star")}</Label>
                   <div className="flex gap-2">
                     <Button
                       type="button"
@@ -748,7 +748,7 @@ export default function PublishPage() {
                       onClick={() => setDescriptionMode('text')}
                     >
                       <Type className="w-4 h-4 mr-2" />
-                      Texte
+                      {t("publish.text_mode")}
                     </Button>
                     <Button
                       type="button"
@@ -757,7 +757,7 @@ export default function PublishPage() {
                       onClick={() => setDescriptionMode('voice')}
                     >
                       <Mic className="w-4 h-4 mr-2" />
-                      Vocal
+                      {t("publish.voice_mode")}
                     </Button>
                   </div>
                 </div>
@@ -765,7 +765,7 @@ export default function PublishPage() {
                 {descriptionMode === 'text' ? (
                   <Textarea
                     id="description"
-                    placeholder="Décrivez votre article en détail..."
+                    placeholder={t("publish.description_placeholder")}
                     rows={6}
                     className="mt-2"
                     value={description}
@@ -781,10 +781,10 @@ export default function PublishPage() {
                           <>
                             <Button type="button" onClick={startRecording} className="gap-2">
                               <Mic className="w-4 h-4" />
-                              Enregistrer
+                              {t("publish.record_button")}
                             </Button>
                             <p className="text-sm text-muted-foreground">
-                              Cliquez pour enregistrer votre description
+                              {t("publish.click_to_record")}
                             </p>
                           </>
                         ) : (
@@ -792,9 +792,9 @@ export default function PublishPage() {
                             <Button type="button" onClick={stopRecording} variant="destructive" className="gap-2">
                               <span className="w-2 h-2 rounded-full bg-white" />
                               <StopCircle className="w-4 h-4" />
-                              Arrêter ({formatTime(recordingTime)})
+                              {t("publish.stop_button_prefix")} ({formatTime(recordingTime)})
                             </Button>
-                            <p className="text-sm text-muted-foreground">Enregistrement en cours...</p>
+                            <p className="text-sm text-muted-foreground">{t("publish.recording_in_progress")}</p>
                           </>
                         )}
                       </div>
@@ -804,9 +804,9 @@ export default function PublishPage() {
                           <div className="flex items-center gap-3">
                             <Mic className="w-5 h-5 text-primary" />
                             <div>
-                              <p className="text-sm font-medium">Audio enregistré</p>
+                              <p className="text-sm font-medium">{t("publish.audio_recorded")}</p>
                               <p className="text-xs text-muted-foreground">
-                                Durée: {formatTime(recordingTime)}
+                                {t("publish.duration")}: {formatTime(recordingTime)}
                               </p>
                             </div>
                           </div>
@@ -824,7 +824,7 @@ export default function PublishPage() {
                           className="w-full"
                           src={audioBlob ? URL.createObjectURL(audioBlob) : undefined}
                         >
-                          Votre navigateur ne supporte pas la lecture audio.
+                          {t("publish.audio_not_supported")}
                         </audio>
                       </div>
                     )}
@@ -834,10 +834,10 @@ export default function PublishPage() {
             </section>
 
             <section className="space-y-4 border-t pt-6">
-              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Prix et localisation</h2>
+              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{t("publish.section_price_location")}</h2>
 
               <div>
-                <Label htmlFor="price">Prix (FCFA) *</Label>
+                <Label htmlFor="price">{t("publish.price_label")}</Label>
                 <Input
                   id="price"
                   type="number"
@@ -858,7 +858,7 @@ export default function PublishPage() {
                     htmlFor="negotiable"
                     className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                   >
-                    Prix négociable
+                    {t("publish.negotiable")}
                   </label>
                 </div>
               </div>
@@ -870,13 +870,13 @@ export default function PublishPage() {
                   onCheckedChange={(checked) => setWhatsappContact(checked as boolean)}
                 />
                 <label htmlFor="whatsappContact" className="text-sm font-medium leading-none flex-1">
-                  Autoriser les acheteurs à me contacter sur WhatsApp
+                  {t("publish.whatsapp_consent")}
                 </label>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="city">Ville *</Label>
+                  <Label htmlFor="city">{t("publish.city_label")}</Label>
                   <Input
                     id="city"
                     placeholder="Ex: Dakar"
@@ -887,7 +887,7 @@ export default function PublishPage() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="district">Quartier *</Label>
+                  <Label htmlFor="district">{t("publish.district_label")}</Label>
                   <Input
                     id="district"
                     placeholder="Ex: Plateau"
@@ -900,15 +900,15 @@ export default function PublishPage() {
               </div>
 
               <div>
-                <Label htmlFor="condition">État *</Label>
+                <Label htmlFor="condition">{t("publish.condition_label")}</Label>
                 <Select required value={etat} onValueChange={setEtat}>
                   <SelectTrigger id="condition" className="mt-2">
-                    <SelectValue placeholder="Sélectionner l'état" />
+                    <SelectValue placeholder={t("publish.select_condition")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Neuf">Neuf</SelectItem>
-                    <SelectItem value="Bon état">Bon état</SelectItem>
-                    <SelectItem value="Usagé">Usagé</SelectItem>
+                    <SelectItem value="Neuf">{t("condition.new")}</SelectItem>
+                    <SelectItem value="Bon état">{t("condition.good")}</SelectItem>
+                    <SelectItem value="Usagé">{t("condition.used")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -916,16 +916,16 @@ export default function PublishPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 border-t pt-6">
               <Button type="button" variant="outline" onClick={handlePreview} disabled={isLoading}>
-                Prévisualiser
+                {t("actions.preview")}
               </Button>
               <Button type="submit" disabled={isLoading}>
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Publication...
+                    {t("publish.publishing")}
                   </>
                 ) : (
-                  isEditMode ? "Enregistrer les modifications" : "Publier l'annonce"
+                  isEditMode ? t("publish.save_changes_button") : t("publish.publish_button_full")
                 )}
               </Button>
             </div>
@@ -937,17 +937,17 @@ export default function PublishPage() {
       <AlertDialog open={showPublishConfirm} onOpenChange={setShowPublishConfirm}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{isEditMode ? "Confirmer les modifications" : "Confirmer la publication"}</AlertDialogTitle>
+            <AlertDialogTitle>{isEditMode ? t("publish.confirm_edit_title") : t("publish.confirm_create_title")}</AlertDialogTitle>
             <AlertDialogDescription>
               {isEditMode
-                ? "Voulez-vous enregistrer les modifications de cette annonce ?"
-                : "Voulez-vous publier cette annonce maintenant ?"}
+                ? t("publish.confirm_edit_desc")
+                : t("publish.confirm_create_desc")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isLoading}>Annuler</AlertDialogCancel>
+            <AlertDialogCancel disabled={isLoading}>{t("actions.cancel")}</AlertDialogCancel>
             <AlertDialogAction onClick={publishAnnonce} disabled={isLoading}>
-              {isEditMode ? "Enregistrer" : "Publier"}
+              {isEditMode ? t("actions.save") : t("publish.publish_button")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
