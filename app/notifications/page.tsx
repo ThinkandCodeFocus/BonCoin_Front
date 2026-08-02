@@ -77,10 +77,10 @@ export default function NotificationsPage() {
     const diffHours = Math.floor(diffMs / 3600000)
     const diffDays = Math.floor(diffMs / 86400000)
 
-    if (diffMins < 60) return `Il y a ${diffMins} min`
-    if (diffHours < 24) return `Il y a ${diffHours}h`
-    if (diffDays === 1) return "Hier"
-    return `Il y a ${diffDays} jours`
+    if (diffMins < 60) return `${t("time.ago")} ${diffMins} ${t("time.minutes")}`
+    if (diffHours < 24) return `${t("time.ago")} ${diffHours}${t("time.hours")}`
+    if (diffDays === 1) return t("time.yesterday")
+    return `${t("time.ago")} ${diffDays} ${t("time.days_ago_suffix")}`
   }
 
   if (isLoading) {
@@ -102,7 +102,7 @@ export default function NotificationsPage() {
         <div className="max-w-3xl mx-auto">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-xl font-semibold">{t("notifications")}</h1>
-            <Badge variant="secondary">{notifications.filter((n) => !n.read_at).length} non lues</Badge>
+            <Badge variant="secondary">{notifications.filter((n) => !n.read_at).length} {t("notifications.unread_suffix")}</Badge>
           </div>
 
           {notifications.length === 0 ? (
