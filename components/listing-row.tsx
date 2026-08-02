@@ -5,6 +5,7 @@ import { resolveStorageUrl } from "@/lib/media"
 import { formatPrice, TimeAgo, FavoriteButton, BoostedBadge } from "@/components/design-system"
 import { ListingThumbnail } from "@/components/listing-thumbnail"
 import type { ListingCardData } from "@/components/listing-card"
+import { useI18n } from "@/components/I18nProvider"
 
 interface ListingRowProps {
   listing: ListingCardData
@@ -13,6 +14,7 @@ interface ListingRowProps {
 }
 
 export function ListingRow({ listing, isFavorited = false, onToggleFavorite }: ListingRowProps) {
+  const { t } = useI18n()
   const photoUrl = resolveStorageUrl(listing.photos?.[0])
   const isBoosted = !!listing.boosted_until && new Date(listing.boosted_until) > new Date()
 
@@ -34,7 +36,7 @@ export function ListingRow({ listing, isFavorited = false, onToggleFavorite }: L
         <div>
           <h3 className="font-medium line-clamp-1">{listing.title}</h3>
           {listing.is_job_listing ? (
-            <p className="text-sm font-bold mt-1 text-primary">Offre d'emploi</p>
+            <p className="text-sm font-bold mt-1 text-primary">{t("badge.job_offer")}</p>
           ) : (
             <p className="text-lg font-bold mt-1">{formatPrice(listing.price)}</p>
           )}

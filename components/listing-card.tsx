@@ -5,6 +5,7 @@ import { MapPin, Star, BadgeCheck } from "lucide-react"
 import { resolveStorageUrl } from "@/lib/media"
 import { TimeAgo, FavoriteButton, BoostedBadge } from "@/components/design-system"
 import { ListingThumbnail } from "@/components/listing-thumbnail"
+import { useI18n } from "@/components/I18nProvider"
 import { cn } from "@/lib/utils"
 
 export interface ListingCardData {
@@ -46,6 +47,7 @@ export function ListingCard({
   variant = "grid",
   index,
 }: ListingCardProps) {
+  const { t } = useI18n()
   const photoUrl = resolveStorageUrl(listing.photos?.[0])
   const isBoosted = !!listing.boosted_until && new Date(listing.boosted_until) > new Date()
   const seller = listing.user
@@ -97,7 +99,7 @@ export function ListingCard({
             {seller.is_professional && (
               <span className="text-[10px] font-semibold text-muted-foreground border rounded px-1 shrink-0">Pro</span>
             )}
-            {seller.is_verified && <BadgeCheck className="w-3.5 h-3.5 text-primary shrink-0" aria-label="Vendeur vérifié" />}
+            {seller.is_verified && <BadgeCheck className="w-3.5 h-3.5 text-primary shrink-0" aria-label={t("badge.verified_seller")} />}
             {typeof seller.rating === "number" && (
               <span className="flex items-center gap-0.5 text-xs text-muted-foreground shrink-0">
                 <Star className="w-3 h-3 fill-current" />
@@ -124,7 +126,7 @@ export function ListingCard({
 
       <div className="p-3">
         {listing.is_job_listing ? (
-          <p className="font-display text-sm font-bold tracking-tight leading-none text-primary">Offre d'emploi</p>
+          <p className="font-display text-sm font-bold tracking-tight leading-none text-primary">{t("badge.job_offer")}</p>
         ) : (
           <p className="font-display text-2xl font-bold tracking-tight tabular-nums leading-none">
             {priceParts}
