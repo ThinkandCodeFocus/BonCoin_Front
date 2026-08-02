@@ -11,6 +11,7 @@ import {
   Gamepad2,
   MoreHorizontal,
   Gift,
+  BookOpen,
   type LucideIcon,
 } from "lucide-react"
 
@@ -28,6 +29,7 @@ const ICONS: Record<string, LucideIcon> = {
   gamepad2: Gamepad2,
   gamepad: Gamepad2,
   "more-horizontal": MoreHorizontal,
+  "book-open": BookOpen,
 }
 
 export function CategoryIcon({ icon, className }: { icon?: string; className?: string }) {

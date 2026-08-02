@@ -29,6 +29,7 @@ function ErrorBanner({ message }: { message: string }) {
 const SCRAPE_GROUPS = [
   { key: "electronique-maison", label: "Électronique & Maison", sites: ["kabirex", "soumari", "digitalstores"] },
   { key: "mode-beaute", label: "Mode & Beauté", sites: ["jouanecain", "baneskincare", "universcosmetix"] },
+  { key: "coran-xassida", label: "Coran & Xassida", sites: ["imanstore"] },
 ]
 
 function ScrapeGroupButton({ label, sites }: { label: string; sites: string[] }) {
