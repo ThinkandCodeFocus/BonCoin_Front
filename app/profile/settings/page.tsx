@@ -18,10 +18,12 @@ import { toast } from "sonner"
 import { resolveStorageUrl } from "@/lib/media"
 import { convertHeicIfNeeded } from "@/lib/image"
 import { EmptyState } from "@/components/design-system"
+import { useI18n } from "@/components/I18nProvider"
 
 export default function ProfileSettingsPage() {
   const { user, refreshUser, isAuthenticated } = useAuth()
   const router = useRouter()
+  const { t } = useI18n()
   const fileInputRef = useRef<HTMLInputElement>(null)
   
   const [isLoading, setIsLoading] = useState(false)
@@ -80,9 +82,9 @@ export default function ProfileSettingsPage() {
     const result = await blockService.unblock(userId)
     if (result.success) {
       setBlockedUsers((prev) => prev.filter((u) => u.id !== userId))
-      toast.success("Utilisateur débloqué")
+      toast.success(t("messages.user_unblocked"))
     } else {
-      toast.error((result as any).message || "Erreur")
+      toast.error((result as any).message || t("toast.error"))
     }
   }
 
@@ -110,31 +112,31 @@ export default function ProfileSettingsPage() {
       // l'upload est rejeté avant même d'atteindre le serveur.
       file = await convertHeicIfNeeded(rawFile)
     } catch {
-      toast.error("Impossible de traiter cette image. Essayez un format JPEG ou PNG.")
+      toast.error(t("settings.photo_error"))
       setIsUploadingPhoto(false)
       return
     }
 
     if (!file.type.startsWith("image/")) {
-      toast.error("Veuillez sélectionner une image")
+      toast.error(t("settings.select_image"))
       setIsUploadingPhoto(false)
       return
     }
 
     if (file.size > 2 * 1024 * 1024) {
-      toast.error("L'image ne doit pas dépasser 2MB")
+      toast.error(t("settings.image_too_large"))
       setIsUploadingPhoto(false)
       return
     }
 
     const result = await profileService.uploadPhoto(file)
-    
+
     if (result.success) {
-      toast.success("Photo de profil mise à jour")
+      toast.success(t("settings.photo_updated"))
       await refreshUser()
     } else {
       const fieldError = (result as any).errors?.photo?.[0]
-      toast.error(fieldError || result.message || "Erreur lors de l'upload de la photo")
+      toast.error(fieldError || result.message || t("settings.photo_upload_error"))
     }
     
     setIsUploadingPhoto(false)
@@ -145,12 +147,12 @@ export default function ProfileSettingsPage() {
     
     // Validation
     if (!formData.name || !formData.email) {
-      toast.error("Le nom et l'email sont requis")
+      toast.error(t("settings.name_email_required"))
       return
     }
 
     if (formData.password && formData.password !== formData.password_confirmation) {
-      toast.error("Les mots de passe ne correspondent pas")
+      toast.error(t("settings.password_mismatch"))
       return
     }
 
@@ -172,7 +174,7 @@ export default function ProfileSettingsPage() {
     const result = await profileService.update(updateData)
     
     if (result.success) {
-      toast.success("Profil mis à jour avec succès")
+      toast.success(t("settings.profile_updated"))
       await refreshUser()
       // Réinitialiser les champs de mot de passe
       setFormData({
@@ -181,7 +183,7 @@ export default function ProfileSettingsPage() {
         password_confirmation: "",
       })
     } else {
-      toast.error(result.message || "Erreur lors de la mise à jour")
+      toast.error(result.message || t("settings.update_error"))
       if ('errors' in result && result.errors) {
         Object.values(result.errors).forEach((errorArray: any) => {
           if (Array.isArray(errorArray)) {
@@ -196,7 +198,7 @@ export default function ProfileSettingsPage() {
 
   const handleSaveProfessional = async () => {
     if (isProfessional && !businessName.trim()) {
-      toast.error("Le nom de la boutique est requis pour un compte professionnel")
+      toast.error(t("settings.business_name_required"))
       return
     }
     setIsSavingPro(true)
@@ -207,10 +209,10 @@ export default function ProfileSettingsPage() {
     })
     setIsSavingPro(false)
     if (result.success) {
-      toast.success(isProfessional ? "Compte professionnel activé" : "Compte professionnel désactivé")
+      toast.success(isProfessional ? t("settings.pro_activated") : t("settings.pro_deactivated"))
       await refreshUser()
     } else {
-      toast.error(result.message || "Erreur lors de la mise à jour")
+      toast.error(result.message || t("settings.update_error"))
     }
   }
 
@@ -233,7 +235,7 @@ export default function ProfileSettingsPage() {
       <main className="flex-1 pb-16 md:pb-4">
         <AccountLayout>
           <div className="max-w-xl space-y-6">
-            <h1 className="text-base font-semibold">Paramètres du profil</h1>
+            <h1 className="text-base font-semibold">{t("settings.title")}</h1>
 
             <Card className="p-4">
               <div className="flex flex-col items-center gap-3">
@@ -266,9 +268,9 @@ export default function ProfileSettingsPage() {
                 </div>
                 <div className="text-center">
                   <p className="text-sm text-muted-foreground">
-                    Cliquez sur l'icône pour changer votre photo
+                    {t("settings.change_photo")}
                   </p>
-                  <p className="text-xs text-muted-foreground">JPG, PNG ou GIF (max 2MB)</p>
+                  <p className="text-xs text-muted-foreground">{t("settings.photo_formats")}</p>
                 </div>
               </div>
             </Card>
@@ -276,7 +278,7 @@ export default function ProfileSettingsPage() {
             <Card className="p-4">
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Nom complet *</Label>
+                  <Label htmlFor="name">{t("settings.full_name")}</Label>
                   <Input
                     id="name"
                     name="name"
@@ -288,7 +290,7 @@ export default function ProfileSettingsPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email *</Label>
+                  <Label htmlFor="email">{t("settings.email")}</Label>
                   <Input
                     id="email"
                     name="email"
@@ -300,7 +302,7 @@ export default function ProfileSettingsPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="phone">Téléphone</Label>
+                  <Label htmlFor="phone">{t("settings.phone")}</Label>
                   <Input
                     id="phone"
                     name="phone"
@@ -312,14 +314,14 @@ export default function ProfileSettingsPage() {
                 </div>
 
                 <div className="border-t pt-4 mt-2">
-                  <h3 className="text-sm font-semibold mb-1">Changer le mot de passe</h3>
+                  <h3 className="text-sm font-semibold mb-1">{t("settings.change_password")}</h3>
                   <p className="text-xs text-muted-foreground mb-4">
-                    Laissez vide si vous ne souhaitez pas changer votre mot de passe
+                    {t("settings.password_hint")}
                   </p>
 
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="password">Nouveau mot de passe</Label>
+                      <Label htmlFor="password">{t("settings.new_password")}</Label>
                       <div className="relative">
                         <Input
                           id="password"
@@ -342,7 +344,7 @@ export default function ProfileSettingsPage() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="password_confirmation">Confirmer le mot de passe</Label>
+                      <Label htmlFor="password_confirmation">{t("auth.confirm_password")}</Label>
                       <div className="relative">
                         <Input
                           id="password_confirmation"
@@ -370,10 +372,10 @@ export default function ProfileSettingsPage() {
                   {isLoading ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Enregistrement...
+                      {t("actions.saving")}
                     </>
                   ) : (
-                    "Enregistrer les modifications"
+                    t("publish.save_changes_button")
                   )}
                 </Button>
               </form>
@@ -382,11 +384,10 @@ export default function ProfileSettingsPage() {
             <Card className="p-4">
               <div className="flex items-center gap-2 mb-3">
                 <Store className="w-4 h-4 text-muted-foreground" />
-                <h2 className="text-sm font-semibold">Compte professionnel</h2>
+                <h2 className="text-sm font-semibold">{t("settings.professional_account")}</h2>
               </div>
               <p className="text-xs text-muted-foreground mb-4">
-                Vous vendez régulièrement au nom d'une boutique ou d'une entreprise ? Activez le compte
-                professionnel pour afficher le nom de votre boutique sur vos annonces.
+                {t("settings.professional_desc")}
               </p>
               <div className="space-y-4">
                 <div className="flex items-center space-x-2">
@@ -396,14 +397,14 @@ export default function ProfileSettingsPage() {
                     onCheckedChange={(checked) => setIsProfessional(checked as boolean)}
                   />
                   <label htmlFor="is_professional" className="text-sm">
-                    Ceci est un compte professionnel
+                    {t("settings.is_professional_label")}
                   </label>
                 </div>
 
                 {isProfessional && (
                   <>
                     <div className="space-y-2">
-                      <Label htmlFor="business_name">Nom de la boutique *</Label>
+                      <Label htmlFor="business_name">{t("settings.business_name")}</Label>
                       <Input
                         id="business_name"
                         value={businessName}
@@ -412,12 +413,12 @@ export default function ProfileSettingsPage() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="business_registration">NINEA / RCCM (facultatif)</Label>
+                      <Label htmlFor="business_registration">{t("settings.business_registration")}</Label>
                       <Input
                         id="business_registration"
                         value={businessRegistration}
                         onChange={(e) => setBusinessRegistration(e.target.value)}
-                        placeholder="Numéro d'identification de l'entreprise"
+                        placeholder={t("settings.business_registration_placeholder")}
                       />
                     </div>
                   </>
@@ -425,19 +426,19 @@ export default function ProfileSettingsPage() {
 
                 <Button onClick={handleSaveProfessional} disabled={isSavingPro} variant="outline" className="w-full">
                   {isSavingPro && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                  Enregistrer
+                  {t("actions.save")}
                 </Button>
               </div>
             </Card>
 
             <Card className="p-4">
-              <h2 className="text-sm font-semibold mb-3">Utilisateurs bloqués</h2>
+              <h2 className="text-sm font-semibold mb-3">{t("settings.blocked_users")}</h2>
               {isLoadingBlocked ? (
                 <div className="flex justify-center py-4">
                   <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
                 </div>
               ) : blockedUsers.length === 0 ? (
-                <EmptyState icon={UserX} title="Aucun utilisateur bloqué" />
+                <EmptyState icon={UserX} title={t("settings.no_blocked_users")} />
               ) : (
                 <div className="space-y-2">
                   {blockedUsers.map((blocked) => (
@@ -450,7 +451,7 @@ export default function ProfileSettingsPage() {
                         <span className="text-sm truncate">{blocked.name}</span>
                       </div>
                       <Button size="sm" variant="outline" onClick={() => handleUnblock(blocked.id)}>
-                        Débloquer
+                        {t("messages.unblock")}
                       </Button>
                     </div>
                   ))}
