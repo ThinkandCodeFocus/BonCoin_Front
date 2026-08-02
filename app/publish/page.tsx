@@ -142,6 +142,48 @@ export default function PublishPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editId])
 
+  // Retour depuis la prévisualisation ("Modifier") : on recharge le
+  // brouillon au lieu de repartir d'un formulaire vide.
+  useEffect(() => {
+    if (editId) return
+
+    const raw = sessionStorage.getItem("preview_annonce")
+    if (!raw) return
+
+    try {
+      const data = JSON.parse(raw)
+      const draft = (window as any).__publishDraft
+
+      setTitle(data.title || "")
+      setDescription(data.description || "")
+      setPrice(data.price || "")
+      setNegotiable(!!data.negotiable)
+      setCategoryId(data.categoryId || "")
+      setCustomCategory(data.customCategory || "")
+      setCity(data.city || "")
+      setDistrict(data.district || "")
+      setEtat(data.etat || "")
+      setCategoryAttributes(data.attributes || {})
+
+      if (draft?.descriptionMode) setDescriptionMode(draft.descriptionMode)
+
+      if (draft?.imageFiles?.length) {
+        setImageFiles(draft.imageFiles)
+        setImagePreviews(draft.imageFiles.map((file: File) => URL.createObjectURL(file)))
+      }
+      if (draft?.videoFile) {
+        setVideoFile(draft.videoFile)
+        setVideoPreview(URL.createObjectURL(draft.videoFile))
+      }
+      if (draft?.audioBlob) {
+        setAudioBlob(draft.audioBlob)
+      }
+    } catch {
+      // Brouillon corrompu ou illisible : on ignore, le formulaire reste vide.
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editId])
+
   const loadCategories = async () => {
     try {
       const result = await categoryService.getAll()
@@ -250,7 +292,14 @@ export default function PublishPage() {
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-      const recorder = new MediaRecorder(stream)
+      // Sans mimeType explicite, le conteneur choisi par le navigateur par
+      // defaut est imprevisible et ne correspond pas toujours au 'audio/webm'
+      // code en dur plus bas : le backend (qui verifie le contenu reel du
+      // fichier, pas juste l'extension) rejette alors l'upload.
+      const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+        ? 'audio/webm;codecs=opus'
+        : 'audio/webm'
+      const recorder = new MediaRecorder(stream, { mimeType })
       const chunks: BlobPart[] = []
 
       recorder.ondataavailable = (e) => {
@@ -526,6 +575,8 @@ export default function PublishPage() {
           : (t("publish.create_success_desc") || "Votre annonce est maintenant en ligne"),
       })
 
+      sessionStorage.removeItem("preview_annonce")
+      ;(window as any).__publishDraft = null
       router.push(`/listings/${annonceId}`)
     } catch (error) {
       toast({

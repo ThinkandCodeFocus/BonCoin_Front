@@ -176,6 +176,7 @@ export default function PublishPreviewPage() {
         }
       }
 
+      sessionStorage.removeItem("preview_annonce")
       ;(window as any).__publishDraft = null
       toast({
         title: t("publish.create_success") || "Creation avec succes",
