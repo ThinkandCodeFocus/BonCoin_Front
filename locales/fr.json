@@ -288,6 +288,8 @@
   "settings.business_registration_placeholder": "Numéro d'identification de l'entreprise",
   "settings.blocked_users": "Utilisateurs bloqués",
   "settings.no_blocked_users": "Aucun utilisateur bloqué",
+  "publish.max_photos_reached": "Vous avez déjà atteint le maximum de 5 photos",
+  "publish.some_photos_skipped": "Seules certaines photos ont été ajoutées (maximum 5 au total)",
 
   "footer.navigation": "Navigation",
   "footer.categories": "Catégories",

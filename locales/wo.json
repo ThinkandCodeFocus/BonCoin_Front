@@ -288,6 +288,8 @@
   "settings.business_registration_placeholder": "Nimero d'identifikasioŋ bu entreprise bi",
   "settings.blocked_users": "Jëfandikukat yu bloke",
   "settings.no_blocked_users": "Amul jëfandikukat bu bloke",
+  "publish.max_photos_reached": "Sa 5 nataal yi mat nañu",
+  "publish.some_photos_skipped": "Yenn nataal yi rekk lañu dugal (li gëna yaate 5 ci lépp)",
 
   "footer.navigation": "Xuus",
   "footer.categories": "Xeet yi",

@@ -225,9 +225,27 @@ export default function PublishPage() {
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
-    if (!files) return
+    if (!files || files.length === 0) return
 
-    const selectedFiles = Array.from(files).slice(0, 5 - existingPhotoUrls.length - imageFiles.length)
+    const remainingSlots = Math.max(0, 5 - existingPhotoUrls.length - imageFiles.length)
+    const selectedFiles = Array.from(files).slice(0, remainingSlots)
+
+    if (selectedFiles.length === 0) {
+      toast({
+        title: t("toast.error") || "Erreur",
+        description: t("publish.max_photos_reached"),
+        variant: "destructive",
+      })
+      e.target.value = ""
+      return
+    }
+
+    if (selectedFiles.length < files.length) {
+      toast({
+        title: t("publish.warning") || "Avertissement",
+        description: t("publish.some_photos_skipped"),
+      })
+    }
 
     // Convertit les photos HEIC/HEIF (format par défaut iPhone) en JPEG : sans
     // ça, l'aperçu reste vide et l'upload peut être rejeté par le serveur.
@@ -246,8 +264,13 @@ export default function PublishPage() {
 
     const newPreviews = newFiles.map((file) => URL.createObjectURL(file))
 
-    setImageFiles([...imageFiles, ...newFiles])
-    setImagePreviews([...imagePreviews, ...newPreviews])
+    setImageFiles((prev) => [...prev, ...newFiles])
+    setImagePreviews((prev) => [...prev, ...newPreviews])
+
+    // Sans cette remise a zero, resélectionner exactement le(s) meme(s)
+    // fichier(s) (ex: apres un premier essai qui semblait ne rien faire) ne
+    // redeclenche pas l'evenement onChange - rien ne se passe, sans erreur.
+    e.target.value = ""
   }
 
   const removeImage = (index: number) => {
@@ -267,6 +290,7 @@ export default function PublishPage() {
         description: t("publish.invalid_video_format_desc") || "Veuillez choisir une video MP4 ou MPEG",
         variant: "destructive",
       })
+      e.target.value = ""
       return
     }
     if (file.size > maxSizeBytes) {
@@ -275,12 +299,14 @@ export default function PublishPage() {
         description: t("publish.video_too_large_desc") || "La video ne doit pas depasser 10MB",
         variant: "destructive",
       })
+      e.target.value = ""
       return
     }
     if (videoPreview) URL.revokeObjectURL(videoPreview)
     const preview = URL.createObjectURL(file)
     setVideoFile(file)
     setVideoPreview(preview)
+    e.target.value = ""
   }
 
   const removeVideo = () => {
