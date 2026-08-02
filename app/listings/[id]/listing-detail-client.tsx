@@ -20,6 +20,7 @@ import { formatPrice } from "@/components/design-system"
 import { ListingCard, type ListingCardData } from "@/components/listing-card"
 import { ListingThumbnail } from "@/components/listing-thumbnail"
 import { BusinessCardDialog } from "@/components/business-card-dialog"
+import { useI18n } from "@/components/I18nProvider"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -72,6 +73,7 @@ interface Annonce {
 export function ListingDetailClient() {
   const params = useParams<{ id: string }>()
   const id = params?.id
+  const { t } = useI18n()
   const { isAuthenticated, user } = useAuth()
   const router = useRouter()
   const [annonce, setAnnonce] = useState<Annonce | null>(null)
@@ -98,7 +100,7 @@ export function ListingDetailClient() {
     try {
       const parsedId = Number.parseInt(id as string, 10)
       if (Number.isNaN(parsedId)) {
-        toast.error("Annonce introuvable")
+        toast.error(t("detail.not_found"))
         return
       }
       const result = await annonceService.getById(parsedId)
@@ -107,10 +109,10 @@ export function ListingDetailClient() {
         setAnnonce(annonceData)
         loadSimilarListings(annonceData.category?.id, parsedId)
       } else {
-        toast.error(result.message || "Annonce introuvable")
+        toast.error(result.message || t("detail.not_found"))
       }
     } catch (error) {
-      toast.error("Erreur lors du chargement de l'annonce")
+      toast.error(t("detail.load_error"))
     } finally {
       setIsLoading(false)
     }
@@ -145,17 +147,17 @@ export function ListingDetailClient() {
       const result = await favoriteService.remove(annonce!.id)
       if (result.success) {
         setIsFavorite(false)
-        toast.success("Retiré des favoris")
+        toast.success(t("toast.removed_fav"))
       } else {
-        toast.error(result.message || "Impossible de retirer")
+        toast.error(result.message || t("toast.remove_fail"))
       }
     } else {
       const result = await favoriteService.add(annonce!.id)
       if (result.success) {
         setIsFavorite(true)
-        toast.success("Ajouté aux favoris")
+        toast.success(t("toast.added_fav"))
       } else {
-        toast.error(result.message || "Impossible d'ajouter")
+        toast.error(result.message || t("toast.add_fail"))
       }
     }
   }
@@ -169,7 +171,7 @@ export function ListingDetailClient() {
     if (!annonce) return
 
     setIsContacting(true)
-    toast.info("Création de la conversation...")
+    toast.info(t("detail.creating_conversation"))
 
     try {
       const result = await messageService.createConversation({
@@ -182,16 +184,16 @@ export function ListingDetailClient() {
         const conversationId = conversationData?.id
 
         if (conversationId) {
-          toast.success("Conversation créée !")
+          toast.success(t("detail.conversation_created"))
           router.push(`/messages/${conversationId}`)
           return
         }
       }
 
-      const errorMessage = result.message || result.errors?.annonce_id || "Erreur lors de la création de la conversation"
+      const errorMessage = result.message || result.errors?.annonce_id || t("detail.conversation_error")
       toast.error(errorMessage)
     } catch (error) {
-      toast.error("Erreur lors de la création de la conversation")
+      toast.error(t("detail.conversation_error"))
     } finally {
       setIsContacting(false)
     }
@@ -206,10 +208,10 @@ export function ListingDetailClient() {
     setShowDeleteConfirm(false)
 
     if (result.success) {
-      toast.success("Annonce supprimée")
+      toast.success(t("detail.deleted"))
       router.push("/profile?tab=listings")
     } else {
-      toast.error((result as any).message || "Suppression échouée")
+      toast.error((result as any).message || t("detail.delete_failed"))
     }
   }
 
@@ -251,7 +253,7 @@ export function ListingDetailClient() {
       <div className="min-h-screen flex flex-col">
         <Header />
         <main className="flex-1 flex items-center justify-center">
-          <p>Annonce introuvable</p>
+          <p>{t("detail.not_found")}</p>
         </main>
         <BottomNav />
       </div>
@@ -330,10 +332,10 @@ export function ListingDetailClient() {
 
               {annonce.videos && annonce.videos.length > 0 && (
                 <div className="mt-4 space-y-3">
-                  <h3 className="font-semibold text-sm">Vidéos</h3>
+                  <h3 className="font-semibold text-sm">{t("detail.videos")}</h3>
                   {annonce.videos.map((video: string, index: number) => (
                     <video key={index} controls className="w-full rounded-md" src={resolveStorageUrl(video)}>
-                      Votre navigateur ne supporte pas la lecture de vidéos.
+                      {t("detail.video_not_supported")}
                     </video>
                   ))}
                 </div>
@@ -349,7 +351,7 @@ export function ListingDetailClient() {
                     {!annonce.is_job_listing && <p className="text-2xl font-bold">{formatPrice(annonce.price)}</p>}
                     {annonce.negotiable && (
                       <Badge variant="secondary" className="mt-2">
-                        Prix négociable
+                        {t("publish.negotiable")}
                       </Badge>
                     )}
                   </div>
@@ -357,7 +359,7 @@ export function ListingDetailClient() {
                     <Button size="icon" variant="outline" onClick={toggleFavorite}>
                       <Heart className={`w-4 h-4 ${isFavorite ? "fill-current text-destructive" : ""}`} />
                     </Button>
-                    <Button size="icon" variant="outline" onClick={() => setShowBusinessCard(true)} title="Carte de visite">
+                    <Button size="icon" variant="outline" onClick={() => setShowBusinessCard(true)} title={t("detail.business_card")}>
                       <QrCode className="w-4 h-4" />
                     </Button>
                   </div>
@@ -385,10 +387,10 @@ export function ListingDetailClient() {
                         {annonce.user.is_professional && annonce.user.business_name
                           ? annonce.user.business_name
                           : annonce.user.name}
-                        {annonce.user.is_verified && <BadgeCheck className="w-3.5 h-3.5 text-primary" aria-label="Vendeur vérifié" />}
+                        {annonce.user.is_verified && <BadgeCheck className="w-3.5 h-3.5 text-primary" aria-label={t("badge.verified_seller")} />}
                       </Link>
                       <p className="text-xs text-muted-foreground">
-                        {annonce.user.is_professional ? "Vendeur professionnel" : "Vendeur"}
+                        {annonce.user.is_professional ? t("detail.professional_seller") : t("detail.seller")}
                       </p>
                     </div>
                   </div>
@@ -405,13 +407,13 @@ export function ListingDetailClient() {
                     <Button className="w-full" variant="default" asChild>
                       <a href={annonce.apply_url} target="_blank" rel="noopener noreferrer">
                         <ExternalLink className="w-4 h-4 mr-2" />
-                        {annonce.is_job_listing ? "Postuler sur le site" : "Voir l'annonce sur le site"}
+                        {annonce.is_job_listing ? t("detail.apply_job") : t("detail.view_on_site")}
                       </a>
                     </Button>
                     <p className="text-xs text-muted-foreground text-center">
                       {annonce.is_job_listing
-                        ? "Vous serez redirigé vers le site où l'offre a été publiée."
-                        : "Vous serez redirigé vers le site de l'agence pour la contacter."}
+                        ? t("detail.redirect_job_notice")
+                        : t("detail.redirect_agency_notice")}
                     </p>
                   </div>
                 )}
@@ -438,7 +440,7 @@ export function ListingDetailClient() {
                           rel="noopener noreferrer"
                         >
                           <MessageSquare className="w-4 h-4 mr-2" />
-                          Contacter sur WhatsApp
+                          {t("detail.contact_whatsapp")}
                         </a>
                       </Button>
                     )}
@@ -448,7 +450,7 @@ export function ListingDetailClient() {
                       ) : (
                         <MessageCircle className="w-4 h-4 mr-2" />
                       )}
-                      {isContacting ? "Création..." : "Envoyer un message"}
+                      {isContacting ? t("detail.creating_ellipsis") : t("detail.send_message")}
                     </Button>
                   </div>
                 )}
@@ -456,7 +458,7 @@ export function ListingDetailClient() {
                   <div className="space-y-2">
                     <Link href={`/publish?edit=${annonce.id}`}>
                       <Button className="w-full" variant="default">
-                        Modifier
+                        {t("actions.edit")}
                       </Button>
                     </Link>
                     <Button
@@ -466,14 +468,14 @@ export function ListingDetailClient() {
                       disabled={isDeleting}
                     >
                       {isDeleting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
-                      Supprimer
+                      {t("detail.delete")}
                     </Button>
                   </div>
                 )}
               </Card>
 
               <Card className="p-4">
-                <h2 className="font-semibold text-sm mb-2">Description</h2>
+                <h2 className="font-semibold text-sm mb-2">{t("publish.section_description")}</h2>
                 {annonce.description && (
                   <p className="text-sm text-muted-foreground whitespace-pre-wrap break-words leading-relaxed">
                     {annonce.description}
@@ -481,32 +483,32 @@ export function ListingDetailClient() {
                 )}
                 {annonce.audios && annonce.audios.length > 0 && (
                   <div className="space-y-3 mt-3">
-                    <p className="text-xs text-muted-foreground">Description vocale enregistrée</p>
+                    <p className="text-xs text-muted-foreground">{t("detail.description_audio_label")}</p>
                     {annonce.audios.map((audio: string, index: number) => (
                       <audio key={index} controls className="w-full" src={resolveStorageUrl(audio)}>
-                        Votre navigateur ne supporte pas l'élément audio.
+                        {t("publish.audio_not_supported")}
                       </audio>
                     ))}
                   </div>
                 )}
                 {!annonce.description && (!annonce.audios || annonce.audios.length === 0) && (
-                  <p className="text-sm text-muted-foreground">Aucune description fournie</p>
+                  <p className="text-sm text-muted-foreground">{t("detail.no_description")}</p>
                 )}
               </Card>
 
               <Card className="p-4">
-                <h2 className="font-semibold text-sm mb-2">Détails</h2>
+                <h2 className="font-semibold text-sm mb-2">{t("detail.details_title")}</h2>
                 <div className="space-y-1.5 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Catégorie</span>
+                    <span className="text-muted-foreground">{t("detail.category")}</span>
                     <span className="font-medium">{annonce.custom_category || annonce.category.name}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">État</span>
+                    <span className="text-muted-foreground">{t("listings.condition_label")}</span>
                     <span className="font-medium">{annonce.etat}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Statut</span>
+                    <span className="text-muted-foreground">{t("detail.status")}</span>
                     <Badge variant="outline">{annonce.status}</Badge>
                   </div>
                 </div>
@@ -514,7 +516,7 @@ export function ListingDetailClient() {
 
               {annonce.attributes && annonce.attributes.length > 0 && (
                 <Card className="p-4">
-                  <h2 className="font-semibold text-sm mb-2">Caractéristiques</h2>
+                  <h2 className="font-semibold text-sm mb-2">{t("detail.characteristics")}</h2>
                   <div className="space-y-1.5 text-sm">
                     {annonce.attributes.map((attribute) => (
                       <div key={attribute.key} className="flex justify-between">
@@ -530,7 +532,7 @@ export function ListingDetailClient() {
 
           {similarListings.length > 0 && (
             <div className="mt-10">
-              <h2 className="text-base font-semibold mb-3">Annonces similaires</h2>
+              <h2 className="text-base font-semibold mb-3">{t("detail.similar_listings")}</h2>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                 {similarListings.map((item) => (
                   <ListingCard key={item.id} listing={item} />
@@ -554,14 +556,14 @@ export function ListingDetailClient() {
       <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Supprimer l'annonce</AlertDialogTitle>
+            <AlertDialogTitle>{t("detail.delete_confirm_title")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Cette action est définitive. Voulez-vous vraiment supprimer cette annonce ?
+              {t("detail.delete_confirm_desc")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Annuler</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>Supprimer</AlertDialogAction>
+            <AlertDialogCancel>{t("actions.cancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete}>{t("detail.delete")}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
