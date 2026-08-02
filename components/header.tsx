@@ -194,6 +194,26 @@ export function Header() {
                 <Moon className="w-4 h-4" />
               )}
             </Button>
+            {isAuthenticated && (
+              <>
+                <Link href="/messages">
+                  <Button variant="ghost" size="icon" className="relative" aria-label={t("messages")}>
+                    <MessageSquare className="w-4 h-4" />
+                    {messageCount > 0 && (
+                      <Badge className="absolute -top-1 -right-1 px-1 min-w-4 justify-center">{messageCount}</Badge>
+                    )}
+                  </Button>
+                </Link>
+                <Link href="/notifications">
+                  <Button variant="ghost" size="icon" className="relative" aria-label={t("notifications")}>
+                    <Bell className="w-4 h-4" />
+                    {notificationCount > 0 && (
+                      <Badge className="absolute -top-1 -right-1 px-1 min-w-4 justify-center">{notificationCount}</Badge>
+                    )}
+                  </Button>
+                </Link>
+              </>
+            )}
             <Sheet>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon">
@@ -202,20 +222,6 @@ export function Header() {
               </SheetTrigger>
               <SheetContent>
                 <nav className="flex flex-col gap-1 mt-8">
-                  <Link href="/messages">
-                    <Button variant="ghost" className="w-full justify-start">
-                      <MessageSquare className="w-4 h-4 mr-2" />
-                      <span data-i18n="messages">Messages</span>
-                      {messageCount > 0 && <Badge className="ml-auto">{messageCount}</Badge>}
-                    </Button>
-                  </Link>
-                  <Link href="/notifications">
-                    <Button variant="ghost" className="w-full justify-start">
-                      <Bell className="w-4 h-4 mr-2" />
-                      <span data-i18n="notifications">Notifications</span>
-                      {notificationCount > 0 && <Badge className="ml-auto">{notificationCount}</Badge>}
-                    </Button>
-                  </Link>
                   <Link href="/favorites">
                     <Button variant="ghost" className="w-full justify-start">
                       <Heart className="w-4 h-4 mr-2" />
