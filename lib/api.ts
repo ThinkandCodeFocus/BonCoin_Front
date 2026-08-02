@@ -1485,6 +1485,42 @@ export const adminService = {
       return handleError(error)
     }
   },
+
+  async getVisitStats(days = 30) {
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/admin/visits/stats?days=${days}`, {
+        method: 'GET',
+        headers: getHeaders(),
+      })
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw { response: { data: result, status: response.status } }
+      }
+
+      return { success: true, data: result }
+    } catch (error) {
+      return handleError(error)
+    }
+  },
+
+  async relaunchSignupBanner() {
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/admin/signup-banner/relaunch`, {
+        method: 'POST',
+        headers: getHeaders(),
+      })
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw { response: { data: result, status: response.status } }
+      }
+
+      return { success: true, data: result }
+    } catch (error) {
+      return handleError(error)
+    }
+  },
 }
 
 /**
@@ -1814,6 +1850,44 @@ export const transactionService = {
         method: 'POST',
         headers: getHeaders(),
         body: JSON.stringify({ reason }),
+      })
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw { response: { data: result, status: response.status } }
+      }
+
+      return { success: true, data: result }
+    } catch (error) {
+      return handleError(error)
+    }
+  },
+}
+
+/**
+ * Suivi de visites (statistiques admin par jour/pays) et banniere
+ * d'inscription pilotee par l'admin. Endpoints publics, sans auth.
+ */
+export const visitService = {
+  async track() {
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/visits/track`, {
+        method: 'POST',
+        headers: getHeaders(false),
+      })
+      return { success: response.ok }
+    } catch (error) {
+      return handleError(error)
+    }
+  },
+}
+
+export const signupBannerService = {
+  async getVersion() {
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/signup-banner`, {
+        method: 'GET',
+        headers: getHeaders(false),
       })
       const result = await response.json()
 

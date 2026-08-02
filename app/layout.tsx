@@ -11,6 +11,8 @@ import { MessageNotificationProvider } from "@/contexts/MessageNotificationConte
 import { MessageNotificationToast } from "@/components/message-notification-toast"
 import { I18nProvider } from "@/components/I18nProvider"
 import { PwaInstallPrompt } from "@/components/pwa-install-prompt"
+import { VisitTracker } from "@/components/visit-tracker"
+import { SignupBanner } from "@/components/signup-banner"
 
 const fraunces = Fraunces({
   subsets: ["latin"],
@@ -73,6 +75,8 @@ export default function RootLayout({
                   <MessageNotificationToast />
                   <Toaster />
                   <PwaInstallPrompt />
+                  <VisitTracker />
+                  <SignupBanner />
                 </MessageNotificationProvider>
               </FavoritesProvider>
             </AuthProvider>
