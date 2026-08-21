@@ -4,6 +4,8 @@ import Link from "next/link"
 import { MapPin, Star, BadgeCheck } from "lucide-react"
 import { resolveStorageUrl } from "@/lib/media"
 import { TimeAgo, FavoriteButton, BoostedBadge } from "@/components/design-system"
+import { ListingThumbnail } from "@/components/listing-thumbnail"
+import { useI18n } from "@/components/I18nProvider"
 import { cn } from "@/lib/utils"
 
 export interface ListingCardData {
@@ -15,6 +17,8 @@ export interface ListingCardData {
   boosted_until?: string | null
   photos?: string[]
   created_at: string
+  apply_url?: string | null
+  is_job_listing?: boolean
   user?: {
     name: string
     photo?: string
@@ -43,6 +47,7 @@ export function ListingCard({
   variant = "grid",
   index,
 }: ListingCardProps) {
+  const { t } = useI18n()
   const photoUrl = resolveStorageUrl(listing.photos?.[0])
   const isBoosted = !!listing.boosted_until && new Date(listing.boosted_until) > new Date()
   const seller = listing.user
@@ -69,13 +74,11 @@ export function ListingCard({
       )}
     >
       <div className="relative aspect-square bg-muted">
-        <img
-          src={photoUrl}
+        <ListingThumbnail
+          src={listing.photos?.[0] ? photoUrl : undefined}
           alt={listing.title}
-          onError={(e) => {
-            e.currentTarget.src = "/placeholder.svg"
-          }}
-          className="w-full h-full object-cover"
+          isJob={!!listing.is_job_listing}
+          className="w-full h-full"
         />
         {seller?.name && (
           <div className="absolute top-2 left-2 flex items-center gap-1.5 bg-card/95 border-2 border-ink rounded-full pl-1 pr-2 py-1 max-w-[85%] shadow-hard-sm">
@@ -96,7 +99,7 @@ export function ListingCard({
             {seller.is_professional && (
               <span className="text-[10px] font-semibold text-muted-foreground border rounded px-1 shrink-0">Pro</span>
             )}
-            {seller.is_verified && <BadgeCheck className="w-3.5 h-3.5 text-primary shrink-0" aria-label="Vendeur vérifié" />}
+            {seller.is_verified && <BadgeCheck className="w-3.5 h-3.5 text-primary shrink-0" aria-label={t("badge.verified_seller")} />}
             {typeof seller.rating === "number" && (
               <span className="flex items-center gap-0.5 text-xs text-muted-foreground shrink-0">
                 <Star className="w-3 h-3 fill-current" />
@@ -122,12 +125,16 @@ export function ListingCard({
       </div>
 
       <div className="p-3">
-        <p className="font-display text-2xl font-bold tracking-tight tabular-nums leading-none">
-          {priceParts}
-          <span className="ml-1 font-sans text-[11px] font-semibold tracking-wide text-muted-foreground align-super">
-            FCFA
-          </span>
-        </p>
+        {listing.is_job_listing ? (
+          <p className="font-display text-sm font-bold tracking-tight leading-none text-primary">{t("badge.job_offer")}</p>
+        ) : (
+          <p className="font-display text-2xl font-bold tracking-tight tabular-nums leading-none">
+            {priceParts}
+            <span className="ml-1 font-sans text-[11px] font-semibold tracking-wide text-muted-foreground align-super">
+              FCFA
+            </span>
+          </p>
+        )}
         <h3 className="text-sm mt-1.5 line-clamp-2 leading-snug">{listing.title}</h3>
         <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
           <span className="flex items-center gap-1 truncate">

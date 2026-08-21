@@ -12,6 +12,7 @@ import { Package, Heart, Loader2, MapPin, Trash2, Edit3, BellPlus, Rocket } from
 import Link from "next/link"
 import { useAuth } from "@/contexts/AuthContext"
 import { resolveStorageUrl } from "@/lib/media"
+import { ListingThumbnail } from "@/components/listing-thumbnail"
 import { profileService, favoriteService, annonceService, savedSearchService } from "@/lib/api"
 import { BoostDialog } from "@/components/boost-dialog"
 import { useRouter, useSearchParams } from "next/navigation"
@@ -39,6 +40,8 @@ interface Annonce {
   views: number
   city: string
   district: string
+  apply_url?: string | null
+  is_job_listing?: boolean
 }
 
 interface Favorite {
@@ -77,7 +80,7 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      router.push("/")
+      router.push("/auth")
       return
     }
 
@@ -118,9 +121,9 @@ export default function ProfilePage() {
     const result = await savedSearchService.delete(id)
     if (result.success) {
       setSavedSearches((prev) => prev.filter((s) => s.id !== id))
-      toast({ title: "Recherche supprimée" })
+      toast({ title: t("profile.search_deleted") })
     } else {
-      toast({ title: "Erreur", description: result.message || "Suppression échouée", variant: "destructive" })
+      toast({ title: t("toast.error"), description: result.message || t("detail.delete_failed"), variant: "destructive" })
     }
   }
 
@@ -133,17 +136,17 @@ export default function ProfilePage() {
       parts.push(`${search.min_price ?? 0} - ${search.max_price ?? "∞"} fcfa`)
     }
     if (search.etat) parts.push(search.etat)
-    return parts.join(" · ") || "Recherche"
+    return parts.join(" · ") || t("profile.search_fallback")
   }
 
   const removeFavorite = async (annonceId: number) => {
     const result = await favoriteService.remove(annonceId)
     if (result.success) {
       setFavorites((prev) => prev.filter((fav) => fav.annonce?.id !== annonceId))
-      toast({ title: "Favori retiré" })
+      toast({ title: t("profile.favorite_removed") })
       await reloadFavoritesContext()
     } else {
-      toast({ title: "Erreur", description: result.message || "Impossible de retirer le favori", variant: "destructive" })
+      toast({ title: t("toast.error"), description: result.message || t("profile.favorite_remove_failed"), variant: "destructive" })
     }
   }
 
@@ -156,9 +159,9 @@ export default function ProfilePage() {
     const result = await annonceService.delete(deleteTargetId)
     if (result.success) {
       setUserAnnonces((prev) => prev.filter((a) => a.id !== deleteTargetId))
-      toast({ title: "Annonce supprimée" })
+      toast({ title: t("detail.deleted") })
     } else {
-      toast({ title: "Erreur", description: result.message || "Suppression échouée", variant: "destructive" })
+      toast({ title: t("toast.error"), description: result.message || t("detail.delete_failed"), variant: "destructive" })
     }
     setDeleteTargetId(null)
   }
@@ -189,7 +192,7 @@ export default function ProfilePage() {
           </div>
           <Link href={`/sellers/${user.id}`}>
             <Button variant="outline" size="sm">
-              Voir ma boutique
+              {t("profile.view_shop")}
             </Button>
           </Link>
         </div>
@@ -197,7 +200,7 @@ export default function ProfilePage() {
         <AccountLayout>
           {activeTab === "searches" ? (
             <div className="space-y-3">
-              <h1 className="text-base font-semibold">Recherches enregistrées ({savedSearches.length})</h1>
+              <h1 className="text-base font-semibold">{t("profile.saved_searches_title")} ({savedSearches.length})</h1>
               {isLoadingSearches ? (
                 <div className="flex justify-center py-8">
                   <Loader2 className="w-6 h-6 animate-spin text-primary" />
@@ -205,8 +208,8 @@ export default function ProfilePage() {
               ) : savedSearches.length === 0 ? (
                 <EmptyState
                   icon={BellPlus}
-                  title="Vous n'avez pas encore de recherche enregistrée"
-                  description="Enregistrez une recherche depuis la page des annonces pour être alerté des nouvelles offres"
+                  title={t("profile.no_saved_searches_title")}
+                  description={t("profile.no_saved_searches_desc")}
                 />
               ) : (
                 savedSearches.map((search) => (
@@ -219,7 +222,7 @@ export default function ProfilePage() {
                       onClick={() => deleteSavedSearch(search.id)}
                     >
                       <Trash2 className="w-3.5 h-3.5 mr-1" />
-                      Supprimer
+                      {t("detail.delete")}
                     </Button>
                   </Card>
                 ))
@@ -235,10 +238,10 @@ export default function ProfilePage() {
               ) : userAnnonces.length === 0 ? (
                 <EmptyState
                   icon={Package}
-                  title="Vous n'avez pas encore d'annonces"
+                  title={t("profile.no_listings_title")}
                   action={
                     <Link href="/publish">
-                      <Button>Publier une annonce</Button>
+                      <Button>{t("publish")}</Button>
                     </Link>
                   }
                 />
@@ -249,46 +252,44 @@ export default function ProfilePage() {
                   return (
                     <Card key={listing.id} className="p-3">
                       <div className="flex gap-3">
-                        <img
-                          src={photoUrl}
+                        <ListingThumbnail
+                          src={listing.photos?.[0] ? photoUrl : undefined}
                           alt={listing.title}
-                          onError={(e) => {
-                            e.currentTarget.src = "/placeholder.svg"
-                          }}
-                          className="w-24 h-24 object-cover rounded-md border shrink-0"
+                          isJob={!!listing.is_job_listing}
+                          className="w-24 h-24 rounded-md border shrink-0"
                         />
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between gap-2 mb-1">
                             <div className="flex-1 min-w-0">
                               <h3 className="font-medium line-clamp-2 break-words">{listing.title}</h3>
-                              <p className="text-lg font-bold">{formatPrice(listing.price)}</p>
+                              {!listing.is_job_listing && <p className="text-lg font-bold">{formatPrice(listing.price)}</p>}
                             </div>
                             <Badge variant={listing.status === "Disponible" ? "default" : "secondary"}>
                               {listing.status}
                             </Badge>
                           </div>
                           <div className="flex items-center gap-3 text-xs text-muted-foreground mb-2">
-                            <span>{listing.views || 0} vues</span>
+                            <span>{listing.views || 0} {t("profile.views_suffix")}</span>
                             <span className="flex items-center gap-1">
                               <MapPin className="w-3 h-3" />
                               {listing.city}, {listing.district}
                             </span>
                           </div>
-                          <div className="flex gap-2">
+                          <div className="flex flex-wrap gap-2">
                             <Link href={`/listings/${listing.id}`}>
                               <Button size="sm" variant="outline">
-                                Voir
+                                {t("actions.view")}
                               </Button>
                             </Link>
                             <Link href={`/publish?edit=${listing.id}`}>
                               <Button size="sm" variant="outline">
                                 <Edit3 className="w-3.5 h-3.5 mr-1" />
-                                Modifier
+                                {t("actions.edit")}
                               </Button>
                             </Link>
                             <Button size="sm" variant="outline" onClick={() => setBoostTarget(listing)}>
                               <Rocket className="w-3.5 h-3.5 mr-1" />
-                              Booster
+                              {t("profile.boost")}
                             </Button>
                             <Button
                               size="sm"
@@ -297,7 +298,7 @@ export default function ProfilePage() {
                               onClick={() => confirmDeleteAnnonce(listing.id)}
                             >
                               <Trash2 className="w-3.5 h-3.5 mr-1" />
-                              Supprimer
+                              {t("detail.delete")}
                             </Button>
                           </div>
                         </div>
@@ -315,7 +316,7 @@ export default function ProfilePage() {
                   <Loader2 className="w-6 h-6 animate-spin text-primary" />
                 </div>
               ) : favorites.length === 0 ? (
-                <EmptyState icon={Heart} title="Vous n'avez pas encore de favoris" />
+                <EmptyState icon={Heart} title={t("profile.no_favorites_title")} />
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {favorites.map((item) => {
@@ -325,20 +326,18 @@ export default function ProfilePage() {
                     return (
                       <Card key={item.id} className="overflow-hidden p-0">
                         <Link href={`/listings/${annonce.id}`}>
-                          <img
-                            src={photoUrl}
+                          <ListingThumbnail
+                            src={annonce.photos?.[0] ? photoUrl : undefined}
                             alt={annonce.title}
-                            onError={(e) => {
-                              e.currentTarget.src = "/placeholder.svg"
-                            }}
-                            className="w-full aspect-square object-cover"
+                            isJob={!!annonce.is_job_listing}
+                            className="w-full aspect-square"
                           />
                         </Link>
                         <div className="p-3">
                           <Link href={`/listings/${annonce.id}`}>
                             <h3 className="font-medium mb-1 line-clamp-2 text-sm">{annonce.title}</h3>
                           </Link>
-                          <p className="text-lg font-bold mb-1">{formatPrice(annonce.price)}</p>
+                          {!annonce.is_job_listing && <p className="text-lg font-bold mb-1">{formatPrice(annonce.price)}</p>}
                           <div className="flex items-center text-xs text-muted-foreground mb-2">
                             <MapPin className="w-3 h-3 mr-1" />
                             {annonce.city}, {annonce.district}
@@ -349,7 +348,7 @@ export default function ProfilePage() {
                             size="sm"
                             onClick={() => removeFavorite(annonce.id)}
                           >
-                            Retirer
+                            {t("profile.remove_short")}
                           </Button>
                         </div>
                       </Card>
@@ -365,14 +364,14 @@ export default function ProfilePage() {
       <AlertDialog open={!!deleteTargetId} onOpenChange={(open) => !open && setDeleteTargetId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Supprimer l'annonce</AlertDialogTitle>
+            <AlertDialogTitle>{t("detail.delete_confirm_title")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Cette action est définitive. Voulez-vous vraiment supprimer cette annonce ?
+              {t("detail.delete_confirm_desc")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Annuler</AlertDialogCancel>
-            <AlertDialogAction onClick={deleteAnnonce}>Supprimer</AlertDialogAction>
+            <AlertDialogCancel>{t("actions.cancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={deleteAnnonce}>{t("detail.delete")}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

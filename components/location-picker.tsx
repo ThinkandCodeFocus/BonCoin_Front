@@ -5,6 +5,7 @@ import { MapPin, X } from "lucide-react"
 import { SuggestInput } from "@/components/suggest-input"
 import { useLocationFilter } from "@/hooks/use-location-filter"
 import { SENEGAL_CITIES_COORDS } from "@/lib/geolocation"
+import { useI18n } from "@/components/I18nProvider"
 import { cn } from "@/lib/utils"
 
 const DAKAR_QUARTIERS = [
@@ -31,6 +32,7 @@ const DAKAR_QUARTIERS = [
 const CITY_OPTIONS = Object.keys(SENEGAL_CITIES_COORDS)
 
 export function LocationPicker() {
+  const { t } = useI18n()
   const { city, district, setLocation, clearLocation } = useLocationFilter()
   const [query, setQuery] = useState("")
 
@@ -46,7 +48,7 @@ export function LocationPicker() {
       <div className="flex items-center gap-2 mb-3">
         <MapPin className="w-4 h-4 text-primary shrink-0" />
         <span className="text-sm font-semibold truncate">
-          {city ? `Annonces à ${activeLabel}` : "Où cherchez-vous ?"}
+          {city ? `${t("location.results_at")} ${activeLabel}` : t("location.search_prompt")}
         </span>
         {city && (
           <button
@@ -58,7 +60,7 @@ export function LocationPicker() {
             className="ml-auto flex items-center gap-1 shrink-0 text-xs text-muted-foreground hover:text-foreground"
           >
             <X className="w-3.5 h-3.5" />
-            Réinitialiser
+            {t("location.reset")}
           </button>
         )}
       </div>
@@ -83,7 +85,7 @@ export function LocationPicker() {
 
       <div className="mt-3">
         <SuggestInput
-          placeholder="Ou une autre ville (Thiès, Saint-Louis...)"
+          placeholder={t("location.other_city_placeholder")}
           value={query}
           onChange={(value) => {
             setQuery(value)

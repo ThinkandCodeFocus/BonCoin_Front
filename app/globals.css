@@ -316,3 +316,18 @@ body {
     border-radius: 2px;
   }
 }
+
+/* ============================================
+   CARROUSEL SANS SCROLLBAR (DESKTOP)
+   Navigation assurée par les flèches + autoplay
+   ============================================ */
+
+@media (min-width: 768px) {
+  .carousel-scroll {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .carousel-scroll::-webkit-scrollbar {
+    display: none;
+  }
+}

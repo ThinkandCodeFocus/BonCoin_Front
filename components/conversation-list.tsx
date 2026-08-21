@@ -32,7 +32,7 @@ interface MessageData {
   read_at?: string | null
 }
 
-function formatTime(dateString: string) {
+function formatTime(dateString: string, t: (key: string) => string) {
   const date = new Date(dateString)
   const now = new Date()
   const diffMs = now.getTime() - date.getTime()
@@ -40,10 +40,10 @@ function formatTime(dateString: string) {
   const diffHours = Math.floor(diffMs / 3600000)
   const diffDays = Math.floor(diffMs / 86400000)
 
-  if (diffMins < 1) return "à l'instant"
-  if (diffMins < 60) return `${diffMins} min`
-  if (diffHours < 24) return `${diffHours} h`
-  if (diffDays === 1) return "hier"
+  if (diffMins < 1) return t("time.just_now")
+  if (diffMins < 60) return `${diffMins} ${t("time.minutes")}`
+  if (diffHours < 24) return `${diffHours} ${t("time.hours")}`
+  if (diffDays === 1) return t("time.yesterday")
   return date.toLocaleDateString("fr-FR", { day: "numeric", month: "short" })
 }
 
@@ -104,9 +104,9 @@ export function ConversationList({ activeId }: { activeId?: number }) {
   }
 
   function getOtherUser(conv: Conversation) {
-    if (!user) return { name: "Utilisateur", photo: undefined as string | undefined }
-    if (conv.buyer_id === user.id) return conv.seller || { name: "Vendeur", photo: undefined }
-    return conv.buyer || { name: "Acheteur", photo: undefined }
+    if (!user) return { name: t("messages.default_user"), photo: undefined as string | undefined }
+    if (conv.buyer_id === user.id) return conv.seller || { name: t("detail.seller"), photo: undefined }
+    return conv.buyer || { name: t("messages.buyer"), photo: undefined }
   }
 
   const filteredConversations = conversations.filter((conv) => {
@@ -124,7 +124,7 @@ export function ConversationList({ activeId }: { activeId?: number }) {
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
-            placeholder="Rechercher..."
+            placeholder={t("listings.search_placeholder")}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-9"
@@ -134,9 +134,9 @@ export function ConversationList({ activeId }: { activeId?: number }) {
 
       <div className="flex-1 overflow-y-auto">
         {isLoading ? (
-          <div className="p-4 text-sm text-muted-foreground">Chargement...</div>
+          <div className="p-4 text-sm text-muted-foreground">{t("publish.loading")}</div>
         ) : filteredConversations.length === 0 ? (
-          <EmptyState title={t("messages.empty_title")} description="Les conversations apparaîtront ici" />
+          <EmptyState title={t("messages.empty_title")} description={t("messages.empty_desc")} />
         ) : (
           filteredConversations.map((conv) => {
             const otherUser = getOtherUser(conv)
@@ -174,12 +174,12 @@ export function ConversationList({ activeId }: { activeId?: number }) {
                       {conv.annonce?.title || otherUser.name}
                     </p>
                     <span className="text-xs text-muted-foreground shrink-0">
-                      {formatTime(conv.updated_at || conv.created_at)}
+                      {formatTime(conv.updated_at || conv.created_at, t)}
                     </span>
                   </div>
                   <p className={cn("text-xs truncate text-muted-foreground", hasUnread && "text-foreground")}>
-                    {user?.id === lastMsg?.user_id ? "Vous : " : ""}
-                    {lastMsg && lastMsg.type === "audio" ? "Message vocal" : lastMsg?.content || "Aucun message"}
+                    {user?.id === lastMsg?.user_id ? t("messages.you_prefix") : ""}
+                    {lastMsg && lastMsg.type === "audio" ? t("messages.voice_message") : lastMsg?.content || t("messages.empty_title")}
                   </p>
                 </div>
               </button>

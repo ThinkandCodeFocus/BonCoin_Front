@@ -25,9 +25,11 @@ import { useMessageNotifications } from "@/contexts/MessageNotificationContext"
 import { SearchBar } from "@/components/search-bar"
 import { useCategories } from "@/hooks/use-categories"
 import { useHideOnScroll } from "@/hooks/use-hide-on-scroll"
+import { useI18n } from "@/components/I18nProvider"
 import { cn } from "@/lib/utils"
 
 export function Header() {
+  const { t } = useI18n()
   const { user, isAuthenticated, logout } = useAuth()
   const { favoriteCount } = useFavorites()
   const { categories } = useCategories()
@@ -75,7 +77,7 @@ export function Header() {
               variant="ghost"
               size="icon"
               onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-              aria-label="Basculer le thème"
+              aria-label={t("toggle_theme")}
             >
               {mounted && resolvedTheme === "dark" ? (
                 <Sun className="w-4 h-4" />
@@ -138,7 +140,7 @@ export function Header() {
                       <DropdownMenuItem asChild>
                         <Link href="/admin">
                           <ShieldCheck className="w-4 h-4 mr-2" />
-                          Administration
+                          <span data-i18n="administration">Administration</span>
                         </Link>
                       </DropdownMenuItem>
                     )}
@@ -184,7 +186,7 @@ export function Header() {
               variant="ghost"
               size="icon"
               onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-              aria-label="Basculer le thème"
+              aria-label={t("toggle_theme")}
             >
               {mounted && resolvedTheme === "dark" ? (
                 <Sun className="w-4 h-4" />
@@ -192,6 +194,26 @@ export function Header() {
                 <Moon className="w-4 h-4" />
               )}
             </Button>
+            {isAuthenticated && (
+              <>
+                <Link href="/messages">
+                  <Button variant="ghost" size="icon" className="relative" aria-label={t("messages")}>
+                    <MessageSquare className="w-4 h-4" />
+                    {messageCount > 0 && (
+                      <Badge className="absolute -top-1 -right-1 px-1 min-w-4 justify-center">{messageCount}</Badge>
+                    )}
+                  </Button>
+                </Link>
+                <Link href="/notifications">
+                  <Button variant="ghost" size="icon" className="relative" aria-label={t("notifications")}>
+                    <Bell className="w-4 h-4" />
+                    {notificationCount > 0 && (
+                      <Badge className="absolute -top-1 -right-1 px-1 min-w-4 justify-center">{notificationCount}</Badge>
+                    )}
+                  </Button>
+                </Link>
+              </>
+            )}
             <Sheet>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon">
@@ -200,20 +222,6 @@ export function Header() {
               </SheetTrigger>
               <SheetContent>
                 <nav className="flex flex-col gap-1 mt-8">
-                  <Link href="/messages">
-                    <Button variant="ghost" className="w-full justify-start">
-                      <MessageSquare className="w-4 h-4 mr-2" />
-                      <span data-i18n="messages">Messages</span>
-                      {messageCount > 0 && <Badge className="ml-auto">{messageCount}</Badge>}
-                    </Button>
-                  </Link>
-                  <Link href="/notifications">
-                    <Button variant="ghost" className="w-full justify-start">
-                      <Bell className="w-4 h-4 mr-2" />
-                      <span data-i18n="notifications">Notifications</span>
-                      {notificationCount > 0 && <Badge className="ml-auto">{notificationCount}</Badge>}
-                    </Button>
-                  </Link>
                   <Link href="/favorites">
                     <Button variant="ghost" className="w-full justify-start">
                       <Heart className="w-4 h-4 mr-2" />
@@ -226,6 +234,20 @@ export function Header() {
                       <span data-i18n="my_profile">Mon profil</span>
                     </Button>
                   </Link>
+                  {isAuthenticated && user?.is_admin && (
+                    <Link href="/admin">
+                      <Button variant="ghost" className="w-full justify-start">
+                        <ShieldCheck className="w-4 h-4 mr-2" />
+                        <span data-i18n="administration">Administration</span>
+                      </Button>
+                    </Link>
+                  )}
+                  {isAuthenticated && (
+                    <Button variant="ghost" className="w-full justify-start" onClick={logout}>
+                      <LogOut className="w-4 h-4 mr-2" />
+                      <span data-i18n="logout">Déconnexion</span>
+                    </Button>
+                  )}
                   {!isAuthenticated && (
                     <Button
                       variant="ghost"

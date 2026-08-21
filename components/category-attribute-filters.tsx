@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { categoryService } from "@/lib/api"
 import type { CategoryAttributeDef } from "@/components/category-attribute-fields"
+import { useI18n } from "@/components/I18nProvider"
 
 interface CategoryAttributeFiltersProps {
   categoryId: string
@@ -14,6 +15,7 @@ interface CategoryAttributeFiltersProps {
 }
 
 export function CategoryAttributeFilters({ categoryId, values, onChange }: CategoryAttributeFiltersProps) {
+  const { t } = useI18n()
   const [attributes, setAttributes] = useState<CategoryAttributeDef[]>([])
 
   useEffect(() => {
@@ -43,10 +45,10 @@ export function CategoryAttributeFilters({ categoryId, values, onChange }: Categ
               onValueChange={(v) => onChange(attribute.key, v === "all" ? "" : v)}
             >
               <SelectTrigger id={`filter-attr-${attribute.key}`} className="mt-2">
-                <SelectValue placeholder="Tous" />
+                <SelectValue placeholder={t("actions.all")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Tous</SelectItem>
+                <SelectItem value="all">{t("actions.all")}</SelectItem>
                 {(attribute.options || []).map((option) => (
                   <SelectItem key={option} value={option}>
                     {option}

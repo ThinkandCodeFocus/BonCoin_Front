@@ -11,7 +11,7 @@ import { SlidersHorizontal, Search, LayoutGrid, List as ListIcon, BellPlus, Loca
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import Link from "next/link"
 import { useState, useEffect } from "react"
-import { useSearchParams } from "next/navigation"
+import { useSearchParams, useRouter } from "next/navigation"
 import { annonceService, favoriteService, savedSearchService } from "@/lib/api"
 import { useAuth } from "@/contexts/AuthContext"
 import { useToast } from "@/hooks/use-toast"
@@ -23,6 +23,7 @@ import { SkeletonCard, EmptyState } from "@/components/design-system"
 import { SuggestInput } from "@/components/suggest-input"
 import { CategoryAttributeFilters } from "@/components/category-attribute-filters"
 import { useCategories } from "@/hooks/use-categories"
+import { useI18n } from "@/components/I18nProvider"
 
 type SortOption = "recent" | "price_asc" | "price_desc"
 
@@ -63,23 +64,24 @@ function FiltersForm({
   onReset: () => void
   onApply: () => void
 }) {
+  const { t } = useI18n()
   return (
     <div className="space-y-5">
       <div>
-        <Label>Prix</Label>
+        <Label>{t("listings.price")}</Label>
         <div className="flex items-center gap-2 mt-2">
           <Input placeholder="Min" type="number" value={priceMin} onChange={(e) => setPriceMin(e.target.value)} />
-          <span className="text-muted-foreground text-sm">à</span>
+          <span className="text-muted-foreground text-sm">{t("listings.to")}</span>
           <Input placeholder="Max" type="number" value={priceMax} onChange={(e) => setPriceMax(e.target.value)} />
         </div>
       </div>
 
       <div>
-        <Label htmlFor="location">Localisation</Label>
+        <Label htmlFor="location">{t("listings.location_label")}</Label>
         <div className="flex items-center gap-2 mt-2">
           <SuggestInput
             id="location"
-            placeholder="Ville ou quartier"
+            placeholder={t("listings.location_placeholder")}
             className="flex-1"
             value={locationFilter}
             onChange={setLocationFilter}
@@ -91,8 +93,8 @@ function FiltersForm({
             size="icon"
             onClick={onUseMyLocation}
             disabled={isLocating}
-            title="Utiliser ma position"
-            aria-label="Utiliser ma position"
+            title={t("listings.use_my_location")}
+            aria-label={t("listings.use_my_location")}
           >
             <LocateFixed className={`w-4 h-4 ${isLocating ? "animate-pulse" : ""}`} />
           </Button>
@@ -100,16 +102,16 @@ function FiltersForm({
       </div>
 
       <div>
-        <Label htmlFor="etat">État</Label>
+        <Label htmlFor="etat">{t("listings.condition_label")}</Label>
         <Select value={etatFilter || "all"} onValueChange={(v) => setEtatFilter(v === "all" ? "" : v)}>
           <SelectTrigger id="etat" className="mt-2">
-            <SelectValue placeholder="Tous les états" />
+            <SelectValue placeholder={t("listings.all_conditions")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Tous les états</SelectItem>
-            <SelectItem value="Neuf">Neuf</SelectItem>
-            <SelectItem value="Bon état">Bon état</SelectItem>
-            <SelectItem value="Usagé">Usagé</SelectItem>
+            <SelectItem value="all">{t("listings.all_conditions")}</SelectItem>
+            <SelectItem value="Neuf">{t("condition.new")}</SelectItem>
+            <SelectItem value="Bon état">{t("condition.good")}</SelectItem>
+            <SelectItem value="Usagé">{t("condition.used")}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -123,7 +125,7 @@ function FiltersForm({
       )}
 
       <div>
-        <Label htmlFor="radius">Rayon</Label>
+        <Label htmlFor="radius">{t("listings.radius")}</Label>
         <Select value={radiusKm} onValueChange={setRadiusKm}>
           <SelectTrigger id="radius" className="mt-2">
             <SelectValue />
@@ -133,17 +135,17 @@ function FiltersForm({
             <SelectItem value="10">10 km</SelectItem>
             <SelectItem value="20">20 km</SelectItem>
             <SelectItem value="50">50 km</SelectItem>
-            <SelectItem value="0">Tout le Sénégal</SelectItem>
+            <SelectItem value="0">{t("listings.all_senegal")}</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
       <div className="flex gap-2 pt-1">
         <Button variant="outline" className="flex-1" onClick={onReset}>
-          Réinitialiser
+          {t("location.reset")}
         </Button>
         <Button className="flex-1" onClick={onApply}>
-          Appliquer
+          {t("actions.apply")}
         </Button>
       </div>
     </div>
@@ -171,6 +173,8 @@ export default function ListingsPage() {
   const [attributeFilters, setAttributeFilters] = useState<Record<string, string>>({})
   const { isAuthenticated } = useAuth()
   const { toast } = useToast()
+  const router = useRouter()
+  const { t } = useI18n()
 
   const useMyLocation = async () => {
     setIsLocating(true)
@@ -178,14 +182,14 @@ export default function ListingsPage() {
     setIsLocating(false)
     if (!coords) {
       toast({
-        title: "Position indisponible",
-        description: "Impossible d'obtenir votre position. Vérifiez les autorisations de localisation.",
+        title: t("toast.location_unavailable_title"),
+        description: t("toast.location_unavailable_desc"),
         variant: "destructive",
       })
       return
     }
     setMyPositionCoords(coords)
-    setLocationFilter("Ma position actuelle")
+    setLocationFilter(t("listings.current_location"))
     setCurrentPage(1)
     loadListings(1, coords)
   }
@@ -300,11 +304,7 @@ export default function ListingsPage() {
     e.preventDefault()
 
     if (!isAuthenticated) {
-      toast({
-        title: "Connexion requise",
-        description: "Vous devez être connecté pour ajouter aux favoris",
-        variant: "destructive",
-      })
+      router.push("/auth")
       return
     }
 
@@ -314,35 +314,31 @@ export default function ListingsPage() {
       const result = await favoriteService.remove(annonceId)
       if (result.success) {
         setFavorites((prev) => prev.filter((id) => id !== annonceId))
-        toast({ title: "Retiré des favoris" })
+        toast({ title: t("toast.removed_fav") })
       } else {
-        toast({ title: "Erreur", description: result.message || "Impossible de retirer", variant: "destructive" })
+        toast({ title: t("toast.error"), description: result.message || t("toast.remove_fail"), variant: "destructive" })
       }
     } else {
       const result = await favoriteService.add(annonceId)
       if (result.success) {
         setFavorites((prev) => [...prev, annonceId])
-        toast({ title: "Ajouté aux favoris" })
+        toast({ title: t("toast.added_fav") })
       } else {
-        toast({ title: "Erreur", description: result.message || "Impossible d'ajouter", variant: "destructive" })
+        toast({ title: t("toast.error"), description: result.message || t("toast.add_fail"), variant: "destructive" })
       }
     }
   }
 
   const saveCurrentSearch = async () => {
     if (!isAuthenticated) {
-      toast({
-        title: "Connexion requise",
-        description: "Vous devez être connecté pour enregistrer une recherche",
-        variant: "destructive",
-      })
+      router.push("/auth")
       return
     }
 
     if (!searchQuery && !selectedCategory && !locationFilter) {
       toast({
-        title: "Recherche vide",
-        description: "Ajoutez un mot-clé, une catégorie ou une ville avant d'enregistrer",
+        title: t("toast.empty_search_title"),
+        description: t("toast.empty_search_desc"),
         variant: "destructive",
       })
       return
@@ -358,9 +354,9 @@ export default function ListingsPage() {
     })
 
     if (result.success) {
-      toast({ title: "Recherche enregistrée", description: "Vous serez alerté des nouvelles annonces correspondantes" })
+      toast({ title: t("toast.search_saved_title"), description: t("toast.search_saved_desc") })
     } else {
-      toast({ title: "Erreur", description: result.message || "Impossible d'enregistrer la recherche", variant: "destructive" })
+      toast({ title: t("toast.error"), description: result.message || t("toast.save_search_fail"), variant: "destructive" })
     }
   }
 
@@ -409,9 +405,9 @@ export default function ListingsPage() {
 
       <main className="flex-1 pb-16 md:pb-4">
         <div className="max-w-6xl mx-auto px-4 py-3 text-sm text-muted-foreground">
-          <Link href="/" className="hover:underline">Accueil</Link>
+          <Link href="/" className="hover:underline">{t("bottom.home")}</Link>
           <span className="mx-1.5">/</span>
-          <span className="text-foreground">Annonces</span>
+          <span className="text-foreground">{t("listings.breadcrumb_listings")}</span>
         </div>
 
         <div className="max-w-6xl mx-auto px-4 pb-3">
@@ -419,7 +415,7 @@ export default function ListingsPage() {
             <div className="flex-1 flex items-center gap-2 border rounded-md px-3 py-2 bg-card">
               <Search className="w-4 h-4 text-muted-foreground shrink-0" />
               <Input
-                placeholder="Rechercher..."
+                placeholder={t("listings.search_placeholder")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && loadListings()}
@@ -430,12 +426,12 @@ export default function ListingsPage() {
               <SheetTrigger asChild>
                 <Button variant="outline" className="lg:hidden">
                   <SlidersHorizontal className="w-4 h-4 md:mr-2" />
-                  <span className="hidden md:inline">Filtres</span>
+                  <span className="hidden md:inline">{t("listings.filters")}</span>
                 </Button>
               </SheetTrigger>
               <SheetContent>
                 <SheetHeader>
-                  <SheetTitle>Filtres de recherche</SheetTitle>
+                  <SheetTitle>{t("listings.filters_title")}</SheetTitle>
                 </SheetHeader>
                 <div className="mt-6">
                   <FiltersForm
@@ -466,7 +462,7 @@ export default function ListingsPage() {
         <div className="max-w-6xl mx-auto px-4 pb-8 grid grid-cols-1 lg:grid-cols-[240px_1fr] gap-6">
           <aside className="hidden lg:block">
             <div className="border rounded-md p-4 bg-card sticky top-20">
-              <h2 className="font-semibold text-sm mb-4">Filtres</h2>
+              <h2 className="font-semibold text-sm mb-4">{t("listings.filters")}</h2>
               <FiltersForm
                 priceMin={priceMin}
                 setPriceMin={setPriceMin}
@@ -493,12 +489,12 @@ export default function ListingsPage() {
             <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
               <div>
                 <p className="text-sm text-muted-foreground">
-                  {isLoading ? "Chargement..." : `${totalItems || filteredListings.length} annonces`}
+                  {isLoading ? t("listings.loading") : `${totalItems || filteredListings.length} ${t("category.annonces")}`}
                 </p>
                 {selectedCategory && (
                   <Link href="/listings">
                     <Badge variant="secondary" className="mt-1 cursor-pointer">
-                      Catégorie filtrée ✕
+                      {t("listings.category_filtered")} ✕
                     </Badge>
                   </Link>
                 )}
@@ -507,7 +503,7 @@ export default function ListingsPage() {
               <div className="flex items-center gap-2">
                 <Button variant="outline" size="sm" onClick={saveCurrentSearch}>
                   <BellPlus className="w-4 h-4 mr-2" />
-                  Enregistrer cette recherche
+                  {t("listings.save_search")}
                 </Button>
 
                 <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
@@ -515,9 +511,9 @@ export default function ListingsPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="recent">Le plus récent</SelectItem>
-                    <SelectItem value="price_asc">Prix croissant</SelectItem>
-                    <SelectItem value="price_desc">Prix décroissant</SelectItem>
+                    <SelectItem value="recent">{t("listings.sort_recent")}</SelectItem>
+                    <SelectItem value="price_asc">{t("listings.sort_price_asc")}</SelectItem>
+                    <SelectItem value="price_desc">{t("listings.sort_price_desc")}</SelectItem>
                   </SelectContent>
                 </Select>
 
@@ -527,7 +523,7 @@ export default function ListingsPage() {
                     size="icon-sm"
                     className="rounded-r-none"
                     onClick={() => setViewMode("list")}
-                    aria-label="Vue liste"
+                    aria-label={t("listings.view_list")}
                   >
                     <ListIcon className="w-4 h-4" />
                   </Button>
@@ -536,7 +532,7 @@ export default function ListingsPage() {
                     size="icon-sm"
                     className="rounded-l-none"
                     onClick={() => setViewMode("grid")}
-                    aria-label="Vue grille"
+                    aria-label={t("listings.view_grid")}
                   >
                     <LayoutGrid className="w-4 h-4" />
                   </Button>
@@ -553,8 +549,8 @@ export default function ListingsPage() {
             ) : filteredListings.length === 0 ? (
               <EmptyState
                 icon={Search}
-                title="Aucune annonce ne correspond à votre recherche"
-                description="Essayez de modifier vos critères de recherche"
+                title={t("listings.no_results_title")}
+                description={t("listings.no_results_desc")}
               />
             ) : (
               <div className="space-y-6">

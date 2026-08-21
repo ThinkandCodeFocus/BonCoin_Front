@@ -44,17 +44,17 @@ export default function HomePage() {
                 />
               </svg>
 
-              <h1 className="relative font-display text-3xl md:text-5xl font-bold leading-[1.05] max-w-lg">
+              <h1 className="relative font-display text-3xl md:text-5xl font-bold leading-[1.05] max-w-lg" data-i18n="home.hero_title">
                 C'est le moment de vendre
               </h1>
               <div className="relative flex flex-wrap items-center gap-3">
                 <Link href="/publish">
                   <Button variant="default" size="lg" className="gap-1.5 bg-primary text-primary-foreground">
                     <Plus className="w-4 h-4" />
-                    Déposer une annonce
+                    <span data-i18n="publish">Déposer une annonce</span>
                   </Button>
                 </Link>
-                <span className="text-sm opacity-80">Gratuit · en 2 minutes</span>
+                <span className="text-sm opacity-80" data-i18n="home.hero_subtitle">Gratuit · en 2 minutes</span>
               </div>
             </div>
           </div>
@@ -74,7 +74,7 @@ export default function HomePage() {
 
         <section className="px-4 md:px-6 py-3">
           <div className="max-w-6xl mx-auto">
-            <h2 className="font-display text-xl md:text-2xl font-semibold mb-4">Top catégories</h2>
+            <h2 className="font-display text-xl md:text-2xl font-semibold mb-4" data-i18n="home.top_categories">Top catégories</h2>
             <CategoryGrid />
           </div>
         </section>
@@ -88,8 +88,8 @@ export default function HomePage() {
         <section className="px-4 md:px-6 pt-5 pb-8">
           <div className="max-w-6xl mx-auto">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="font-display text-xl md:text-2xl font-semibold">Annonces récentes</h2>
-              <a href="/listings" className="text-sm font-semibold text-primary hover:underline">
+              <h2 className="font-display text-xl md:text-2xl font-semibold" data-i18n="listings.recent_title">Annonces récentes</h2>
+              <a href="/listings" className="text-sm font-semibold text-primary hover:underline" data-i18n="actions.view_all_short">
                 Voir tout
               </a>
             </div>

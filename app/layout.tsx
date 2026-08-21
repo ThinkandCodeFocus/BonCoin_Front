@@ -1,5 +1,5 @@
 import type React from "react"
-import type { Metadata } from "next"
+import type { Metadata, Viewport } from "next"
 import { Fraunces, DM_Sans } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import "./globals.css"
@@ -10,6 +10,9 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { MessageNotificationProvider } from "@/contexts/MessageNotificationContext"
 import { MessageNotificationToast } from "@/components/message-notification-toast"
 import { I18nProvider } from "@/components/I18nProvider"
+import { PwaInstallPrompt } from "@/components/pwa-install-prompt"
+import { VisitTracker } from "@/components/visit-tracker"
+import { SignupBanner } from "@/components/signup-banner"
 
 const fraunces = Fraunces({
   subsets: ["latin"],
@@ -44,6 +47,15 @@ export const metadata: Metadata = {
     ],
     apple: "/apple-icon.png",
   },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "LeMarché",
+  },
+}
+
+export const viewport: Viewport = {
+  themeColor: "#2f4a3a",
 }
 
 export default function RootLayout({
@@ -52,8 +64,8 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="fr">
-      <body className={`${fraunces.variable} ${dmSans.variable} font-sans antialiased`}>
+    <html lang="fr" className="overflow-x-hidden">
+      <body className={`${fraunces.variable} ${dmSans.variable} font-sans antialiased overflow-x-hidden`}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
           <I18nProvider>
             <AuthProvider>
@@ -62,6 +74,9 @@ export default function RootLayout({
                   {children}
                   <MessageNotificationToast />
                   <Toaster />
+                  <PwaInstallPrompt />
+                  <VisitTracker />
+                  <SignupBanner />
                 </MessageNotificationProvider>
               </FavoritesProvider>
             </AuthProvider>

@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/AuthContext"
 import { useFavorites } from "@/contexts/FavoritesContext"
 import { useToast } from "@/hooks/use-toast"
@@ -22,6 +23,7 @@ export function FeaturedListings() {
   const { isFavorited, addFavorite, removeFavorite } = useFavorites()
   const { toast } = useToast()
   const { t } = useI18n()
+  const router = useRouter()
 
   useEffect(() => {
     setCurrentPage(1)
@@ -58,11 +60,7 @@ export function FeaturedListings() {
     e.stopPropagation()
 
     if (!isAuthenticated) {
-      toast({
-        title: t("toast.login_required"),
-        description: t("toast.login_required_desc"),
-        variant: "destructive",
-      })
+      router.push("/auth")
       return
     }
 

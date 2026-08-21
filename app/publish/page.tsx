@@ -15,7 +15,8 @@ import { useToast } from "@/hooks/use-toast"
 import { useI18n } from "@/components/I18nProvider"
 import { useAuth } from "@/contexts/AuthContext"
 import { annonceService, categoryService } from "@/lib/api"
-import { useRouter } from "next/navigation"
+import { resolveStorageUrl } from "@/lib/media"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Checkbox } from "@/components/ui/checkbox"
 import { getCityCoordinates } from "@/lib/geolocation"
 import { convertHeicIfNeeded } from "@/lib/image"
@@ -45,7 +46,13 @@ export default function PublishPage() {
   const { toast } = useToast()
   const { isAuthenticated, user } = useAuth()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { t } = useI18n()
+
+  const editId = searchParams.get("edit")
+  const isEditMode = !!editId
+  const [isLoadingExisting, setIsLoadingExisting] = useState(isEditMode)
+  const [existingPhotoUrls, setExistingPhotoUrls] = useState<string[]>([])
 
   // Form state
   const [showPublishConfirm, setShowPublishConfirm] = useState(false)
@@ -53,6 +60,7 @@ export default function PublishPage() {
   const [description, setDescription] = useState("")
   const [price, setPrice] = useState("")
   const [negotiable, setNegotiable] = useState(false)
+  const [whatsappContact, setWhatsappContact] = useState(true)
   const [categoryId, setCategoryId] = useState("")
   const [customCategory, setCustomCategory] = useState("")
   const [categoryAttributes, setCategoryAttributes] = useState<Record<string, string>>({})
@@ -72,19 +80,14 @@ export default function PublishPage() {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      toast({
-        title: t("toast.login_required") || "Connexion requise",
-        description: t("toast.login_required_desc") || "Vous devez être connecté pour publier une annonce",
-        variant: "destructive",
-      })
-      router.push("/")
+      router.push("/auth")
       return
     }
 
     if (user?.user_type === "buyer") {
       toast({
-        title: "Compte acheteur",
-        description: "Votre compte est configuré en acheteur uniquement et ne peut pas déposer d'annonce.",
+        title: t("publish.buyer_account_title"),
+        description: t("publish.buyer_account_desc"),
         variant: "destructive",
       })
       router.push("/")
@@ -93,6 +96,93 @@ export default function PublishPage() {
 
     loadCategories()
   }, [isAuthenticated, user])
+
+  useEffect(() => {
+    if (!editId) return
+
+    const loadExisting = async () => {
+      setIsLoadingExisting(true)
+      const result = await annonceService.getById(Number(editId))
+      const annonce = (result as any).data?.data || (result as any).data
+
+      if (!result.success || !annonce) {
+        toast({
+          title: t("toast.error") || "Erreur",
+          description: t("publish.load_error"),
+          variant: "destructive",
+        })
+        router.push("/profile?tab=listings")
+        return
+      }
+
+      setTitle(annonce.title || "")
+      setDescription(annonce.description || "")
+      setPrice(annonce.price !== undefined ? String(annonce.price) : "")
+      setNegotiable(!!annonce.negotiable)
+      setWhatsappContact(annonce.whatsapp_contact ?? true)
+      setCategoryId(annonce.category?.id ? String(annonce.category.id) : "")
+      setCustomCategory(annonce.custom_category || "")
+      setCity(annonce.city || "")
+      setDistrict(annonce.district || "")
+      setEtat(annonce.etat || "")
+      setExistingPhotoUrls(annonce.photos || [])
+
+      if (Array.isArray(annonce.attributes)) {
+        const attrs: Record<string, string> = {}
+        for (const a of annonce.attributes) {
+          if (a?.key) attrs[a.key] = a.value ?? ""
+        }
+        setCategoryAttributes(attrs)
+      }
+
+      setIsLoadingExisting(false)
+    }
+
+    loadExisting()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editId])
+
+  // Retour depuis la prévisualisation ("Modifier") : on recharge le
+  // brouillon au lieu de repartir d'un formulaire vide.
+  useEffect(() => {
+    if (editId) return
+
+    const raw = sessionStorage.getItem("preview_annonce")
+    if (!raw) return
+
+    try {
+      const data = JSON.parse(raw)
+      const draft = (window as any).__publishDraft
+
+      setTitle(data.title || "")
+      setDescription(data.description || "")
+      setPrice(data.price || "")
+      setNegotiable(!!data.negotiable)
+      setCategoryId(data.categoryId || "")
+      setCustomCategory(data.customCategory || "")
+      setCity(data.city || "")
+      setDistrict(data.district || "")
+      setEtat(data.etat || "")
+      setCategoryAttributes(data.attributes || {})
+
+      if (draft?.descriptionMode) setDescriptionMode(draft.descriptionMode)
+
+      if (draft?.imageFiles?.length) {
+        setImageFiles(draft.imageFiles)
+        setImagePreviews(draft.imageFiles.map((file: File) => URL.createObjectURL(file)))
+      }
+      if (draft?.videoFile) {
+        setVideoFile(draft.videoFile)
+        setVideoPreview(URL.createObjectURL(draft.videoFile))
+      }
+      if (draft?.audioBlob) {
+        setAudioBlob(draft.audioBlob)
+      }
+    } catch {
+      // Brouillon corrompu ou illisible : on ignore, le formulaire reste vide.
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editId])
 
   const loadCategories = async () => {
     try {
@@ -135,9 +225,27 @@ export default function PublishPage() {
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
-    if (!files) return
+    if (!files || files.length === 0) return
 
-    const selectedFiles = Array.from(files).slice(0, 5 - imageFiles.length)
+    const remainingSlots = Math.max(0, 5 - existingPhotoUrls.length - imageFiles.length)
+    const selectedFiles = Array.from(files).slice(0, remainingSlots)
+
+    if (selectedFiles.length === 0) {
+      toast({
+        title: t("toast.error") || "Erreur",
+        description: t("publish.max_photos_reached"),
+        variant: "destructive",
+      })
+      e.target.value = ""
+      return
+    }
+
+    if (selectedFiles.length < files.length) {
+      toast({
+        title: t("publish.warning") || "Avertissement",
+        description: t("publish.some_photos_skipped"),
+      })
+    }
 
     // Convertit les photos HEIC/HEIF (format par défaut iPhone) en JPEG : sans
     // ça, l'aperçu reste vide et l'upload peut être rejeté par le serveur.
@@ -148,7 +256,7 @@ export default function PublishPage() {
       } catch {
         toast({
           title: t("toast.error") || "Erreur",
-          description: `Impossible de traiter "${file.name}". Essayez un format JPEG ou PNG.`,
+          description: `${t("publish.file_error_prefix")} "${file.name}"${t("publish.file_error_suffix")}`,
           variant: "destructive",
         })
       }
@@ -156,8 +264,13 @@ export default function PublishPage() {
 
     const newPreviews = newFiles.map((file) => URL.createObjectURL(file))
 
-    setImageFiles([...imageFiles, ...newFiles])
-    setImagePreviews([...imagePreviews, ...newPreviews])
+    setImageFiles((prev) => [...prev, ...newFiles])
+    setImagePreviews((prev) => [...prev, ...newPreviews])
+
+    // Sans cette remise a zero, resélectionner exactement le(s) meme(s)
+    // fichier(s) (ex: apres un premier essai qui semblait ne rien faire) ne
+    // redeclenche pas l'evenement onChange - rien ne se passe, sans erreur.
+    e.target.value = ""
   }
 
   const removeImage = (index: number) => {
@@ -177,6 +290,7 @@ export default function PublishPage() {
         description: t("publish.invalid_video_format_desc") || "Veuillez choisir une video MP4 ou MPEG",
         variant: "destructive",
       })
+      e.target.value = ""
       return
     }
     if (file.size > maxSizeBytes) {
@@ -185,12 +299,14 @@ export default function PublishPage() {
         description: t("publish.video_too_large_desc") || "La video ne doit pas depasser 10MB",
         variant: "destructive",
       })
+      e.target.value = ""
       return
     }
     if (videoPreview) URL.revokeObjectURL(videoPreview)
     const preview = URL.createObjectURL(file)
     setVideoFile(file)
     setVideoPreview(preview)
+    e.target.value = ""
   }
 
   const removeVideo = () => {
@@ -202,7 +318,14 @@ export default function PublishPage() {
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-      const recorder = new MediaRecorder(stream)
+      // Sans mimeType explicite, le conteneur choisi par le navigateur par
+      // defaut est imprevisible et ne correspond pas toujours au 'audio/webm'
+      // code en dur plus bas : le backend (qui verifie le contenu reel du
+      // fichier, pas juste l'extension) rejette alors l'upload.
+      const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+        ? 'audio/webm;codecs=opus'
+        : 'audio/webm'
+      const recorder = new MediaRecorder(stream, { mimeType })
       const chunks: BlobPart[] = []
 
       recorder.ondataavailable = (e) => {
@@ -280,7 +403,7 @@ export default function PublishPage() {
       return false
     }
 
-    if (imageFiles.length < 2) {
+    if (existingPhotoUrls.length + imageFiles.length < 2) {
       toast({
         title: t("publish.photos_required") || "Photos obligatoires",
         description: t("publish.photos_required_desc") || "Veuillez ajouter au moins 2 photos",
@@ -382,6 +505,7 @@ export default function PublishPage() {
           : "Description vocale enregistree - Ecoutez l'audio pour plus de details",
         price: parseFloat(price),
         negotiable,
+        whatsapp_contact: whatsappContact,
         category_id: parseInt(categoryId),
         custom_category: isAutreCategory ? customCategory : null,
         city,
@@ -396,19 +520,21 @@ export default function PublishPage() {
         annonceData.longitude = longitude
       }
 
-      console.log('Creating annonce with data:', annonceData)
-      const result = await annonceService.create(annonceData)
-      console.log('Create result:', result)
-      
-      const annonceId = result.data?.data?.id || result.data?.id
-      if (!result.success && !annonceId) {
-        const errorMessage = result.errors 
+      console.log(isEditMode ? 'Updating annonce with data:' : 'Creating annonce with data:', annonceData)
+      const result = isEditMode
+        ? await annonceService.update(Number(editId), annonceData)
+        : await annonceService.create(annonceData)
+      console.log('Result:', result)
+
+      const annonceId = isEditMode ? Number(editId) : (result.data?.data?.id || result.data?.id)
+      if (!result.success && (isEditMode || !annonceId)) {
+        const errorMessage = result.errors
           ? Object.entries(result.errors).map(([field, messages]) => {
               return `${field}: ${Array.isArray(messages) ? messages.join(', ') : messages}`
             }).join('\n')
-          : result.message || "Erreur lors de la creation"
+          : result.message || (isEditMode ? t("publish.update_error_title") : "Erreur lors de la creation")
         toast({
-          title: t("publish.create_error") || "Erreur de creation",
+          title: isEditMode ? t("publish.update_error_title") : (t("publish.create_error") || "Erreur de creation"),
           description: errorMessage,
           variant: "destructive",
         })
@@ -469,10 +595,14 @@ export default function PublishPage() {
       }
 
       toast({
-        title: t("publish.create_success") || "Creation avec succes",
-        description: t("publish.create_success_desc") || "Votre annonce est maintenant en ligne",
+        title: isEditMode ? t("publish.update_success_title") : (t("publish.create_success") || "Creation avec succes"),
+        description: isEditMode
+          ? t("publish.update_success_desc")
+          : (t("publish.create_success_desc") || "Votre annonce est maintenant en ligne"),
       })
 
+      sessionStorage.removeItem("preview_annonce")
+      ;(window as any).__publishDraft = null
       router.push(`/listings/${annonceId}`)
     } catch (error) {
       toast({
@@ -494,14 +624,24 @@ export default function PublishPage() {
 
       <main className="flex-1 pb-16 md:pb-4 py-6 px-4">
         <div className="max-w-2xl mx-auto">
-          <h1 className="text-xl font-semibold mb-6">Déposer une annonce</h1>
+          <h1 className="text-xl font-semibold mb-6">{isEditMode ? t("publish.edit_title") : t("publish")}</h1>
 
+          {isLoadingExisting ? (
+            <div className="flex justify-center py-16">
+              <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : (
           <form onSubmit={handleSubmit} className="space-y-6">
             <section className="space-y-4">
               <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Photos</h2>
               <div>
-                <Label>Photos (min 2, max 5) *</Label>
+                <Label>{t("publish.photos_label")}</Label>
                 <div className="mt-2 grid grid-cols-3 md:grid-cols-5 gap-3">
+                  {existingPhotoUrls.map((url, idx) => (
+                    <div key={`existing-${idx}`} className="relative aspect-square rounded-md overflow-hidden border">
+                      <img src={resolveStorageUrl(url)} alt="" className="w-full h-full object-cover" />
+                    </div>
+                  ))}
                   {imagePreviews.map((img, idx) => (
                     <div key={idx} className="relative aspect-square rounded-md overflow-hidden border">
                       <img src={img} alt="" className="w-full h-full object-cover" />
@@ -516,7 +656,7 @@ export default function PublishPage() {
                       </Button>
                     </div>
                   ))}
-                  {imageFiles.length < 5 && (
+                  {existingPhotoUrls.length + imageFiles.length < 5 && (
                     <label className="aspect-square rounded-md border-2 border-dashed flex items-center justify-center cursor-pointer hover:bg-muted transition-colors">
                       <Upload className="w-5 h-5 text-muted-foreground" />
                       <input type="file" accept="image/*" multiple className="hidden" onChange={handleImageUpload} />
@@ -526,12 +666,12 @@ export default function PublishPage() {
               </div>
 
               <div>
-                <Label>Vidéo (optionnel)</Label>
+                <Label>{t("publish.video_optional")}</Label>
                 {!videoFile ? (
                   <div className="mt-2">
                     <label className="flex items-center gap-3 w-full rounded-md border-2 border-dashed p-4 cursor-pointer hover:bg-muted transition-colors">
                       <Video className="w-5 h-5 text-muted-foreground" />
-                      <span className="text-sm text-muted-foreground">Ajouter une vidéo (mp4/mpeg, max 10MB)</span>
+                      <span className="text-sm text-muted-foreground">{t("publish.add_video")}</span>
                       <input
                         type="file"
                         accept="video/mp4,video/mpeg"
@@ -550,7 +690,7 @@ export default function PublishPage() {
                     <div className="flex items-center justify-between text-sm text-muted-foreground">
                       <span>{videoFile.name}</span>
                       <Button type="button" variant="destructive" size="sm" onClick={removeVideo}>
-                        Retirer la vidéo
+                        {t("publish.remove_video")}
                       </Button>
                     </div>
                   </div>
@@ -559,10 +699,10 @@ export default function PublishPage() {
             </section>
 
             <section className="space-y-4 border-t pt-6">
-              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Description</h2>
+              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{t("publish.section_description")}</h2>
 
               <div>
-                <Label htmlFor="category">Catégorie *</Label>
+                <Label htmlFor="category">{t("publish.category_label")}</Label>
                 <Select
                   value={categoryId}
                   onValueChange={(value) => {
@@ -571,11 +711,11 @@ export default function PublishPage() {
                   }}
                 >
                   <SelectTrigger id="category" className="mt-2">
-                    <SelectValue placeholder="Sélectionner une catégorie" />
+                    <SelectValue placeholder={t("publish.select_category")} />
                   </SelectTrigger>
                   <SelectContent>
                     {categories.length === 0 ? (
-                      <div className="p-2 text-sm text-muted-foreground">Chargement...</div>
+                      <div className="p-2 text-sm text-muted-foreground">{t("publish.loading")}</div>
                     ) : (
                       categories.map((cat) => (
                         <SelectItem key={cat.id} value={cat.id.toString()}>
@@ -589,7 +729,7 @@ export default function PublishPage() {
 
               {categoryId && isCustomCategory && (
                 <div>
-                  <Label htmlFor="customCategory">Précisez la catégorie *</Label>
+                  <Label htmlFor="customCategory">{t("publish.specify_category")}</Label>
                   <Input
                     id="customCategory"
                     placeholder="Ex: Bijoux, Art, Sport..."
@@ -610,7 +750,7 @@ export default function PublishPage() {
               )}
 
               <div>
-                <Label htmlFor="title">Titre de l'annonce * (10-100 caractères)</Label>
+                <Label htmlFor="title">{t("publish.title_label")}</Label>
                 <Input
                   id="title"
                   placeholder="Ex: iPhone 14 Pro Max en excellent état"
@@ -625,7 +765,7 @@ export default function PublishPage() {
 
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <Label htmlFor="description">Description *</Label>
+                  <Label htmlFor="description">{t("publish.description_star")}</Label>
                   <div className="flex gap-2">
                     <Button
                       type="button"
@@ -634,7 +774,7 @@ export default function PublishPage() {
                       onClick={() => setDescriptionMode('text')}
                     >
                       <Type className="w-4 h-4 mr-2" />
-                      Texte
+                      {t("publish.text_mode")}
                     </Button>
                     <Button
                       type="button"
@@ -643,7 +783,7 @@ export default function PublishPage() {
                       onClick={() => setDescriptionMode('voice')}
                     >
                       <Mic className="w-4 h-4 mr-2" />
-                      Vocal
+                      {t("publish.voice_mode")}
                     </Button>
                   </div>
                 </div>
@@ -651,7 +791,7 @@ export default function PublishPage() {
                 {descriptionMode === 'text' ? (
                   <Textarea
                     id="description"
-                    placeholder="Décrivez votre article en détail..."
+                    placeholder={t("publish.description_placeholder")}
                     rows={6}
                     className="mt-2"
                     value={description}
@@ -667,10 +807,10 @@ export default function PublishPage() {
                           <>
                             <Button type="button" onClick={startRecording} className="gap-2">
                               <Mic className="w-4 h-4" />
-                              Enregistrer
+                              {t("publish.record_button")}
                             </Button>
                             <p className="text-sm text-muted-foreground">
-                              Cliquez pour enregistrer votre description
+                              {t("publish.click_to_record")}
                             </p>
                           </>
                         ) : (
@@ -678,9 +818,9 @@ export default function PublishPage() {
                             <Button type="button" onClick={stopRecording} variant="destructive" className="gap-2">
                               <span className="w-2 h-2 rounded-full bg-white" />
                               <StopCircle className="w-4 h-4" />
-                              Arrêter ({formatTime(recordingTime)})
+                              {t("publish.stop_button_prefix")} ({formatTime(recordingTime)})
                             </Button>
-                            <p className="text-sm text-muted-foreground">Enregistrement en cours...</p>
+                            <p className="text-sm text-muted-foreground">{t("publish.recording_in_progress")}</p>
                           </>
                         )}
                       </div>
@@ -690,9 +830,9 @@ export default function PublishPage() {
                           <div className="flex items-center gap-3">
                             <Mic className="w-5 h-5 text-primary" />
                             <div>
-                              <p className="text-sm font-medium">Audio enregistré</p>
+                              <p className="text-sm font-medium">{t("publish.audio_recorded")}</p>
                               <p className="text-xs text-muted-foreground">
-                                Durée: {formatTime(recordingTime)}
+                                {t("publish.duration")}: {formatTime(recordingTime)}
                               </p>
                             </div>
                           </div>
@@ -710,7 +850,7 @@ export default function PublishPage() {
                           className="w-full"
                           src={audioBlob ? URL.createObjectURL(audioBlob) : undefined}
                         >
-                          Votre navigateur ne supporte pas la lecture audio.
+                          {t("publish.audio_not_supported")}
                         </audio>
                       </div>
                     )}
@@ -720,10 +860,10 @@ export default function PublishPage() {
             </section>
 
             <section className="space-y-4 border-t pt-6">
-              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Prix et localisation</h2>
+              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{t("publish.section_price_location")}</h2>
 
               <div>
-                <Label htmlFor="price">Prix (FCFA) *</Label>
+                <Label htmlFor="price">{t("publish.price_label")}</Label>
                 <Input
                   id="price"
                   type="number"
@@ -744,14 +884,25 @@ export default function PublishPage() {
                     htmlFor="negotiable"
                     className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                   >
-                    Prix négociable
+                    {t("publish.negotiable")}
                   </label>
                 </div>
               </div>
 
+              <div className="flex items-center space-x-2 rounded-md border p-3">
+                <Checkbox
+                  id="whatsappContact"
+                  checked={whatsappContact}
+                  onCheckedChange={(checked) => setWhatsappContact(checked as boolean)}
+                />
+                <label htmlFor="whatsappContact" className="text-sm font-medium leading-none flex-1">
+                  {t("publish.whatsapp_consent")}
+                </label>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="city">Ville *</Label>
+                  <Label htmlFor="city">{t("publish.city_label")}</Label>
                   <Input
                     id="city"
                     placeholder="Ex: Dakar"
@@ -762,7 +913,7 @@ export default function PublishPage() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="district">Quartier *</Label>
+                  <Label htmlFor="district">{t("publish.district_label")}</Label>
                   <Input
                     id="district"
                     placeholder="Ex: Plateau"
@@ -775,15 +926,15 @@ export default function PublishPage() {
               </div>
 
               <div>
-                <Label htmlFor="condition">État *</Label>
+                <Label htmlFor="condition">{t("publish.condition_label")}</Label>
                 <Select required value={etat} onValueChange={setEtat}>
                   <SelectTrigger id="condition" className="mt-2">
-                    <SelectValue placeholder="Sélectionner l'état" />
+                    <SelectValue placeholder={t("publish.select_condition")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Neuf">Neuf</SelectItem>
-                    <SelectItem value="Bon état">Bon état</SelectItem>
-                    <SelectItem value="Usagé">Usagé</SelectItem>
+                    <SelectItem value="Neuf">{t("condition.new")}</SelectItem>
+                    <SelectItem value="Bon état">{t("condition.good")}</SelectItem>
+                    <SelectItem value="Usagé">{t("condition.used")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -791,35 +942,38 @@ export default function PublishPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 border-t pt-6">
               <Button type="button" variant="outline" onClick={handlePreview} disabled={isLoading}>
-                Prévisualiser
+                {t("actions.preview")}
               </Button>
               <Button type="submit" disabled={isLoading}>
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Publication...
+                    {t("publish.publishing")}
                   </>
                 ) : (
-                  "Publier l'annonce"
+                  isEditMode ? t("publish.save_changes_button") : t("publish.publish_button_full")
                 )}
               </Button>
             </div>
           </form>
+          )}
         </div>
       </main>
 
       <AlertDialog open={showPublishConfirm} onOpenChange={setShowPublishConfirm}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirmer la publication</AlertDialogTitle>
+            <AlertDialogTitle>{isEditMode ? t("publish.confirm_edit_title") : t("publish.confirm_create_title")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Voulez-vous publier cette annonce maintenant ?
+              {isEditMode
+                ? t("publish.confirm_edit_desc")
+                : t("publish.confirm_create_desc")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isLoading}>Annuler</AlertDialogCancel>
+            <AlertDialogCancel disabled={isLoading}>{t("actions.cancel")}</AlertDialogCancel>
             <AlertDialogAction onClick={publishAnnonce} disabled={isLoading}>
-              Publier
+              {isEditMode ? t("actions.save") : t("publish.publish_button")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

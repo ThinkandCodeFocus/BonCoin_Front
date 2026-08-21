@@ -5,6 +5,20 @@ import { Button, buttonVariants } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Heart } from "lucide-react"
+import { useI18n } from "@/components/I18nProvider"
+import fr from "@/locales/fr.json"
+import wo from "@/locales/wo.json"
+
+/**
+ * getRelativeTime n'est pas un composant : on ne peut pas y appeler
+ * useI18n(). On lit la langue directement dans localStorage, comme le
+ * fait deja getHeaders() dans lib/api.ts pour Accept-Language.
+ */
+function tRaw(key: string): string {
+  const lang = (typeof window !== "undefined" && localStorage.getItem("lang")) || "fr"
+  const dict: Record<string, string> = lang === "wo" ? (wo as Record<string, string>) : (fr as Record<string, string>)
+  return dict[key] || (fr as Record<string, string>)[key] || key
+}
 
 /* ============================================
    HELPERS
@@ -25,10 +39,10 @@ function getRelativeTime(dateString: string | Date): string {
   const diffHours = Math.floor(diffMs / 3600000)
   const diffDays = Math.floor(diffMs / 86400000)
 
-  if (diffMins < 1) return "à l'instant"
-  if (diffMins < 60) return `il y a ${diffMins} min`
-  if (diffHours < 24) return `il y a ${diffHours} h`
-  if (diffDays < 7) return `il y a ${diffDays} j`
+  if (diffMins < 1) return tRaw("time.just_now")
+  if (diffMins < 60) return `${tRaw("time.ago")} ${diffMins} ${tRaw("time.minutes")}`
+  if (diffHours < 24) return `${tRaw("time.ago")} ${diffHours} ${tRaw("time.hours")}`
+  if (diffDays < 7) return `${tRaw("time.ago")} ${diffDays} ${tRaw("time.days")}`
   return dateObj.toLocaleDateString("fr-FR")
 }
 
@@ -43,13 +57,14 @@ interface StatusBadgeProps {
 }
 
 function StatusBadge({ status, className }: StatusBadgeProps) {
+  const { t } = useI18n()
   const statusMap: Record<string, { label: string; variant: "new" | "good" | "used" }> = {
-    "Neuf": { label: "Neuf", variant: "new" },
-    "Bon état": { label: "Bon état", variant: "good" },
-    "Usagé": { label: "Occasion", variant: "used" },
-    new: { label: "Neuf", variant: "new" },
-    good: { label: "Bon état", variant: "good" },
-    used: { label: "Occasion", variant: "used" },
+    "Neuf": { label: t("condition.new"), variant: "new" },
+    "Bon état": { label: t("condition.good"), variant: "good" },
+    "Usagé": { label: t("condition.used_badge"), variant: "used" },
+    new: { label: t("condition.new"), variant: "new" },
+    good: { label: t("condition.good"), variant: "good" },
+    used: { label: t("condition.used_badge"), variant: "used" },
   }
 
   const config = statusMap[status] || { label: status, variant: "new" as const }
@@ -63,9 +78,10 @@ function StatusBadge({ status, className }: StatusBadgeProps) {
 
 /* Badge "Vedette" pour une annonce boostée - discret, texte */
 function BoostedBadge({ className }: { className?: string }) {
+  const { t } = useI18n()
   return (
     <span className={cn("inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-primary text-primary-foreground", className)}>
-      Vedette
+      {t("badge.featured")}
     </span>
   )
 }
@@ -92,6 +108,7 @@ interface FavoriteButtonProps {
 }
 
 function FavoriteButton({ isFavorited, onToggle, className }: FavoriteButtonProps) {
+  const { t } = useI18n()
   return (
     <Button
       size="icon-sm"
@@ -102,7 +119,7 @@ function FavoriteButton({ isFavorited, onToggle, className }: FavoriteButtonProp
         className
       )}
       onClick={onToggle}
-      aria-label={isFavorited ? "Retirer des favoris" : "Ajouter aux favoris"}
+      aria-label={isFavorited ? t("favorites.remove") : t("favorites.add")}
     >
       <Heart className={cn("w-4 h-4", isFavorited && "fill-current")} />
     </Button>
