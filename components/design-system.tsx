@@ -156,7 +156,7 @@ function SectionHeader({ title, description, action, className }: SectionHeaderP
 /* Squelette de chargement - blocs gris en pulse d'opacite */
 function SkeletonCard({ className }: { className?: string }) {
   return (
-    <div className={cn("overflow-hidden border rounded-lg", className)}>
+    <div className={cn("overflow-hidden rounded-xl border border-border bg-card shadow-sm", className)}>
       <div className="relative aspect-square skeleton" />
       <div className="p-3 space-y-2">
         <div className="h-4 skeleton rounded w-3/4" />

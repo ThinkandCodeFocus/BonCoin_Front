@@ -18,9 +18,9 @@ export function ListingRow({ listing, isFavorited = false, onToggleFavorite }: L
   return (
     <Link
       href={`/listings/${listing.id}`}
-      className="flex gap-4 border rounded-lg p-3 bg-card card-interactive"
+      className="group flex gap-4 rounded-xl border border-border bg-card p-3 shadow-sm transition-shadow hover:shadow-md"
     >
-      <div className="relative w-28 h-28 sm:w-36 sm:h-36 shrink-0 bg-muted rounded-md overflow-hidden">
+      <div className="relative w-28 h-28 sm:w-36 sm:h-36 shrink-0 bg-muted rounded-lg overflow-hidden">
         <img
           src={photoUrl}
           alt={listing.title}
