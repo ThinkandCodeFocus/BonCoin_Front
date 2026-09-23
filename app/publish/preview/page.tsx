@@ -216,7 +216,7 @@ export default function PublishPreviewPage() {
       <main className="flex-1 pb-16 md:pb-4">
         <div className="max-w-4xl mx-auto p-4 md:p-6">
           <div className="flex items-center justify-between mb-6 gap-2 flex-wrap">
-            <h1 className="text-xl font-semibold">Prévisualisation</h1>
+            <h1 className="text-2xl font-bold tracking-tight">Prévisualisation</h1>
             <div className="flex gap-2">
               <Button variant="outline" onClick={() => router.back()}>
                 Retour
@@ -233,7 +233,7 @@ export default function PublishPreviewPage() {
           <Card className="p-4">
             <div className="grid md:grid-cols-2 gap-6">
               <div>
-                <div className="relative aspect-[4/3] overflow-hidden rounded-md border bg-muted">
+                <div className="relative aspect-[4/3] overflow-hidden rounded-xl border border-border shadow-sm bg-muted">
                   {data.videoPreview ? (
                     <video className="w-full h-full object-cover" controls src={data.videoPreview} />
                   ) : (
@@ -257,7 +257,7 @@ export default function PublishPreviewPage() {
                         onError={(e) => {
                           e.currentTarget.src = "/placeholder.svg"
                         }}
-                        className="aspect-square rounded-md border object-cover"
+                        className="aspect-square rounded-lg border border-border object-cover"
                       />
                     ))}
                   </div>
@@ -267,7 +267,7 @@ export default function PublishPreviewPage() {
               <div className="space-y-4">
                 <div>
                   <h2 className="text-lg font-semibold">{data.title}</h2>
-                  <p className="text-2xl font-bold mt-1">{formatPrice(Number(data.price))}</p>
+                  <p className="text-3xl font-bold tracking-tight mt-1">{formatPrice(Number(data.price))}</p>
                   {data.negotiable && <Badge variant="secondary" className="mt-2">Prix négociable</Badge>}
                 </div>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
