@@ -35,11 +35,11 @@ export function CategoryCarousel({ categoryId, categoryName }: CategoryCarouselP
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-3">
-        <h2 className="text-base font-semibold">{categoryName}</h2>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg md:text-xl font-bold tracking-tight">{categoryName}</h2>
         <Link
           href={`/listings?category=${categoryId}`}
-          className="text-sm text-primary hover:underline flex items-center gap-1"
+          className="text-sm font-semibold text-primary hover:underline flex items-center gap-1 shrink-0"
         >
           Voir plus d'annonces
           <ArrowRight className="w-3.5 h-3.5" />
