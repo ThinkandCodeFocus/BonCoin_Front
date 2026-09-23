@@ -42,7 +42,7 @@ export function LocationPicker() {
   }
 
   return (
-    <div className="border-2 border-ink radius-indie-alt bg-card px-4 py-3.5 shadow-hard-sm">
+    <div className="rounded-2xl border border-border bg-card px-4 py-4 shadow-sm">
       <div className="flex items-center gap-2 mb-3">
         <MapPin className="w-4 h-4 text-primary shrink-0" />
         <span className="text-sm font-semibold truncate">
@@ -72,8 +72,10 @@ export function LocationPicker() {
             type="button"
             onClick={() => setLocation("Dakar", quartier)}
             className={cn(
-              "shrink-0 snap-start whitespace-nowrap rounded-full border-2 border-ink px-3.5 py-2 text-xs font-semibold press-hard",
-              district === quartier ? "bg-primary text-primary-foreground" : "bg-background"
+              "shrink-0 snap-start whitespace-nowrap rounded-full border px-3.5 py-2 text-xs font-semibold transition-colors",
+              district === quartier
+                ? "bg-primary text-primary-foreground border-primary"
+                : "bg-background border-border hover:bg-muted"
             )}
           >
             {quartier}
