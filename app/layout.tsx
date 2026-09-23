@@ -1,6 +1,6 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { Fraunces, DM_Sans } from "next/font/google"
+import { DM_Sans } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import "./globals.css"
 import { Toaster } from "@/components/ui/toaster"
@@ -10,14 +10,6 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { MessageNotificationProvider } from "@/contexts/MessageNotificationContext"
 import { MessageNotificationToast } from "@/components/message-notification-toast"
 import { I18nProvider } from "@/components/I18nProvider"
-
-const fraunces = Fraunces({
-  subsets: ["latin"],
-  variable: "--font-fraunces",
-  weight: "variable",
-  axes: ["opsz", "SOFT", "WONK"],
-  style: ["normal", "italic"],
-})
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
@@ -53,7 +45,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr">
-      <body className={`${fraunces.variable} ${dmSans.variable} font-sans antialiased`}>
+      <body className={`${dmSans.variable} font-sans antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
           <I18nProvider>
             <AuthProvider>
