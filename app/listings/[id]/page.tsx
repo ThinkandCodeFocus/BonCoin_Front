@@ -239,7 +239,7 @@ export default function ListingDetailPage() {
           <div className="grid md:grid-cols-2 gap-8">
             {/* Galerie photos */}
             <div>
-              <div className="relative aspect-square rounded-lg overflow-hidden bg-muted mb-3 border">
+              <div className="relative aspect-square rounded-xl overflow-hidden bg-muted mb-3 border border-border shadow-sm">
                 <img
                   src={photoUrl}
                   alt={annonce.title}
@@ -252,16 +252,14 @@ export default function ListingDetailPage() {
                   <>
                     <Button
                       size="icon"
-                      variant="secondary"
-                      className="absolute left-3 top-1/2 -translate-y-1/2"
+                      className="absolute left-3 top-1/2 -translate-y-1/2 bg-background/90 text-foreground backdrop-blur-sm shadow-md hover:bg-background"
                       onClick={previousPhoto}
                     >
                       <ChevronLeft className="w-4 h-4" />
                     </Button>
                     <Button
                       size="icon"
-                      variant="secondary"
-                      className="absolute right-3 top-1/2 -translate-y-1/2"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 bg-background/90 text-foreground backdrop-blur-sm shadow-md hover:bg-background"
                       onClick={nextPhoto}
                     >
                       <ChevronRight className="w-4 h-4" />
@@ -284,7 +282,7 @@ export default function ListingDetailPage() {
                     <button
                       key={index}
                       onClick={() => setCurrentPhotoIndex(index)}
-                      className={`aspect-square rounded-md overflow-hidden border ${index === currentPhotoIndex ? "ring-2 ring-primary" : ""}`}
+                      className={`aspect-square rounded-lg overflow-hidden border ${index === currentPhotoIndex ? "ring-2 ring-primary border-transparent" : "border-border"}`}
                     >
                       <img
                         src={resolveStorageUrl(photo)}
@@ -316,8 +314,8 @@ export default function ListingDetailPage() {
               <div>
                 <div className="flex items-start justify-between gap-3 mb-3">
                   <div className="flex-1 min-w-0">
-                    <h1 className="text-xl font-semibold mb-1 line-clamp-3 break-words">{annonce.title}</h1>
-                    <p className="text-2xl font-bold">{formatPrice(annonce.price)}</p>
+                    <h1 className="text-lg font-semibold mb-1 line-clamp-3 break-words text-foreground/90">{annonce.title}</h1>
+                    <p className="text-3xl font-bold tracking-tight">{formatPrice(annonce.price)}</p>
                     {annonce.negotiable && (
                       <Badge variant="secondary" className="mt-2">
                         Prix négociable
@@ -480,7 +478,7 @@ export default function ListingDetailPage() {
 
           {similarListings.length > 0 && (
             <div className="mt-10">
-              <h2 className="text-base font-semibold mb-3">Annonces similaires</h2>
+              <h2 className="text-xl md:text-2xl font-bold tracking-tight mb-4">Annonces similaires</h2>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                 {similarListings.map((item) => (
                   <ListingCard key={item.id} listing={item} />
