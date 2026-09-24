@@ -51,7 +51,7 @@
   --radius: 0.75rem;
 
   /* Largeur max du contenu principal - voir .container-app plus bas */
-  --container-max: 1440px;
+  --container-max: 1600px;
 }
 
 /* ============================================
@@ -154,16 +154,35 @@
    CONTAINER PRINCIPAL
    Systeme unique de largeur de contenu, utilise par le header, la
    homepage, les resultats, la fiche annonce, le profil et le footer.
-   Marge horizontale fluide (clamp) plutot que des paliers fixes :
-   16px sur mobile jusqu'a 64px sur tres grand ecran, largeur de
-   contenu plafonnee a --container-max pour ne jamais devenir demesuree.
+   Le padding reste volontairement modeste et par paliers (pas de vw
+   continu) : sur un ecran courant (1024-1600px), la quasi-totalite du
+   gain de largeur va au CONTENU, pas aux marges. Le plafond
+   --container-max n'intervient que sur les tres grands ecrans.
    ============================================ */
 
 .container-app {
   width: 100%;
   max-width: var(--container-max);
   margin-inline: auto;
-  padding-inline: clamp(1rem, 4vw, 4rem);
+  padding-inline: 1rem;
+}
+
+@media (min-width: 640px) {
+  .container-app {
+    padding-inline: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container-app {
+    padding-inline: 2rem;
+  }
+}
+
+@media (min-width: 1536px) {
+  .container-app {
+    padding-inline: 3rem;
+  }
 }
 
 /* ============================================
