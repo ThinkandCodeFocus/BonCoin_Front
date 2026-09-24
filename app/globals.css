@@ -42,12 +42,6 @@
   --input: oklch(0.93 0.005 240);
   --ring: oklch(0.64 0.19 46);
 
-  /* Legacy "Terre de Teranga" : encore utilisee par des composants pas
-     encore migres (bordures/ombres dures). Pontee vers le neutre fonce
-     pour rester coherente en attendant leur ticket de migration - ne pas
-     reutiliser dans du nouveau code, voir STYLE_GUIDE.md. */
-  --ink: oklch(0.22 0.015 250);
-
   --chart-1: oklch(0.64 0.19 46);
   --chart-2: oklch(0.32 0.05 220);
   --chart-3: oklch(0.5 0.14 46);
@@ -88,8 +82,6 @@
   --border: oklch(0.3 0.012 250);
   --input: oklch(0.28 0.012 250);
   --ring: oklch(0.7 0.17 46);
-
-  --ink: oklch(0.95 0.005 240);
 }
 
 /* ============================================
@@ -121,7 +113,6 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --color-ink: var(--ink);
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
@@ -154,46 +145,6 @@
     letter-spacing: -0.015em;
     font-weight: 600;
   }
-}
-
-/* ============================================
-   LEGACY "TERRE DE TERANGA" — bordures epaisses, ombres
-   portees marquees et decalees, rayons asymetriques.
-   Conserve uniquement pour les composants pas encore migres
-   vers le nouveau design system (voir STYLE_GUIDE.md).
-   NE PAS UTILISER dans du nouveau code.
-   ============================================ */
-
-.border-thick {
-  border: 2px solid var(--ink);
-}
-
-/* Ombre portee dure, sans flou, decalee - "bento box indie" */
-.shadow-hard {
-  box-shadow: 5px 5px 0 0 var(--ink);
-}
-
-.shadow-hard-sm {
-  box-shadow: 3px 3px 0 0 var(--ink);
-}
-
-/* Effet de "pression" au clic : l'ombre se retracte, l'element se decale */
-.press-hard {
-  transition: transform 90ms steps(2), box-shadow 90ms steps(2);
-}
-
-.press-hard:active {
-  transform: translate(3px, 3px);
-  box-shadow: 0 0 0 0 var(--ink) !important;
-}
-
-/* Rayon asymetrique pour boutons/cartes "faits main" */
-.radius-indie {
-  border-radius: 14px 6px 14px 6px;
-}
-
-.radius-indie-alt {
-  border-radius: 6px 16px 6px 16px;
 }
 
 /* ============================================

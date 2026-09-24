@@ -6,7 +6,7 @@
 3. [Palette de couleurs](#palette-de-couleurs)
 4. [Composants UI](#composants-ui)
 5. [Ombres, rayons, bordures](#ombres-rayons-bordures)
-6. [Composants pas encore migrés](#composants-pas-encore-migrés)
+6. [Migration terminée](#migration-terminée)
 7. [Bonnes pratiques](#bonnes-pratiques)
 
 ---
@@ -160,24 +160,14 @@ Aucune texture de fond (grain SVG) — surfaces plates, propres.
 
 ---
 
-## Composants pas encore migrés
+## Migration terminée
 
-Ces fichiers utilisent encore les classes legacy "Terre de Teranga"
-(`border-ink`, `shadow-hard*`, `radius-indie*`, `press-hard`, `.border-thick`)
-— **conservées dans `app/globals.css` uniquement pour eux**, en pont vers le
-neutre foncé (`--ink`), le temps de leur ticket de migration. Ne pas
-réutiliser ces classes ailleurs :
-
-- `components/header.tsx`, `components/bottom-nav.tsx` → ticket header/nav
-- `app/page.tsx`, `components/location-picker.tsx` → ticket homepage / recherche
-- `components/category-grid.tsx` → ticket catégories
-- `components/listing-card.tsx` → ticket cartes annonce
-- `components/footer.tsx` → ticket footer
-- `components/transaction-banner.tsx`, `components/payment-dialog.tsx`
-  (paiement escrow) → à intégrer au ticket de la page où ils apparaissent
-
-Une fois tous migrés, supprimer le bloc "LEGACY" de `app/globals.css` et la
-variable `--ink`.
+L'ancien système "Terre de Teranga" (bordures épaisses `border-ink`, ombres
+dures `shadow-hard*`, rayons asymétriques `radius-indie*`, effet de pression
+`press-hard`) a été entièrement retiré : plus aucun composant n'y fait
+référence, et le bloc correspondant ainsi que la variable `--ink` ont été
+supprimés de `app/globals.css`. Tout le site repose désormais sur les tokens
+et primitives décrits dans ce guide.
 
 ---
 
