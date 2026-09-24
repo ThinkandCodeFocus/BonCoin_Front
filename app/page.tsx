@@ -7,6 +7,7 @@ import { FeaturedListings } from "@/components/featured-listings"
 import { BottomNav } from "@/components/bottom-nav"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
+import { Reveal } from "@/components/reveal"
 import { Plus } from "lucide-react"
 import Link from "next/link"
 
@@ -39,32 +40,32 @@ export default function HomePage() {
         </section>
 
         <section className="px-4 md:px-6 pt-8 md:pt-10">
-          <div className="max-w-6xl mx-auto">
+          <Reveal className="max-w-6xl mx-auto">
             <LocationPicker />
-          </div>
+          </Reveal>
         </section>
 
         <section className="px-4 md:px-6 pt-8">
-          <div className="max-w-6xl mx-auto">
+          <Reveal className="max-w-6xl mx-auto">
             <RecentSearches />
-          </div>
+          </Reveal>
         </section>
 
         <section className="px-4 md:px-6 pt-10 md:pt-14">
-          <div className="max-w-6xl mx-auto">
+          <Reveal className="max-w-6xl mx-auto">
             <h2 className="text-xl md:text-2xl font-bold tracking-tight mb-5">Top catégories</h2>
             <CategoryGrid />
-          </div>
+          </Reveal>
         </section>
 
         <section className="px-4 md:px-6 pt-10 md:pt-14 space-y-10">
-          <div className="max-w-6xl mx-auto space-y-10">
+          <Reveal className="max-w-6xl mx-auto space-y-10">
             <HomeCategoryCarousels />
-          </div>
+          </Reveal>
         </section>
 
         <section className="px-4 md:px-6 pt-10 md:pt-14 pb-10">
-          <div className="max-w-6xl mx-auto">
+          <Reveal className="max-w-6xl mx-auto">
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-xl md:text-2xl font-bold tracking-tight">Annonces récentes</h2>
               <a href="/listings" className="text-sm font-semibold text-primary hover:underline">
@@ -72,7 +73,7 @@ export default function HomePage() {
               </a>
             </div>
             <FeaturedListings />
-          </div>
+          </Reveal>
         </section>
       </main>
 

@@ -25,6 +25,7 @@ import { useMessageNotifications } from "@/contexts/MessageNotificationContext"
 import { SearchBar } from "@/components/search-bar"
 import { useCategories } from "@/hooks/use-categories"
 import { useScrolled } from "@/hooks/use-scrolled"
+import { usePulseOnIncrease } from "@/hooks/use-pulse-on-increase"
 import { cn } from "@/lib/utils"
 
 export function Header() {
@@ -33,6 +34,9 @@ export function Header() {
   const { categories } = useCategories()
   const scrolled = useScrolled()
   const { unreadCount: messageCount, notificationCount } = useMessageNotifications()
+  const favoritePulse = usePulseOnIncrease(favoriteCount)
+  const messagePulse = usePulseOnIncrease(messageCount)
+  const notificationPulse = usePulseOnIncrease(notificationCount)
   const [showAuthDialog, setShowAuthDialog] = useState(false)
   const [authTab, setAuthTab] = useState<"login" | "register">("login")
   const { resolvedTheme, setTheme } = useTheme()
@@ -94,7 +98,7 @@ export function Header() {
                     <Heart className="w-4 h-4" />
                     <span data-i18n="favorites">Favoris</span>
                     {favoriteCount > 0 && (
-                      <Badge className="ml-1">{favoriteCount}</Badge>
+                      <Badge className={cn("ml-1", favoritePulse && "animate-badge-pop")}>{favoriteCount}</Badge>
                     )}
                   </Button>
                 </Link>
@@ -103,7 +107,7 @@ export function Header() {
                     <MessageSquare className="w-4 h-4" />
                     <span data-i18n="messages">Messages</span>
                     {messageCount > 0 && (
-                      <Badge className="ml-1">{messageCount}</Badge>
+                      <Badge className={cn("ml-1", messagePulse && "animate-badge-pop")}>{messageCount}</Badge>
                     )}
                   </Button>
                 </Link>
@@ -111,7 +115,14 @@ export function Header() {
                   <Button variant="ghost" size="icon" className="relative">
                     <Bell className="w-4 h-4" />
                     {notificationCount > 0 && (
-                      <Badge className="absolute -top-1 -right-1 px-1 min-w-4 justify-center">{notificationCount}</Badge>
+                      <Badge
+                        className={cn(
+                          "absolute -top-1 -right-1 px-1 min-w-4 justify-center",
+                          notificationPulse && "animate-badge-pop"
+                        )}
+                      >
+                        {notificationCount}
+                      </Badge>
                     )}
                   </Button>
                 </Link>
@@ -206,14 +217,20 @@ export function Header() {
                     <Button variant="ghost" className="w-full justify-start">
                       <MessageSquare className="w-4 h-4 mr-2" />
                       <span data-i18n="messages">Messages</span>
-                      {messageCount > 0 && <Badge className="ml-auto">{messageCount}</Badge>}
+                      {messageCount > 0 && (
+                        <Badge className={cn("ml-auto", messagePulse && "animate-badge-pop")}>{messageCount}</Badge>
+                      )}
                     </Button>
                   </Link>
                   <Link href="/notifications">
                     <Button variant="ghost" className="w-full justify-start">
                       <Bell className="w-4 h-4 mr-2" />
                       <span data-i18n="notifications">Notifications</span>
-                      {notificationCount > 0 && <Badge className="ml-auto">{notificationCount}</Badge>}
+                      {notificationCount > 0 && (
+                        <Badge className={cn("ml-auto", notificationPulse && "animate-badge-pop")}>
+                          {notificationCount}
+                        </Badge>
+                      )}
                     </Button>
                   </Link>
                   <Link href="/favorites">

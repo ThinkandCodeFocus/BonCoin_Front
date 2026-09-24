@@ -194,6 +194,47 @@
 }
 
 /* ============================================
+   REVEAL AU SCROLL
+   Etat de base pose ici ; le declenchement (IntersectionObserver, voir
+   hooks/use-reveal.ts et components/reveal.tsx) ajoute .is-visible.
+   ============================================ */
+
+:root {
+  --reveal-duration: 560ms;
+  --reveal-ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity var(--reveal-duration) var(--reveal-ease),
+    transform var(--reveal-duration) var(--reveal-ease);
+}
+
+.reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Pop ponctuel d'un badge (ex: nouveau message/notification) - une seule
+   iteration, jamais en boucle. */
+@keyframes badge-pop {
+  0% {
+    transform: scale(1);
+  }
+  35% {
+    transform: scale(1.3);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.animate-badge-pop {
+  animation: badge-pop 420ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ============================================
    SAFE AREAS (MOBILE)
    ============================================ */
 

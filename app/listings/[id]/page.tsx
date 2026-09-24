@@ -16,6 +16,7 @@ import { useParams, useRouter } from "next/navigation"
 import { toast } from "sonner"
 import Link from "next/link"
 import { ReportListingButton } from "@/components/report-listing-button"
+import { Reveal } from "@/components/reveal"
 import { formatPrice } from "@/components/design-system"
 import { ListingCard, type ListingCardData } from "@/components/listing-card"
 import { BusinessCardDialog } from "@/components/business-card-dialog"
@@ -477,14 +478,14 @@ export default function ListingDetailPage() {
           </div>
 
           {similarListings.length > 0 && (
-            <div className="mt-10">
+            <Reveal className="mt-10">
               <h2 className="text-xl md:text-2xl font-bold tracking-tight mb-4">Annonces similaires</h2>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                 {similarListings.map((item) => (
                   <ListingCard key={item.id} listing={item} />
                 ))}
               </div>
-            </div>
+            </Reveal>
           )}
         </div>
       </main>
