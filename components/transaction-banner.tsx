@@ -91,7 +91,7 @@ export function TransactionBanner({ conversationId, annonce, transaction, isBuye
 
   const Wrapper = ({ tone, icon, children }: { tone: "neutral" | "amber" | "green"; icon: React.ReactNode; children: React.ReactNode }) => (
     <div
-      className={`border-2 border-ink radius-indie-alt px-4 py-3 flex flex-wrap items-center gap-3 justify-between ${
+      className={`rounded-xl border border-border px-4 py-3 flex flex-wrap items-center gap-3 justify-between shadow-sm ${
         tone === "green" ? "bg-secondary text-secondary-foreground" : tone === "amber" ? "bg-primary/15" : "bg-card"
       }`}
     >

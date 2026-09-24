@@ -27,32 +27,32 @@ export default function Error({ error, reset }: ErrorProps) {
           title: "Requête invalide",
           description: "Les données envoyées ne sont pas valides. Veuillez vérifier vos informations.",
           icon: AlertTriangle,
-          color: "bg-yellow-100 dark:bg-yellow-900/30",
-          iconColor: "text-yellow-500",
+          color: "bg-accent",
+          iconColor: "text-primary",
         }
       case 401:
         return {
           title: "Authentification requise",
           description: "Vous devez être connecté pour accéder à cette page.",
           icon: Lock,
-          color: "bg-blue-100 dark:bg-blue-900/30",
-          iconColor: "text-blue-500",
+          color: "bg-secondary/15",
+          iconColor: "text-secondary",
         }
       case 403:
         return {
           title: "Accès refusé",
           description: "Vous n'avez pas l'autorisation d'accéder à cette ressource.",
           icon: Ban,
-          color: "bg-red-100 dark:bg-red-900/30",
-          iconColor: "text-red-500",
+          color: "bg-destructive/10",
+          iconColor: "text-destructive",
         }
       case 404:
         return {
           title: "Ressource introuvable",
           description: "La page ou la ressource demandée n'existe pas.",
           icon: Info,
-          color: "bg-gray-100 dark:bg-gray-900/30",
-          iconColor: "text-gray-500",
+          color: "bg-muted",
+          iconColor: "text-muted-foreground",
         }
       case 500:
       case 502:
@@ -61,16 +61,16 @@ export default function Error({ error, reset }: ErrorProps) {
           title: "Erreur serveur",
           description: "Une erreur s'est produite sur nos serveurs. Veuillez réessayer plus tard.",
           icon: ServerCrash,
-          color: "bg-red-100 dark:bg-red-900/30",
-          iconColor: "text-red-500",
+          color: "bg-destructive/10",
+          iconColor: "text-destructive",
         }
       default:
         return {
           title: "Une erreur s'est produite",
           description: message,
           icon: AlertTriangle,
-          color: "bg-orange-100 dark:bg-orange-900/30",
-          iconColor: "text-orange-500",
+          color: "bg-destructive/10",
+          iconColor: "text-destructive",
         }
     }
   }
@@ -79,30 +79,30 @@ export default function Error({ error, reset }: ErrorProps) {
   const Icon = errorInfo.icon
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <div className="text-center space-y-6 max-w-md">
         {/* Error Code Display */}
         <div className="relative">
-          <h1 className="text-[120px] font-bold text-gray-200 dark:text-gray-700 leading-none select-none">
+          <h1 className="text-[120px] font-bold text-foreground/10 leading-none select-none" aria-hidden="true">
             {statusCode}
           </h1>
           <div className="absolute inset-0 flex items-center justify-center">
             <div className={`w-24 h-24 ${errorInfo.color} rounded-full flex items-center justify-center`}>
-              <Icon className={`w-12 h-12 ${errorInfo.iconColor}`} />
+              <Icon className={`w-12 h-12 ${errorInfo.iconColor}`} aria-hidden="true" />
             </div>
           </div>
         </div>
 
         {/* Message */}
         <div className="space-y-2">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+          <h2 className="text-2xl font-bold tracking-tight text-foreground">
             {errorInfo.title}
           </h2>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-muted-foreground">
             {errorInfo.description}
           </p>
           {error.digest && (
-            <p className="text-xs text-gray-400 font-mono">
+            <p className="text-xs text-muted-foreground/70 font-mono">
               Code de référence: {error.digest}
             </p>
           )}
@@ -110,7 +110,7 @@ export default function Error({ error, reset }: ErrorProps) {
 
         {/* Actions */}
         <div className="flex flex-col sm:flex-row gap-3 justify-center pt-4">
-          <Button 
+          <Button
             onClick={() => reset()}
             className="gap-2"
           >
@@ -126,12 +126,12 @@ export default function Error({ error, reset }: ErrorProps) {
         </div>
 
         {/* Support Info */}
-        <div className="pt-6 border-t border-gray-200 dark:border-gray-700">
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+        <div className="pt-6 border-t border-border">
+          <p className="text-sm text-muted-foreground">
             Le problème persiste?{" "}
-            <button 
+            <button
               onClick={() => window.location.reload()}
-              className="text-blue-600 dark:text-blue-400 hover:underline"
+              className="text-primary hover:underline"
             >
               Rafraîchir la page
             </button>
