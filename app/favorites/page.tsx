@@ -39,7 +39,7 @@ export default function FavoritesPage() {
 
       <main className="flex-1 pb-16 md:pb-4 py-6 px-4">
         <div className="max-w-6xl mx-auto">
-          <h1 className="text-xl font-semibold mb-4">{t("favorites.title")}</h1>
+          <h1 className="text-2xl font-bold tracking-tight mb-5">{t("favorites.title")}</h1>
 
           {favoriteItems.length === 0 ? (
             <EmptyState

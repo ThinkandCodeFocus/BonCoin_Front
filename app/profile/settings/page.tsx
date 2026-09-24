@@ -233,7 +233,7 @@ export default function ProfileSettingsPage() {
       <main className="flex-1 pb-16 md:pb-4">
         <AccountLayout>
           <div className="max-w-xl space-y-6">
-            <h1 className="text-base font-semibold">Paramètres du profil</h1>
+            <h1 className="text-2xl font-bold tracking-tight">Paramètres du profil</h1>
 
             <Card className="p-4">
               <div className="flex flex-col items-center gap-3">
@@ -441,7 +441,7 @@ export default function ProfileSettingsPage() {
               ) : (
                 <div className="space-y-2">
                   {blockedUsers.map((blocked) => (
-                    <div key={blocked.id} className="flex items-center justify-between gap-3 p-2 border rounded-md">
+                    <div key={blocked.id} className="flex items-center justify-between gap-3 p-2 border border-border rounded-lg">
                       <div className="flex items-center gap-2 min-w-0">
                         <Avatar className="w-8 h-8">
                           <AvatarImage src={blocked.photo ? resolveStorageUrl(blocked.photo) : undefined} />

@@ -33,8 +33,8 @@ export function AccountLayout({ children }: { children: React.ReactNode }) {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-2 px-3 py-2 rounded-md text-sm whitespace-nowrap",
-                  active ? "bg-muted font-medium text-foreground" : "text-muted-foreground hover:bg-muted"
+                  "flex items-center gap-2 px-3 py-2 rounded-lg text-sm whitespace-nowrap transition-colors",
+                  active ? "bg-accent font-semibold text-primary" : "text-muted-foreground hover:bg-muted"
                 )}
               >
                 <Icon className="w-4 h-4" />
