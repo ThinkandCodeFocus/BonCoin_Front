@@ -176,7 +176,7 @@ export default function ProfilePage() {
       <Header />
 
       <main className="flex-1 pb-16 md:pb-4">
-        <div className="max-w-6xl mx-auto px-4 pt-6">
+        <div className="container-app pt-6">
           <div className="flex items-center justify-between gap-3 flex-wrap rounded-xl border border-border bg-card shadow-sm p-4">
             <div className="flex items-center gap-3">
               <Avatar className="w-14 h-14">
@@ -319,7 +319,7 @@ export default function ProfilePage() {
               ) : favorites.length === 0 ? (
                 <EmptyState icon={Heart} title="Vous n'avez pas encore de favoris" />
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-4">
                   {favorites.map((item) => {
                     const annonce = item.annonce
                     const photoUrl = resolveStorageUrl(annonce.photos?.[0])

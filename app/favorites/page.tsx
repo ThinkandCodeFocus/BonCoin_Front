@@ -37,8 +37,8 @@ export default function FavoritesPage() {
     <div className="min-h-screen flex flex-col">
       <Header />
 
-      <main className="flex-1 pb-16 md:pb-4 py-6 px-4">
-        <div className="max-w-6xl mx-auto">
+      <main className="flex-1 pb-16 md:pb-4 py-6">
+        <div className="container-app">
           <h1 className="text-2xl font-bold tracking-tight mb-5">{t("favorites.title")}</h1>
 
           {favoriteItems.length === 0 ? (
@@ -53,7 +53,7 @@ export default function FavoritesPage() {
               }
             />
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-4">
               {favoriteItems.map((item) => (
                 <ListingCard
                   key={item.id}

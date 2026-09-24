@@ -17,7 +17,7 @@ export function AccountLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-6 grid grid-cols-1 md:grid-cols-[220px_1fr] gap-6">
+    <div className="container-app py-6 grid grid-cols-1 md:grid-cols-[220px_1fr] gap-6">
       <aside className="md:sticky md:top-20 md:self-start">
         <nav className="flex md:flex-col gap-1 overflow-x-auto">
           {navItems.map((item) => {

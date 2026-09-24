@@ -56,7 +56,7 @@ export function Header() {
           : "bg-background border-b border-transparent"
       )}
     >
-      <div className="max-w-7xl mx-auto px-4 lg:px-6">
+      <div className="container-app">
         <div className="flex items-center justify-between h-16 gap-4 md:gap-6">
           <div className="flex items-center gap-3 shrink-0">
             <Link href="/" className="flex items-center shrink-0">
@@ -72,7 +72,7 @@ export function Header() {
             )}
           </div>
 
-          <div className="hidden md:block flex-1 max-w-xl">
+          <div className="hidden md:block flex-1 max-w-2xl">
             <SearchBar />
           </div>
 

@@ -43,7 +43,7 @@ const taxonomy = [
 export function Footer() {
   return (
     <footer className="mt-12 bg-muted/40 border-t border-border">
-      <div className="max-w-6xl mx-auto px-6 py-10 grid gap-8 md:grid-cols-4 text-sm">
+      <div className="container-app py-10 grid gap-8 md:grid-cols-4 text-sm">
         <div className="space-y-3">
           <p className="text-xl font-bold text-primary">LeMarché</p>
           <p className="text-muted-foreground">
@@ -83,7 +83,7 @@ export function Footer() {
       </div>
 
       <div className="border-t border-border">
-        <div className="max-w-6xl mx-auto px-6 py-8">
+        <div className="container-app py-8">
           <p className="text-xs font-bold text-primary uppercase tracking-wider mb-5">Parcourir par catégorie</p>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6 text-sm">
             {taxonomy.map((section) => (
@@ -105,7 +105,7 @@ export function Footer() {
       </div>
 
       <div className="border-t border-border">
-        <div className="max-w-6xl mx-auto px-6 py-4 text-xs text-muted-foreground space-y-3">
+        <div className="container-app py-4 text-xs text-muted-foreground space-y-3">
           <p>
             Avec LeMarché, trouvez la bonne affaire près de chez vous. Des milliers de petites annonces de particulier à
             particulier et de professionnels dans toutes les catégories : <Link href="/listings?category=Véhicules" className="text-primary hover:underline">véhicules</Link>,{" "}
