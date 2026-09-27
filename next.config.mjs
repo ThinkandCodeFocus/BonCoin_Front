@@ -6,7 +6,10 @@ const nextConfig = {
   // Proxy des images vers Laravel pour éviter les problèmes CORS
   async rewrites() {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api';
-    const backendUrl = apiUrl.replace('/api', '');
+    // Ne retirer que le suffixe "/api" final : un simple .replace('/api', '')
+    // matche par erreur le premier "/api" rencontré, ce qui casse les hôtes
+    // commençant par "api." (ex: https://api.think-and-code.com/api).
+    const backendUrl = apiUrl.replace(/\/api\/?$/, '');
     
     return [
       {
@@ -22,6 +25,16 @@ const nextConfig = {
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'api.think-and-code.com',
+        pathname: '/storage/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 't-express-backend.onrender.com',
+        pathname: '/storage/**',
+      },
       {
         protocol: 'http',
         hostname: '127.0.0.1',
