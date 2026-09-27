@@ -11,16 +11,24 @@ import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Eye, EyeOff } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
+import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { Loader2 } from "lucide-react"
 import { useI18n } from "@/components/I18nProvider"
+import { GoogleSignInButton } from "@/components/google-sign-in-button"
 
 export default function AuthPage() {
-  const { login, register } = useAuth()
+  const { login, loginWithGoogle, register } = useAuth()
   const { t } = useI18n()
   const router = useRouter()
   const [activeTab, setActiveTab] = useState<"login" | "register">("login")
   const [isLoading, setIsLoading] = useState(false)
+
+  const handleGoogleCredential = async (credential: string) => {
+    setIsLoading(true)
+    await loginWithGoogle(credential)
+    setIsLoading(false)
+  }
 
   const [loginIdentifier, setLoginIdentifier] = useState("")
   const [loginPassword, setLoginPassword] = useState("")
@@ -46,11 +54,17 @@ export default function AuthPage() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    if (!registerEmail.trim() && !registerPhone.trim()) {
+      toast.error("Renseignez au moins un email ou un numéro de téléphone")
+      return
+    }
+
     setIsLoading(true)
     const success = await register({
       name: registerName,
-      email: registerEmail,
-      phone: registerPhone,
+      email: registerEmail.trim() || undefined,
+      phone: registerPhone.trim() || undefined,
       password: registerPassword,
       password_confirmation: registerPasswordConfirmation,
       language: "fr",
@@ -69,6 +83,18 @@ export default function AuthPage() {
         <div className="max-w-md mx-auto">
           <Card className="p-6">
             <h1 className="text-lg font-semibold mb-6 text-center">{t("login")}</h1>
+
+            <div className="mb-4">
+              <GoogleSignInButton onCredential={handleGoogleCredential} />
+            </div>
+            <div className="relative mb-6">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-card px-2 text-muted-foreground">ou</span>
+              </div>
+            </div>
 
             <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "login" | "register")}>
               <TabsList className="grid w-full grid-cols-2 mb-6">
@@ -137,25 +163,23 @@ export default function AuthPage() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="register-email">Email</Label>
+                    <Label htmlFor="register-email">Email (ou téléphone ci-dessous)</Label>
                     <Input
                       id="register-email"
                       type="email"
                       placeholder="email@example.com"
                       value={registerEmail}
                       onChange={(e) => setRegisterEmail(e.target.value)}
-                      required
                     />
                   </div>
                   <div>
-                    <Label htmlFor="register-phone">Téléphone</Label>
+                    <Label htmlFor="register-phone">Téléphone (ou email ci-dessus)</Label>
                     <Input
                       id="register-phone"
                       type="tel"
-                      placeholder="+221771234567"
+                      placeholder="771234567"
                       value={registerPhone}
                       onChange={(e) => setRegisterPhone(e.target.value)}
-                      required
                     />
                   </div>
                   <div>

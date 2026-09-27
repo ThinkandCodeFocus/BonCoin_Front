@@ -23,7 +23,7 @@ export default function FavoritesPage() {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      router.push("/")
+      router.push("/auth")
     }
   }, [isAuthenticated, router])
 
@@ -44,8 +44,8 @@ export default function FavoritesPage() {
           {favoriteItems.length === 0 ? (
             <EmptyState
               icon={Heart}
-              title="Aucun favori"
-              description="Commencez à ajouter des annonces à vos favoris"
+              title={t("favorites.empty_title")}
+              description={t("favorites.empty_desc")}
               action={
                 <Link href="/listings">
                   <Button>{t("cta.browse")}</Button>

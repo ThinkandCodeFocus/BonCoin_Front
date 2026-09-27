@@ -121,8 +121,8 @@ export const authService = {
    */
   async register(data: {
     name: string
-    email: string
-    phone: string
+    email?: string
+    phone?: string
     password: string
     password_confirmation: string
     language?: string
@@ -132,8 +132,8 @@ export const authService = {
       // Backend expects form-encoded payload (not JSON) for auth endpoints.
       const body = new URLSearchParams()
       body.set('name', data.name)
-      body.set('email', data.email)
-      body.set('phone', data.phone)
+      if (data.email) body.set('email', data.email)
+      if (data.phone) body.set('phone', data.phone)
       body.set('password', data.password)
       body.set('password_confirmation', data.password_confirmation)
       if (data.language) body.set('language', data.language)
@@ -190,6 +190,39 @@ export const authService = {
       }
 
       // Stocker le token
+      if (result.access_token) {
+        localStorage.setItem('auth_token', result.access_token)
+        localStorage.setItem('user', JSON.stringify(result.user))
+      }
+
+      return { success: true, data: result }
+    } catch (error) {
+      return handleError(error)
+    }
+  },
+
+  /**
+   * Connexion / inscription via Google (credential = ID token du bouton Google)
+   */
+  async loginWithGoogle(credential: string) {
+    try {
+      const body = new URLSearchParams()
+      body.set('credential', credential)
+
+      const headers = getHeaders(false)
+      headers['Content-Type'] = 'application/x-www-form-urlencoded;charset=UTF-8'
+
+      const response = await fetch(`${API_CONFIG.baseURL}/auth/google`, {
+        method: 'POST',
+        headers,
+        body: body.toString(),
+      })
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw { response: { data: result, status: response.status } }
+      }
+
       if (result.access_token) {
         localStorage.setItem('auth_token', result.access_token)
         localStorage.setItem('user', JSON.stringify(result.user))
@@ -363,6 +396,7 @@ export const annonceService = {
     description: string
     price: number
     negotiable?: boolean
+    whatsapp_contact?: boolean
     category_id: number
     custom_category?: string | null
     city: string
@@ -397,10 +431,15 @@ export const annonceService = {
     description: string
     price: number
     negotiable: boolean
+    whatsapp_contact: boolean
     category_id: number
+    custom_category: string | null
     city: string
     district: string
+    latitude: number
+    longitude: number
     etat: string
+    attributes: Record<string, string>
   }>) {
     try {
       const response = await fetch(`${API_CONFIG.baseURL}/annonces/${id}`, {
@@ -1246,6 +1285,79 @@ export const adminService = {
     }
   },
 
+  async syncTexpress() {
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/admin/texpress-sync`, {
+        method: 'POST',
+        headers: getHeaders(),
+      })
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw { response: { data: result, status: response.status } }
+      }
+
+      return { success: true, data: result }
+    } catch (error) {
+      return handleError(error)
+    }
+  },
+
+  async scrapeSync(sites?: string[]) {
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/admin/scrape-sync`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(sites ? { sites } : {}),
+      })
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw { response: { data: result, status: response.status } }
+      }
+
+      return { success: true, data: result }
+    } catch (error) {
+      return handleError(error)
+    }
+  },
+
+  async syncJobs() {
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/admin/job-sync`, {
+        method: 'POST',
+        headers: getHeaders(),
+      })
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw { response: { data: result, status: response.status } }
+      }
+
+      return { success: true, data: result }
+    } catch (error) {
+      return handleError(error)
+    }
+  },
+
+  async syncRealEstate() {
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/admin/real-estate-sync`, {
+        method: 'POST',
+        headers: getHeaders(),
+      })
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw { response: { data: result, status: response.status } }
+      }
+
+      return { success: true, data: result }
+    } catch (error) {
+      return handleError(error)
+    }
+  },
+
   async getReports() {
     try {
       const response = await fetch(`${API_CONFIG.baseURL}/admin/reports`, {
@@ -1359,6 +1471,42 @@ export const adminService = {
   async refundBuyer(paymentId: number) {
     try {
       const response = await fetch(`${API_CONFIG.baseURL}/admin/transactions/${paymentId}/refund`, {
+        method: 'POST',
+        headers: getHeaders(),
+      })
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw { response: { data: result, status: response.status } }
+      }
+
+      return { success: true, data: result }
+    } catch (error) {
+      return handleError(error)
+    }
+  },
+
+  async getVisitStats(days = 30) {
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/admin/visits/stats?days=${days}`, {
+        method: 'GET',
+        headers: getHeaders(),
+      })
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw { response: { data: result, status: response.status } }
+      }
+
+      return { success: true, data: result }
+    } catch (error) {
+      return handleError(error)
+    }
+  },
+
+  async relaunchSignupBanner() {
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/admin/signup-banner/relaunch`, {
         method: 'POST',
         headers: getHeaders(),
       })
@@ -1702,6 +1850,44 @@ export const transactionService = {
         method: 'POST',
         headers: getHeaders(),
         body: JSON.stringify({ reason }),
+      })
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw { response: { data: result, status: response.status } }
+      }
+
+      return { success: true, data: result }
+    } catch (error) {
+      return handleError(error)
+    }
+  },
+}
+
+/**
+ * Suivi de visites (statistiques admin par jour/pays) et banniere
+ * d'inscription pilotee par l'admin. Endpoints publics, sans auth.
+ */
+export const visitService = {
+  async track() {
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/visits/track`, {
+        method: 'POST',
+        headers: getHeaders(false),
+      })
+      return { success: response.ok }
+    } catch (error) {
+      return handleError(error)
+    }
+  },
+}
+
+export const signupBannerService = {
+  async getVersion() {
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/signup-banner`, {
+        method: 'GET',
+        headers: getHeaders(false),
       })
       const result = await response.json()
 

@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { categoryService } from "@/lib/api"
+import { useI18n } from "@/components/I18nProvider"
 
 export interface CategoryAttributeDef {
   id: number
@@ -22,6 +23,7 @@ interface CategoryAttributeFieldsProps {
 }
 
 export function CategoryAttributeFields({ categoryId, values, onChange }: CategoryAttributeFieldsProps) {
+  const { t } = useI18n()
   const [attributes, setAttributes] = useState<CategoryAttributeDef[]>([])
 
   useEffect(() => {
@@ -53,7 +55,7 @@ export function CategoryAttributeFields({ categoryId, values, onChange }: Catego
               onValueChange={(v) => onChange(attribute.key, v)}
             >
               <SelectTrigger id={`attr-${attribute.key}`} className="mt-2">
-                <SelectValue placeholder="Sélectionner" />
+                <SelectValue placeholder={t("actions.select")} />
               </SelectTrigger>
               <SelectContent>
                 {(attribute.options || []).map((option) => (

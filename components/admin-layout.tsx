@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { useEffect } from "react"
-import { Users, Flag, ScrollText, Banknote } from "lucide-react"
+import { Users, Flag, ScrollText, Banknote, RefreshCw, BarChart3, Settings } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useAuth } from "@/contexts/AuthContext"
 
@@ -12,6 +12,9 @@ const navItems = [
   { href: "/admin/reports", label: "Signalements", icon: Flag },
   { href: "/admin/transactions", label: "Transactions", icon: Banknote },
   { href: "/admin/logs", label: "Journal", icon: ScrollText },
+  { href: "/admin/texpress", label: "Import produits", icon: RefreshCw },
+  { href: "/admin/visits", label: "Statistiques", icon: BarChart3 },
+  { href: "/admin/settings", label: "Paramètres", icon: Settings },
 ]
 
 export function AdminLayout({ children }: { children: React.ReactNode }) {

@@ -46,13 +46,13 @@ export function Footer() {
       <div className="container-app py-10 grid gap-8 md:grid-cols-4 text-sm">
         <div className="space-y-3">
           <p className="text-xl font-bold text-primary">LeMarché</p>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground" data-i18n="footer.tagline">
             La marketplace C2C leader au Sénégal. Simple, rapide et local.
           </p>
         </div>
 
         <div className="space-y-2">
-          <p className="font-semibold">À propos</p>
+          <p className="font-semibold" data-i18n="footer.about">À propos</p>
           <div className="flex flex-col gap-1.5 text-muted-foreground">
             <Link href="#" className="hover:text-primary hover:underline">Qui sommes-nous ?</Link>
             <Link href="#" className="hover:text-primary hover:underline">Nous rejoindre</Link>
@@ -62,7 +62,7 @@ export function Footer() {
         </div>
 
         <div className="space-y-2">
-          <p className="font-semibold">Informations légales</p>
+          <p className="font-semibold" data-i18n="footer.legal">Informations légales</p>
           <div className="flex flex-col gap-1.5 text-muted-foreground">
             <Link href="#" className="hover:text-primary hover:underline">CGU</Link>
             <Link href="#" className="hover:text-primary hover:underline" data-i18n="footer.privacy">Confidentialité</Link>
@@ -72,7 +72,7 @@ export function Footer() {
         </div>
 
         <div className="space-y-2">
-          <p className="font-semibold">Aide &amp; Contact</p>
+          <p className="font-semibold" data-i18n="footer.help_contact">Aide &amp; Contact</p>
           <div className="flex flex-col gap-1.5 text-muted-foreground">
             <Link href="#" className="hover:text-primary hover:underline">Centre d'aide</Link>
             <Link href="#" className="hover:text-primary hover:underline">Règles de diffusion</Link>
@@ -107,12 +107,17 @@ export function Footer() {
       <div className="border-t border-border">
         <div className="container-app py-4 text-xs text-muted-foreground space-y-3">
           <p>
-            Avec LeMarché, trouvez la bonne affaire près de chez vous. Des milliers de petites annonces de particulier à
-            particulier et de professionnels dans toutes les catégories : <Link href="/listings?category=Véhicules" className="text-primary hover:underline">véhicules</Link>,{" "}
-            <Link href="/listings?category=Immobilier" className="text-primary hover:underline">immobilier</Link>,{" "}
-            <Link href="/listings?category=Emplois" className="text-primary hover:underline">emploi</Link>,{" "}
-            <Link href="/listings?category=Mode" className="text-primary hover:underline">mode</Link> et bien plus. Déposez
-            une annonce gratuite pour vendre, acheter ou donner vos biens de seconde main.
+            <span data-i18n="footer.intro_1">
+              Avec LeMarché, trouvez la bonne affaire près de chez vous. Des milliers de petites annonces de particulier à
+              particulier et de professionnels dans toutes les catégories :
+            </span>{" "}
+            <Link href="/listings?category=Véhicules" className="text-primary hover:underline" data-i18n="footer.cat_vehicules">véhicules</Link>,{" "}
+            <Link href="/listings?category=Immobilier" className="text-primary hover:underline" data-i18n="footer.cat_immobilier">immobilier</Link>,{" "}
+            <Link href="/listings?category=Emplois" className="text-primary hover:underline" data-i18n="footer.cat_emploi">emploi</Link>,{" "}
+            <Link href="/listings?category=Mode" className="text-primary hover:underline" data-i18n="footer.cat_mode">mode</Link>{" "}
+            <span data-i18n="footer.intro_2">
+              et bien plus. Déposez une annonce gratuite pour vendre, acheter ou donner vos biens de seconde main.
+            </span>
           </p>
           <div className="flex flex-col md:flex-row items-center justify-between gap-2 pt-1">
             <span data-i18n="footer.copyright">© 2026 LeMarché. Tous droits réservés.</span>

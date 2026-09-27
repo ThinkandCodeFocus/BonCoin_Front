@@ -1,19 +1,26 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import Link from "next/link"
-import { ArrowRight } from "lucide-react"
+import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react"
 import { annonceService } from "@/lib/api"
 import { ListingCard, type ListingCardData } from "@/components/listing-card"
+import { Button } from "@/components/ui/button"
 
 interface CategoryCarouselProps {
   categoryId: number
   categoryName: string
 }
 
+const AUTOPLAY_DELAY = 4000
+const EDGE_TOLERANCE = 8
+
 export function CategoryCarousel({ categoryId, categoryName }: CategoryCarouselProps) {
   const [listings, setListings] = useState<ListingCardData[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [isHovering, setIsHovering] = useState(false)
+  const [isDesktop, setIsDesktop] = useState(false)
+  const scrollerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -31,6 +38,36 @@ export function CategoryCarousel({ categoryId, categoryName }: CategoryCarouselP
     }
   }, [categoryId])
 
+  useEffect(() => {
+    const mql = window.matchMedia("(min-width: 768px)")
+    const update = () => setIsDesktop(mql.matches)
+    update()
+    mql.addEventListener("change", update)
+    return () => mql.removeEventListener("change", update)
+  }, [])
+
+  const slide = useCallback((direction: 1 | -1) => {
+    const el = scrollerRef.current
+    if (!el) return
+    const amount = el.clientWidth * 0.9
+
+    if (direction === 1 && el.scrollLeft + el.clientWidth >= el.scrollWidth - EDGE_TOLERANCE) {
+      el.scrollTo({ left: 0, behavior: "smooth" })
+      return
+    }
+    if (direction === -1 && el.scrollLeft <= EDGE_TOLERANCE) {
+      el.scrollTo({ left: el.scrollWidth, behavior: "smooth" })
+      return
+    }
+    el.scrollBy({ left: amount * direction, behavior: "smooth" })
+  }, [])
+
+  useEffect(() => {
+    if (!isDesktop || isHovering || isLoading || listings.length < 3) return
+    const id = window.setInterval(() => slide(1), AUTOPLAY_DELAY)
+    return () => window.clearInterval(id)
+  }, [isDesktop, isHovering, isLoading, listings.length, slide])
+
   if (!isLoading && listings.length === 0) return null
 
   return (
@@ -46,20 +83,54 @@ export function CategoryCarousel({ categoryId, categoryName }: CategoryCarouselP
         </Link>
       </div>
 
-      <div className="flex gap-3 overflow-x-auto pb-1 snap-x scrollbar-thin">
-        {isLoading
-          ? [...Array(5)].map((_, i) => (
-              <div key={i} className="w-40 shrink-0 border rounded-lg overflow-hidden">
-                <div className="aspect-square skeleton" />
-                <div className="p-3 space-y-2">
-                  <div className="h-4 skeleton rounded w-3/4" />
-                  <div className="h-3 skeleton rounded w-1/2" />
+      <div
+        className="relative group"
+        onMouseEnter={() => setIsHovering(true)}
+        onMouseLeave={() => setIsHovering(false)}
+      >
+        <div
+          ref={scrollerRef}
+          className="flex gap-3 overflow-x-auto pb-1 snap-x scroll-smooth scrollbar-thin carousel-scroll"
+        >
+          {isLoading
+            ? [...Array(5)].map((_, i) => (
+                <div key={i} className="w-40 shrink-0 border rounded-lg overflow-hidden">
+                  <div className="aspect-square skeleton" />
+                  <div className="p-3 space-y-2">
+                    <div className="h-4 skeleton rounded w-3/4" />
+                    <div className="h-3 skeleton rounded w-1/2" />
+                  </div>
                 </div>
-              </div>
-            ))
-          : listings.map((listing) => (
-              <ListingCard key={listing.id} listing={listing} variant="carousel" />
-            ))}
+              ))
+            : listings.map((listing) => (
+                <ListingCard key={listing.id} listing={listing} variant="carousel" />
+              ))}
+        </div>
+
+        {!isLoading && listings.length > 3 && (
+          <>
+            <Button
+              type="button"
+              size="icon"
+              variant="secondary"
+              aria-label="Précédent"
+              onClick={() => slide(-1)}
+              className="hidden md:flex absolute left-0 top-20 -translate-y-1/2 -translate-x-1/2 z-10 opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+            <Button
+              type="button"
+              size="icon"
+              variant="secondary"
+              aria-label="Suivant"
+              onClick={() => slide(1)}
+              className="hidden md:flex absolute right-0 top-20 -translate-y-1/2 translate-x-1/2 z-10 opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </>
+        )}
       </div>
     </div>
   )

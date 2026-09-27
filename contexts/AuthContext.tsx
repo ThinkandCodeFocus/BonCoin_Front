@@ -28,6 +28,7 @@ interface AuthContextType {
   isAuthenticated: boolean
   isLoading: boolean
   login: (login: string, password: string) => Promise<boolean>
+  loginWithGoogle: (credential: string) => Promise<boolean>
   register: (data: RegisterData) => Promise<boolean>
   logout: () => Promise<void>
   refreshUser: () => Promise<void>
@@ -35,8 +36,8 @@ interface AuthContextType {
 
 interface RegisterData {
   name: string
-  email: string
-  phone: string
+  email?: string
+  phone?: string
   password: string
   password_confirmation: string
   language?: string
@@ -116,6 +117,46 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  const loginWithGoogle = async (credential: string): Promise<boolean> => {
+    try {
+      const result = await authService.loginWithGoogle(credential)
+
+      if (result.success) {
+        const data = (result as any).data
+        if (data) {
+          setUser(data.user)
+          toast({
+            title: t("toast.login_success") || "Connexion réussie",
+            description: `${t("toast.welcome") || "Bienvenue"} ${data.user.name}`,
+          })
+
+          const redirectUrl = localStorage.getItem('redirect_after_login')
+          if (redirectUrl) {
+            localStorage.removeItem('redirect_after_login')
+            router.push(redirectUrl)
+          } else {
+            router.push("/")
+          }
+          return true
+        }
+      }
+      const message = (result as any).message
+      toast({
+        title: t("toast.login_error") || "Erreur de connexion",
+        description: message || "Connexion Google impossible",
+        variant: "destructive",
+      })
+      return false
+    } catch (error) {
+      toast({
+        title: t("toast.error") || "Erreur",
+        description: t("toast.login_exception") || "Une erreur est survenue lors de la connexion",
+        variant: "destructive",
+      })
+      return false
+    }
+  }
+
   const register = async (data: RegisterData): Promise<boolean> => {
     try {
       const result = await authService.register(data)
@@ -181,6 +222,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isAuthenticated: !!user,
         isLoading,
         login,
+        loginWithGoogle,
         register,
         logout,
         refreshUser,

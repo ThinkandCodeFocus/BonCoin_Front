@@ -23,7 +23,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { Loader2, Mic, Send, ChevronLeft, AudioWaveform, MoreVertical, Flag, UserX, UserCheck } from "lucide-react"
+import { Loader2, Mic, Send, ChevronLeft, AudioWaveform, MoreVertical, Flag, UserX, UserCheck, Link2, Lock } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 import { useMessageNotifications } from "@/contexts/MessageNotificationContext"
 import { messageService, blockService } from "@/lib/api"
@@ -32,6 +32,7 @@ import { resolveStorageUrl } from "@/lib/media"
 import { ReportUserButton } from "@/components/report-user-button"
 import { EmptyState } from "@/components/design-system"
 import { TransactionBanner, type TransactionData } from "@/components/transaction-banner"
+import { useI18n } from "@/components/I18nProvider"
 import { cn } from "@/lib/utils"
 
 interface Message {
@@ -51,6 +52,7 @@ interface Message {
 export default function ConversationPage() {
   const params = useParams<{ id: string }>()
   const router = useRouter()
+  const { t } = useI18n()
   const { isAuthenticated, user } = useAuth()
   const [isLoading, setIsLoading] = useState(true)
   const [isSending, setIsSending] = useState(false)
@@ -72,17 +74,24 @@ export default function ConversationPage() {
   const [blockedByOther, setBlockedByOther] = useState(false)
   const [showBlockConfirm, setShowBlockConfirm] = useState(false)
 
-  const [annonce, setAnnonce] = useState<{ id: number; title: string; price: number; status: string } | null>(null)
+  const [annonce, setAnnonce] = useState<{
+    id: number
+    title: string
+    price: number
+    status: string
+    source_url?: string | null
+  } | null>(null)
   const [transaction, setTransaction] = useState<TransactionData | null>(null)
   const [isBuyer, setIsBuyer] = useState(false)
+  const [isSeller, setIsSeller] = useState(false)
 
   useEffect(() => {
     if (!isAuthenticated) {
-      router.push("/")
+      router.push("/auth")
       return
     }
     if (Number.isNaN(conversationId) || conversationId === 0) {
-      toast.error("Conversation introuvable")
+      toast.error(t("messages.not_found"))
       router.push("/messages")
       return
     }
@@ -98,6 +107,7 @@ export default function ConversationPage() {
       const conv = data.conversation
       setAnnonce(conv?.annonce || null)
       setIsBuyer(!!user && conv?.buyer_id === user.id)
+      setIsSeller(!!user && conv?.seller_id === user.id)
       setTransaction(data.transaction || null)
     }
   }
@@ -146,10 +156,10 @@ export default function ConversationPage() {
           // ignore
         }
       } else if (!silent) {
-        toast.error((result as any).message || "Impossible de charger les messages")
+        toast.error((result as any).message || t("messages.load_error"))
       }
     } catch (error) {
-      if (!silent) toast.error("Erreur de connexion")
+      if (!silent) toast.error(t("toast.connection_error"))
     } finally {
       if (!silent) setIsLoading(false)
     }
@@ -162,9 +172,9 @@ export default function ConversationPage() {
       const result = await blockService.unblock(otherUser.id)
       if (result.success) {
         setHasBlockedOther(false)
-        toast.success("Utilisateur débloqué")
+        toast.success(t("messages.user_unblocked"))
       } else {
-        toast.error((result as any).message || "Erreur")
+        toast.error((result as any).message || t("toast.error"))
       }
       return
     }
@@ -173,9 +183,9 @@ export default function ConversationPage() {
     if (result.success) {
       setHasBlockedOther(true)
       setShowBlockConfirm(false)
-      toast.success("Utilisateur bloqué")
+      toast.success(t("messages.user_blocked"))
     } else {
-      toast.error((result as any).message || "Erreur")
+      toast.error((result as any).message || t("toast.error"))
     }
   }
 
@@ -189,10 +199,10 @@ export default function ConversationPage() {
         setText("")
         await loadMessages()
       } else {
-        toast.error((result as any).message || "Erreur lors de l'envoi du message")
+        toast.error((result as any).message || t("messages.send_error"))
       }
     } catch (error) {
-      toast.error("Erreur lors de l'envoi du message")
+      toast.error(t("messages.send_error"))
     } finally {
       setIsSending(false)
     }
@@ -218,7 +228,7 @@ export default function ConversationPage() {
       }
 
       recorder.onerror = () => {
-        toast.error("Erreur lors de l'enregistrement")
+        toast.error(t("messages.recording_error"))
       }
 
       mediaRecorderRef.current = recorder
@@ -230,9 +240,9 @@ export default function ConversationPage() {
         setRecordingDuration((prev) => prev + 1)
       }, 1000)
 
-      toast.success("Enregistrement démarré")
+      toast.success(t("publish.recording_started"))
     } catch (error) {
-      toast.error("Impossible d'accéder au microphone. Vérifiez les permissions.")
+      toast.error(t("messages.mic_permission_error"))
     }
   }
 
@@ -246,7 +256,7 @@ export default function ConversationPage() {
         recordingIntervalRef.current = null
       }
 
-      toast.success("Enregistrement terminé")
+      toast.success(t("publish.recording_finished"))
     }
   }
 
@@ -262,12 +272,12 @@ export default function ConversationPage() {
         setAudioBlob(null)
         setRecordingDuration(0)
         await loadMessages()
-        toast.success("Message vocal envoyé !")
+        toast.success(t("messages.voice_sent"))
       } else {
-        toast.error((result as any).message || "Erreur lors de l'envoi du message vocal")
+        toast.error((result as any).message || t("messages.voice_send_error"))
       }
     } catch (error) {
-      toast.error("Erreur lors de l'envoi du message vocal")
+      toast.error(t("messages.voice_send_error"))
     } finally {
       setIsSending(false)
     }
@@ -287,7 +297,7 @@ export default function ConversationPage() {
       setRecordingDuration(0)
       chunksRef.current = []
 
-      toast.info("Enregistrement annulé")
+      toast.info(t("messages.recording_cancelled"))
     }
   }
 
@@ -322,7 +332,7 @@ export default function ConversationPage() {
                 <Button variant="ghost" size="icon" className="md:hidden" onClick={() => router.push("/messages")}>
                   <ChevronLeft className="w-4 h-4" />
                 </Button>
-                <h1 className="font-semibold text-sm">{otherUser ? otherUser.name : "Conversation"}</h1>
+                <h1 className="font-semibold text-sm">{otherUser ? otherUser.name : t("messages.conversation_fallback")}</h1>
               </div>
 
               <DropdownMenu>
@@ -335,12 +345,12 @@ export default function ConversationPage() {
                   {hasBlockedOther ? (
                     <DropdownMenuItem onClick={handleToggleBlock}>
                       <UserCheck className="w-4 h-4 mr-2" />
-                      Débloquer
+                      {t("messages.unblock")}
                     </DropdownMenuItem>
                   ) : (
                     <DropdownMenuItem onClick={() => setShowBlockConfirm(true)}>
                       <UserX className="w-4 h-4 mr-2" />
-                      Bloquer
+                      {t("messages.block")}
                     </DropdownMenuItem>
                   )}
                   <ReportUserButton
@@ -349,7 +359,7 @@ export default function ConversationPage() {
                     trigger={
                       <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                         <Flag className="w-4 h-4 mr-2" />
-                        Signaler
+                        {t("messages.report")}
                       </DropdownMenuItem>
                     }
                   />
@@ -367,6 +377,21 @@ export default function ConversationPage() {
               />
             )}
 
+            {isSeller && annonce?.source_url && (
+              <a
+                href={annonce.source_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 px-4 py-2 text-xs border-b bg-amber-50 text-amber-900 hover:bg-amber-100 dark:bg-amber-950/30 dark:text-amber-200 dark:hover:bg-amber-950/50 shrink-0"
+              >
+                <Lock className="w-3.5 h-3.5 shrink-0" />
+                <span className="flex-1">
+                  {t("messages.private_note")}
+                </span>
+                <Link2 className="w-3.5 h-3.5 shrink-0" />
+              </a>
+            )}
+
             <div className="flex-1 overflow-y-auto p-4 space-y-3">
               {isLoading ? (
                 <div className="flex justify-center py-12">
@@ -375,8 +400,8 @@ export default function ConversationPage() {
               ) : messages.length === 0 ? (
                 <EmptyState
                   icon={AudioWaveform}
-                  title="Aucun message pour le moment"
-                  description="Dites bonjour pour commencer"
+                  title={t("messages.no_messages_title")}
+                  description={t("messages.no_messages_desc")}
                 />
               ) : (
                 messages.map((msg) => {
@@ -397,17 +422,17 @@ export default function ConversationPage() {
                           <div className="space-y-2">
                             <div className="flex items-center gap-2">
                               <AudioWaveform className="w-4 h-4 opacity-70" />
-                              <span className="text-xs opacity-70">Message vocal</span>
+                              <span className="text-xs opacity-70">{t("messages.voice_message")}</span>
                             </div>
                             <audio controls className="w-full h-8" preload="none" src={resolveStorageUrl(msg.content)}>
-                              Votre navigateur ne supporte pas l'audio.
+                              {t("messages.audio_not_supported_short")}
                             </audio>
                           </div>
                         )}
 
                         <div className="mt-1 text-xs text-muted-foreground">
                           {formatTime(msg.created_at)}
-                          {isMine && msg.read_at && " · Lu"}
+                          {isMine && msg.read_at && ` · ${t("messages.read_suffix")}`}
                         </div>
                       </div>
                     </div>
@@ -421,10 +446,10 @@ export default function ConversationPage() {
               {isRecording && (
                 <div className="flex items-center justify-between rounded-md border border-destructive/30 p-2">
                   <span className="text-sm text-destructive">
-                    Enregistrement... {formatDuration(recordingDuration)}
+                    {t("messages.recording_label")} {formatDuration(recordingDuration)}
                   </span>
                   <Button variant="destructive" size="sm" onClick={stopRecording}>
-                    Arrêter
+                    {t("publish.stop_button_prefix")}
                   </Button>
                 </div>
               )}
@@ -432,18 +457,18 @@ export default function ConversationPage() {
               {audioBlob && !isRecording && (
                 <div className="rounded-md border p-2 space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm">Vocal prêt ({formatDuration(recordingDuration)})</span>
+                    <span className="text-sm">{t("messages.voice_ready")} ({formatDuration(recordingDuration)})</span>
                     <div className="flex gap-2">
                       <Button variant="ghost" size="sm" onClick={cancelRecording}>
-                        Annuler
+                        {t("actions.cancel")}
                       </Button>
                       <Button size="sm" onClick={sendAudio} disabled={isSending}>
-                        Envoyer
+                        {t("actions.send")}
                       </Button>
                     </div>
                   </div>
                   <audio controls className="w-full h-8" src={URL.createObjectURL(audioBlob)}>
-                    Votre navigateur ne supporte pas la lecture audio.
+                    {t("publish.audio_not_supported")}
                   </audio>
                 </div>
               )}
@@ -451,13 +476,13 @@ export default function ConversationPage() {
               {hasBlockedOther || blockedByOther ? (
                 <p className="text-sm text-muted-foreground text-center py-2">
                   {hasBlockedOther
-                    ? "Vous avez bloqué cet utilisateur. Débloquez-le pour continuer à échanger."
-                    : "Vous ne pouvez plus échanger avec cet utilisateur."}
+                    ? t("messages.blocked_by_me")
+                    : t("messages.blocked_by_other")}
                 </p>
               ) : (
                 <div className="flex gap-2">
                   <Input
-                    placeholder="Écrivez votre message..."
+                    placeholder={t("messages.write_placeholder")}
                     value={text}
                     onChange={(e) => setText(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && handleSendText()}
@@ -481,14 +506,14 @@ export default function ConversationPage() {
       <AlertDialog open={showBlockConfirm} onOpenChange={setShowBlockConfirm}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Bloquer {otherUser?.name} ?</AlertDialogTitle>
+            <AlertDialogTitle>{t("messages.block_confirm_title")} {otherUser?.name} ?</AlertDialogTitle>
             <AlertDialogDescription>
-              Vous ne pourrez plus vous envoyer de messages tant que vous ne l'aurez pas débloqué.
+              {t("messages.block_confirm_desc")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Annuler</AlertDialogCancel>
-            <AlertDialogAction onClick={handleToggleBlock}>Bloquer</AlertDialogAction>
+            <AlertDialogCancel>{t("actions.cancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleToggleBlock}>{t("messages.block")}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

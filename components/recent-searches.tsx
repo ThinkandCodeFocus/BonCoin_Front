@@ -14,12 +14,14 @@ export function RecentSearches() {
 
   return (
     <div>
-      <h2 className="text-xl md:text-2xl font-bold tracking-tight mb-4">Recherches récentes</h2>
+      <h2 className="text-xl md:text-2xl font-bold tracking-tight mb-4" data-i18n="recent_searches.title">Recherches récentes</h2>
 
       {searches.length === 0 ? (
         <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
-          <p className="font-medium text-sm">Et si vous lanciez une première recherche ?</p>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="font-medium text-sm" data-i18n="recent_searches.empty_title">
+            Et si vous lanciez une première recherche ?
+          </p>
+          <p className="text-sm text-muted-foreground mt-1" data-i18n="recent_searches.empty_desc">
             Vos recherches s'afficheront ici pour y accéder facilement à tout moment.
           </p>
         </div>

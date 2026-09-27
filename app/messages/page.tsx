@@ -8,14 +8,16 @@ import { EmptyState } from "@/components/design-system"
 import { MessageCircle } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 import { useRouter } from "next/navigation"
+import { useI18n } from "@/components/I18nProvider"
 
 export default function MessagesPage() {
   const { isAuthenticated } = useAuth()
   const router = useRouter()
+  const { t } = useI18n()
 
   useEffect(() => {
     if (!isAuthenticated) {
-      router.push("/")
+      router.push("/auth")
     }
   }, [isAuthenticated, router])
 
@@ -28,7 +30,7 @@ export default function MessagesPage() {
             <ConversationList />
           </div>
           <div className="hidden md:flex items-center justify-center">
-            <EmptyState icon={MessageCircle} title="Sélectionnez une conversation" description="Choisissez une conversation dans la liste pour l'afficher ici" />
+            <EmptyState icon={MessageCircle} title={t("messages.select_conversation")} description={t("messages.select_conversation_desc")} />
           </div>
         </div>
       </main>

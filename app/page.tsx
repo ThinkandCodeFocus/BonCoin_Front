@@ -21,7 +21,7 @@ export default function HomePage() {
         <section className="pt-8 md:pt-12">
           <div className="container-app">
             <div className="relative overflow-hidden rounded-2xl md:rounded-3xl bg-secondary text-secondary-foreground px-6 py-12 md:py-16 lg:py-20 lg:px-16 flex flex-col items-start gap-4">
-              <h1 className="relative z-10 text-3xl md:text-5xl font-bold leading-[1.05] tracking-tight max-w-lg">
+              <h1 className="relative z-10 text-3xl md:text-5xl font-bold leading-[1.05] tracking-tight max-w-lg" data-i18n="home.hero_title">
                 C&apos;est le moment de vendre
               </h1>
               <p className="text-secondary-foreground/75 max-w-md">
@@ -31,10 +31,10 @@ export default function HomePage() {
                 <Link href="/publish">
                   <Button size="lg" className="gap-1.5">
                     <Plus className="w-4 h-4" />
-                    Déposer une annonce
+                    <span data-i18n="publish">Déposer une annonce</span>
                   </Button>
                 </Link>
-                <span className="text-sm text-secondary-foreground/70">Gratuit · en 2 minutes</span>
+                <span className="text-sm text-secondary-foreground/70" data-i18n="home.hero_subtitle">Gratuit · en 2 minutes</span>
               </div>
 
               <div
@@ -69,7 +69,7 @@ export default function HomePage() {
 
         <section className="pt-10 md:pt-14">
           <Reveal className="container-app">
-            <h2 className="text-xl md:text-2xl font-bold tracking-tight mb-5">Top catégories</h2>
+            <h2 className="text-xl md:text-2xl font-bold tracking-tight mb-5" data-i18n="home.top_categories">Top catégories</h2>
             <CategoryGrid />
           </Reveal>
         </section>
@@ -83,8 +83,8 @@ export default function HomePage() {
         <section className="pt-10 md:pt-14 pb-10">
           <Reveal className="container-app">
             <div className="flex items-center justify-between mb-5">
-              <h2 className="text-xl md:text-2xl font-bold tracking-tight">Annonces récentes</h2>
-              <a href="/listings" className="text-sm font-semibold text-primary hover:underline">
+              <h2 className="text-xl md:text-2xl font-bold tracking-tight" data-i18n="listings.recent_title">Annonces récentes</h2>
+              <a href="/listings" className="text-sm font-semibold text-primary hover:underline" data-i18n="actions.view_all_short">
                 Voir tout
               </a>
             </div>
