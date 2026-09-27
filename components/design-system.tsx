@@ -111,7 +111,7 @@ function FavoriteButton({ isFavorited, onToggle, className }: FavoriteButtonProp
 
 /* Etat vide sobre : texte centré, pas d'icone geante */
 interface EmptyStateProps {
-  icon?: React.ComponentType<{ className?: string }>
+  icon?: React.ComponentType<{ className?: string; "aria-hidden"?: boolean }>
   title: string
   description?: string
   action?: React.ReactNode
@@ -121,7 +121,7 @@ interface EmptyStateProps {
 function EmptyState({ icon: Icon, title, description, action, className }: EmptyStateProps) {
   return (
     <div className={cn("text-center py-12", className)}>
-      {Icon && <Icon className="w-6 h-6 text-muted-foreground mx-auto mb-3" />}
+      {Icon && <Icon className="w-6 h-6 text-muted-foreground mx-auto mb-3" aria-hidden="true" />}
       <p className="font-medium text-foreground">{title}</p>
       {description && (
         <p className="text-sm text-muted-foreground mt-1">{description}</p>
@@ -156,7 +156,7 @@ function SectionHeader({ title, description, action, className }: SectionHeaderP
 /* Squelette de chargement - blocs gris en pulse d'opacite */
 function SkeletonCard({ className }: { className?: string }) {
   return (
-    <div className={cn("overflow-hidden border rounded-lg", className)}>
+    <div className={cn("overflow-hidden rounded-xl border border-border bg-card shadow-sm", className)} aria-hidden="true">
       <div className="relative aspect-square skeleton" />
       <div className="p-3 space-y-2">
         <div className="h-4 skeleton rounded w-3/4" />

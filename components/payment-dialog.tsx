@@ -56,9 +56,9 @@ export function PaymentDialog({ open, onOpenChange, conversationId, annonceTitle
           </DialogDescription>
         </DialogHeader>
 
-        <div className="border-2 border-ink radius-indie-alt bg-muted px-4 py-3 flex items-center justify-between">
+        <div className="rounded-xl border border-border bg-muted px-4 py-3 flex items-center justify-between">
           <span className="text-sm font-medium">Montant à payer</span>
-          <span className="font-display text-xl font-bold">{formatPrice(amount)}</span>
+          <span className="text-xl font-bold">{formatPrice(amount)}</span>
         </div>
 
         <div>
@@ -69,8 +69,8 @@ export function PaymentDialog({ open, onOpenChange, conversationId, annonceTitle
                 key={method.value}
                 type="button"
                 onClick={() => setPaymentMethod(method.value)}
-                className={`border rounded-md px-2 py-2 text-xs font-medium text-center ${
-                  paymentMethod === method.value ? "border-primary bg-primary/5" : ""
+                className={`border rounded-lg px-2 py-2 text-xs font-medium text-center transition-colors ${
+                  paymentMethod === method.value ? "border-primary bg-primary/5" : "border-border hover:bg-muted"
                 }`}
               >
                 {method.label}

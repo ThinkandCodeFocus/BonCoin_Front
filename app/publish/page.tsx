@@ -494,16 +494,17 @@ export default function PublishPage() {
 
       <main className="flex-1 pb-16 md:pb-4 py-6 px-4">
         <div className="max-w-2xl mx-auto">
-          <h1 className="text-xl font-semibold mb-6">Déposer une annonce</h1>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight mb-1">Déposer une annonce</h1>
+          <p className="text-muted-foreground mb-6">Gratuit · en 2 minutes</p>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            <section className="space-y-4">
-              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Photos</h2>
+            <section className="space-y-4 rounded-xl border border-border bg-card shadow-sm p-5 md:p-6">
+              <h2 className="text-xs font-bold text-primary uppercase tracking-wider">Photos</h2>
               <div>
                 <Label>Photos (min 2, max 5) *</Label>
                 <div className="mt-2 grid grid-cols-3 md:grid-cols-5 gap-3">
                   {imagePreviews.map((img, idx) => (
-                    <div key={idx} className="relative aspect-square rounded-md overflow-hidden border">
+                    <div key={idx} className="relative aspect-square rounded-lg overflow-hidden border border-border shadow-sm">
                       <img src={img} alt="" className="w-full h-full object-cover" />
                       <Button
                         type="button"
@@ -517,7 +518,7 @@ export default function PublishPage() {
                     </div>
                   ))}
                   {imageFiles.length < 5 && (
-                    <label className="aspect-square rounded-md border-2 border-dashed flex items-center justify-center cursor-pointer hover:bg-muted transition-colors">
+                    <label className="aspect-square rounded-lg border-2 border-dashed border-border flex items-center justify-center cursor-pointer hover:bg-muted hover:border-primary/40 transition-colors">
                       <Upload className="w-5 h-5 text-muted-foreground" />
                       <input type="file" accept="image/*" multiple className="hidden" onChange={handleImageUpload} />
                     </label>
@@ -529,7 +530,7 @@ export default function PublishPage() {
                 <Label>Vidéo (optionnel)</Label>
                 {!videoFile ? (
                   <div className="mt-2">
-                    <label className="flex items-center gap-3 w-full rounded-md border-2 border-dashed p-4 cursor-pointer hover:bg-muted transition-colors">
+                    <label className="flex items-center gap-3 w-full rounded-lg border-2 border-dashed border-border p-4 cursor-pointer hover:bg-muted hover:border-primary/40 transition-colors">
                       <Video className="w-5 h-5 text-muted-foreground" />
                       <span className="text-sm text-muted-foreground">Ajouter une vidéo (mp4/mpeg, max 10MB)</span>
                       <input
@@ -543,7 +544,7 @@ export default function PublishPage() {
                 ) : (
                   <div className="mt-2 space-y-3">
                     <video
-                      className="w-full rounded-md border"
+                      className="w-full rounded-lg border border-border"
                       controls
                       src={videoPreview || undefined}
                     />
@@ -558,8 +559,8 @@ export default function PublishPage() {
               </div>
             </section>
 
-            <section className="space-y-4 border-t pt-6">
-              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Description</h2>
+            <section className="space-y-4 rounded-xl border border-border bg-card shadow-sm p-5 md:p-6">
+              <h2 className="text-xs font-bold text-primary uppercase tracking-wider">Description</h2>
 
               <div>
                 <Label htmlFor="category">Catégorie *</Label>
@@ -660,7 +661,7 @@ export default function PublishPage() {
                     minLength={20}
                   />
                 ) : (
-                  <div className="mt-2 p-4 border rounded-md">
+                  <div className="mt-2 p-4 rounded-lg border border-border bg-muted/30">
                     {!audioBlob ? (
                       <div className="flex flex-col items-center justify-center py-6 gap-3">
                         {!isRecording ? (
@@ -719,8 +720,8 @@ export default function PublishPage() {
               </div>
             </section>
 
-            <section className="space-y-4 border-t pt-6">
-              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Prix et localisation</h2>
+            <section className="space-y-4 rounded-xl border border-border bg-card shadow-sm p-5 md:p-6">
+              <h2 className="text-xs font-bold text-primary uppercase tracking-wider">Prix et localisation</h2>
 
               <div>
                 <Label htmlFor="price">Prix (FCFA) *</Label>
@@ -789,7 +790,7 @@ export default function PublishPage() {
               </div>
             </section>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 border-t pt-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <Button type="button" variant="outline" onClick={handlePreview} disabled={isLoading}>
                 Prévisualiser
               </Button>

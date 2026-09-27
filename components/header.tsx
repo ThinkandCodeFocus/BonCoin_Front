@@ -24,15 +24,19 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useMessageNotifications } from "@/contexts/MessageNotificationContext"
 import { SearchBar } from "@/components/search-bar"
 import { useCategories } from "@/hooks/use-categories"
-import { useHideOnScroll } from "@/hooks/use-hide-on-scroll"
+import { useScrolled } from "@/hooks/use-scrolled"
+import { usePulseOnIncrease } from "@/hooks/use-pulse-on-increase"
 import { cn } from "@/lib/utils"
 
 export function Header() {
   const { user, isAuthenticated, logout } = useAuth()
   const { favoriteCount } = useFavorites()
   const { categories } = useCategories()
-  const hidden = useHideOnScroll()
+  const scrolled = useScrolled()
   const { unreadCount: messageCount, notificationCount } = useMessageNotifications()
+  const favoritePulse = usePulseOnIncrease(favoriteCount)
+  const messagePulse = usePulseOnIncrease(messageCount)
+  const notificationPulse = usePulseOnIncrease(notificationCount)
   const [showAuthDialog, setShowAuthDialog] = useState(false)
   const [authTab, setAuthTab] = useState<"login" | "register">("login")
   const { resolvedTheme, setTheme } = useTheme()
@@ -46,15 +50,17 @@ export function Header() {
   return (
     <header
       className={cn(
-        "sticky top-0 z-50 bg-card border-b-2 border-ink transition-transform duration-300",
-        hidden ? "-translate-y-full" : "translate-y-0"
+        "sticky top-0 z-50 transition-[background-color,box-shadow,border-color] duration-300",
+        scrolled
+          ? "bg-background/85 backdrop-blur-md shadow-sm border-b border-border"
+          : "bg-background border-b border-transparent"
       )}
     >
-      <div className="max-w-7xl mx-auto px-4 lg:px-6">
-        <div className="flex items-center justify-between h-16 gap-4">
-          <div className="flex items-center gap-4 shrink-0">
+      <div className="container-app">
+        <div className="flex items-center justify-between h-16 gap-4 md:gap-6">
+          <div className="flex items-center gap-3 shrink-0">
             <Link href="/" className="flex items-center shrink-0">
-              <span className="font-display text-2xl font-bold text-primary -rotate-1">LeMarché</span>
+              <span className="text-2xl font-bold text-primary">LeMarché</span>
             </Link>
             {showPublishButton && (
               <Link href="/publish" className="hidden md:block">
@@ -66,11 +72,11 @@ export function Header() {
             )}
           </div>
 
-          <div className="hidden md:block flex-1 max-w-md">
+          <div className="hidden md:block flex-1 max-w-2xl">
             <SearchBar />
           </div>
 
-          <nav className="hidden md:flex items-center gap-1">
+          <nav className="hidden md:flex items-center gap-1 shrink-0">
             <Button
               variant="ghost"
               size="icon"
@@ -92,7 +98,7 @@ export function Header() {
                     <Heart className="w-4 h-4" />
                     <span data-i18n="favorites">Favoris</span>
                     {favoriteCount > 0 && (
-                      <Badge className="ml-1">{favoriteCount}</Badge>
+                      <Badge className={cn("ml-1", favoritePulse && "animate-badge-pop")}>{favoriteCount}</Badge>
                     )}
                   </Button>
                 </Link>
@@ -101,7 +107,7 @@ export function Header() {
                     <MessageSquare className="w-4 h-4" />
                     <span data-i18n="messages">Messages</span>
                     {messageCount > 0 && (
-                      <Badge className="ml-1">{messageCount}</Badge>
+                      <Badge className={cn("ml-1", messagePulse && "animate-badge-pop")}>{messageCount}</Badge>
                     )}
                   </Button>
                 </Link>
@@ -109,7 +115,14 @@ export function Header() {
                   <Button variant="ghost" size="icon" className="relative">
                     <Bell className="w-4 h-4" />
                     {notificationCount > 0 && (
-                      <Badge className="absolute -top-1 -right-1 px-1 min-w-4 justify-center">{notificationCount}</Badge>
+                      <Badge
+                        className={cn(
+                          "absolute -top-1 -right-1 px-1 min-w-4 justify-center",
+                          notificationPulse && "animate-badge-pop"
+                        )}
+                      >
+                        {notificationCount}
+                      </Badge>
                     )}
                   </Button>
                 </Link>
@@ -204,14 +217,20 @@ export function Header() {
                     <Button variant="ghost" className="w-full justify-start">
                       <MessageSquare className="w-4 h-4 mr-2" />
                       <span data-i18n="messages">Messages</span>
-                      {messageCount > 0 && <Badge className="ml-auto">{messageCount}</Badge>}
+                      {messageCount > 0 && (
+                        <Badge className={cn("ml-auto", messagePulse && "animate-badge-pop")}>{messageCount}</Badge>
+                      )}
                     </Button>
                   </Link>
                   <Link href="/notifications">
                     <Button variant="ghost" className="w-full justify-start">
                       <Bell className="w-4 h-4 mr-2" />
                       <span data-i18n="notifications">Notifications</span>
-                      {notificationCount > 0 && <Badge className="ml-auto">{notificationCount}</Badge>}
+                      {notificationCount > 0 && (
+                        <Badge className={cn("ml-auto", notificationPulse && "animate-badge-pop")}>
+                          {notificationCount}
+                        </Badge>
+                      )}
                     </Button>
                   </Link>
                   <Link href="/favorites">
@@ -257,17 +276,15 @@ export function Header() {
           <SearchBar />
         </div>
 
-        <nav className="hidden md:flex items-center gap-2 h-10 -mb-px overflow-x-auto">
-          {categories.map((category, index) => (
-            <span key={category.id} className="flex items-center gap-2">
-              {index > 0 && <span className="text-muted-foreground">·</span>}
-              <Link
-                href={`/listings?category=${category.id}`}
-                className="text-sm border-b-2 border-transparent px-0.5 h-10 flex items-center whitespace-nowrap text-muted-foreground hover:text-foreground hover:border-border transition-colors"
-              >
-                {category.name}
-              </Link>
-            </span>
+        <nav className="hidden md:flex items-center gap-1 h-11 border-t border-border overflow-x-auto">
+          {categories.map((category) => (
+            <Link
+              key={category.id}
+              href={`/listings?category=${category.id}`}
+              className="text-sm font-medium px-3 h-11 flex items-center whitespace-nowrap text-muted-foreground rounded-md hover:text-foreground hover:bg-muted transition-colors"
+            >
+              {category.name}
+            </Link>
           ))}
         </nav>
       </div>

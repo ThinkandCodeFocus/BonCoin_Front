@@ -45,14 +45,17 @@ export function SearchBar({ className = "" }: { className?: string }) {
   }
 
   return (
-    <div className={`flex items-center border rounded-full bg-background overflow-hidden ${className}`}>
+    <div
+      className={`flex items-center gap-1 rounded-full border border-input bg-background pl-4 shadow-sm transition-shadow focus-within:ring-[3px] focus-within:ring-ring/50 focus-within:border-ring ${className}`}
+    >
+      <Search className="w-4 h-4 text-muted-foreground shrink-0" />
       <SuggestInput
         placeholder={t("search.placeholder") || "Rechercher sur LeMarché"}
         value={query}
         onChange={setQuery}
         options={categories.map((c) => c.name)}
         onKeyDown={(e) => e.key === "Enter" && runSearch()}
-        className="border-0 shadow-none focus-visible:ring-0 rounded-none w-full"
+        className="border-0 shadow-none focus-visible:ring-0 rounded-none w-full h-11 px-2"
       />
       <Button size="icon" className="rounded-full m-1 shrink-0" onClick={runSearch} aria-label="Rechercher">
         <Search className="w-4 h-4" />

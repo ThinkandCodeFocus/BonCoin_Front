@@ -44,12 +44,12 @@ export function SuggestInput({
         className={className}
       />
       {showSuggestions && (
-        <div className="absolute z-50 top-full left-0 right-0 mt-1 border rounded-md bg-card shadow-md overflow-hidden">
+        <div className="absolute z-50 top-full left-0 right-0 mt-2 rounded-lg border border-border bg-card shadow-lg overflow-hidden">
           {suggestions.map((suggestion) => (
             <button
               key={suggestion}
               type="button"
-              className="w-full text-left px-3 py-2 text-sm hover:bg-muted"
+              className="w-full text-left px-3 py-2.5 text-sm hover:bg-muted"
               onMouseDown={(e) => {
                 e.preventDefault()
                 onChange(suggestion)
