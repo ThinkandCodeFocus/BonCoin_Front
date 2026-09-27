@@ -115,7 +115,7 @@ export function Footer() {
             une annonce gratuite pour vendre, acheter ou donner vos biens de seconde main.
           </p>
           <div className="flex flex-col md:flex-row items-center justify-between gap-2 pt-1">
-            <span data-i18n="footer.copyright">© 2024 LeMarché. Tous droits réservés.</span>
+            <span data-i18n="footer.copyright">© 2026 LeMarché. Tous droits réservés.</span>
             <span>Dakar, Sénégal</span>
           </div>
         </div>
