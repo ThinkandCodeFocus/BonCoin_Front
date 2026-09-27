@@ -14,10 +14,10 @@ export function RecentSearches() {
 
   return (
     <div>
-      <h2 className="text-base font-semibold mb-3" data-i18n="recent_searches.title">Recherches récentes</h2>
+      <h2 className="text-xl md:text-2xl font-bold tracking-tight mb-4" data-i18n="recent_searches.title">Recherches récentes</h2>
 
       {searches.length === 0 ? (
-        <div className="border rounded-lg p-4">
+        <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
           <p className="font-medium text-sm" data-i18n="recent_searches.empty_title">
             Et si vous lanciez une première recherche ?
           </p>
@@ -31,7 +31,7 @@ export function RecentSearches() {
             <Link
               key={query}
               href={`/listings?search=${encodeURIComponent(query)}`}
-              className="inline-flex items-center gap-1.5 border rounded-full px-3 py-1.5 text-sm hover:bg-muted transition-colors"
+              className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-sm shadow-sm hover:bg-muted transition-colors"
             >
               <Search className="w-3.5 h-3.5 text-muted-foreground" />
               {query}

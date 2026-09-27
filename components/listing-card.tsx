@@ -45,20 +45,11 @@ export function ListingCard({
   onToggleFavorite,
   isRecentlyAdded,
   variant = "grid",
-  index,
 }: ListingCardProps) {
   const { t } = useI18n()
   const photoUrl = resolveStorageUrl(listing.photos?.[0])
   const isBoosted = !!listing.boosted_until && new Date(listing.boosted_until) > new Date()
   const seller = listing.user
-  const tilt =
-    variant === "grid" && typeof index === "number"
-      ? index % 3 === 1
-        ? "md:-rotate-[0.35deg]"
-        : index % 3 === 2
-          ? "md:rotate-[0.35deg]"
-          : ""
-      : ""
   const priceParts = (() => {
     const value = typeof listing.price === "string" ? Number(listing.price) : listing.price
     return Number.isFinite(value) ? new Intl.NumberFormat("fr-FR").format(value) : String(listing.price)
@@ -68,25 +59,24 @@ export function ListingCard({
     <Link
       href={`/listings/${listing.id}`}
       className={cn(
-        "block bg-card border-2 border-ink radius-indie overflow-hidden shadow-hard-sm press-hard",
-        variant === "carousel" && "w-40 shrink-0 snap-start",
-        tilt
+        "group block bg-card rounded-xl border border-border shadow-sm overflow-hidden transition-shadow hover:shadow-md",
+        variant === "carousel" && "w-40 shrink-0 snap-start"
       )}
     >
-      <div className="relative aspect-square bg-muted">
+      <div className="relative aspect-square bg-muted overflow-hidden">
         <ListingThumbnail
           src={listing.photos?.[0] ? photoUrl : undefined}
           alt={listing.title}
           isJob={!!listing.is_job_listing}
-          className="w-full h-full"
+          className="w-full h-full transition-transform duration-300 group-hover:scale-105"
         />
         {seller?.name && (
-          <div className="absolute top-2 left-2 flex items-center gap-1.5 bg-card/95 border-2 border-ink rounded-full pl-1 pr-2 py-1 max-w-[85%] shadow-hard-sm">
+          <div className="absolute top-2 left-2 flex items-center gap-1.5 bg-card/95 border border-border rounded-full pl-1 pr-2 py-1 max-w-[85%] shadow-sm">
             {seller.photo ? (
               <img
                 src={resolveStorageUrl(seller.photo)}
                 alt=""
-                className="w-6 h-6 rounded-full object-cover shrink-0 border border-ink/20"
+                className="w-6 h-6 rounded-full object-cover shrink-0"
               />
             ) : (
               <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-[11px] font-bold shrink-0">
@@ -112,7 +102,7 @@ export function ListingCard({
         <div className={cn("absolute left-2 flex flex-col gap-1", seller?.name ? "top-10" : "top-2")}>
           {isBoosted && <BoostedBadge />}
           {isRecentlyAdded && !isBoosted && (
-            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-card border">
+            <span className="inline-flex items-center px-1.5 py-0.5 rounded-md text-xs font-medium bg-card border border-border shadow-sm">
               Urgent
             </span>
           )}
@@ -126,16 +116,16 @@ export function ListingCard({
 
       <div className="p-3">
         {listing.is_job_listing ? (
-          <p className="font-display text-sm font-bold tracking-tight leading-none text-primary">{t("badge.job_offer")}</p>
+          <p className="text-sm font-bold tracking-tight leading-none text-primary">{t("badge.job_offer")}</p>
         ) : (
-          <p className="font-display text-2xl font-bold tracking-tight tabular-nums leading-none">
+          <p className="text-lg font-bold tracking-tight tabular-nums leading-none">
             {priceParts}
-            <span className="ml-1 font-sans text-[11px] font-semibold tracking-wide text-muted-foreground align-super">
+            <span className="ml-1 text-[11px] font-semibold tracking-wide text-muted-foreground align-super">
               FCFA
             </span>
           </p>
         )}
-        <h3 className="text-sm mt-1.5 line-clamp-2 leading-snug">{listing.title}</h3>
+        <h3 className="text-sm mt-1.5 line-clamp-2 leading-snug text-foreground/90">{listing.title}</h3>
         <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
           <span className="flex items-center gap-1 truncate">
             <MapPin className="w-3 h-3 shrink-0" />

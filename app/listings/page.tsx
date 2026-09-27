@@ -404,22 +404,22 @@ export default function ListingsPage() {
       <Header />
 
       <main className="flex-1 pb-16 md:pb-4">
-        <div className="max-w-6xl mx-auto px-4 py-3 text-sm text-muted-foreground">
+        <div className="container-app py-3 text-sm text-muted-foreground">
           <Link href="/" className="hover:underline">{t("bottom.home")}</Link>
           <span className="mx-1.5">/</span>
           <span className="text-foreground">{t("listings.breadcrumb_listings")}</span>
         </div>
 
-        <div className="max-w-6xl mx-auto px-4 pb-3">
+        <div className="container-app pb-3">
           <div className="flex gap-2">
-            <div className="flex-1 flex items-center gap-2 border rounded-md px-3 py-2 bg-card">
+            <div className="flex-1 flex items-center gap-2 rounded-full border border-input bg-background px-4 shadow-sm focus-within:ring-[3px] focus-within:ring-ring/50 focus-within:border-ring">
               <Search className="w-4 h-4 text-muted-foreground shrink-0" />
               <Input
                 placeholder={t("listings.search_placeholder")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && loadListings()}
-                className="border-0 shadow-none px-0 h-auto focus-visible:ring-0"
+                className="border-0 shadow-none px-0 h-11 focus-visible:ring-0"
               />
             </div>
             <Sheet>
@@ -459,10 +459,10 @@ export default function ListingsPage() {
           </div>
         </div>
 
-        <div className="max-w-6xl mx-auto px-4 pb-8 grid grid-cols-1 lg:grid-cols-[240px_1fr] gap-6">
+        <div className="container-app pb-8 grid grid-cols-1 lg:grid-cols-[240px_1fr] gap-6">
           <aside className="hidden lg:block">
-            <div className="border rounded-md p-4 bg-card sticky top-20">
-              <h2 className="font-semibold text-sm mb-4">{t("listings.filters")}</h2>
+            <div className="rounded-xl border border-border bg-card shadow-sm p-5 sticky top-24">
+              <h2 className="font-bold text-base mb-4">{t("listings.filters")}</h2>
               <FiltersForm
                 priceMin={priceMin}
                 setPriceMin={setPriceMin}
@@ -517,11 +517,11 @@ export default function ListingsPage() {
                   </SelectContent>
                 </Select>
 
-                <div className="flex border rounded-md">
+                <div className="flex rounded-lg border border-border overflow-hidden">
                   <Button
                     variant={viewMode === "list" ? "secondary" : "ghost"}
                     size="icon-sm"
-                    className="rounded-r-none"
+                    className="rounded-none"
                     onClick={() => setViewMode("list")}
                     aria-label={t("listings.view_list")}
                   >
@@ -530,7 +530,7 @@ export default function ListingsPage() {
                   <Button
                     variant={viewMode === "grid" ? "secondary" : "ghost"}
                     size="icon-sm"
-                    className="rounded-l-none"
+                    className="rounded-none"
                     onClick={() => setViewMode("grid")}
                     aria-label={t("listings.view_grid")}
                   >
@@ -541,7 +541,7 @@ export default function ListingsPage() {
             </div>
 
             {isLoading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-4">
                 {[...Array(9)].map((_, i) => (
                   <SkeletonCard key={i} />
                 ))}
@@ -555,7 +555,7 @@ export default function ListingsPage() {
             ) : (
               <div className="space-y-6">
                 {viewMode === "grid" ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-5">
                     {filteredListings.map((listing, i) => (
                       <ListingCard
                         key={listing.id}

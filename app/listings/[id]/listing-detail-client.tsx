@@ -16,6 +16,7 @@ import { useParams, useRouter } from "next/navigation"
 import { toast } from "sonner"
 import Link from "next/link"
 import { ReportListingButton } from "@/components/report-listing-button"
+import { Reveal } from "@/components/reveal"
 import { formatPrice } from "@/components/design-system"
 import { ListingCard, type ListingCardData } from "@/components/listing-card"
 import { ListingThumbnail } from "@/components/listing-thumbnail"
@@ -268,11 +269,11 @@ export function ListingDetailClient() {
       <Header />
 
       <main className="flex-1 pb-16 md:pb-4">
-        <div className="max-w-6xl mx-auto p-4 md:p-6">
+        <div className="container-app py-4 md:py-6">
           <div className="grid md:grid-cols-2 gap-8">
             {/* Galerie photos */}
             <div>
-              <div className="relative aspect-square rounded-lg overflow-hidden bg-muted mb-3 border">
+              <div className="relative aspect-square rounded-xl overflow-hidden bg-muted mb-3 border border-border shadow-sm">
                 <ListingThumbnail
                   src={annonce.photos?.[currentPhotoIndex] ? photoUrl : undefined}
                   alt={annonce.title}
@@ -283,16 +284,14 @@ export function ListingDetailClient() {
                   <>
                     <Button
                       size="icon"
-                      variant="secondary"
-                      className="absolute left-3 top-1/2 -translate-y-1/2"
+                      className="absolute left-3 top-1/2 -translate-y-1/2 bg-background/90 text-foreground backdrop-blur-sm shadow-md hover:bg-background"
                       onClick={previousPhoto}
                     >
                       <ChevronLeft className="w-4 h-4" />
                     </Button>
                     <Button
                       size="icon"
-                      variant="secondary"
-                      className="absolute right-3 top-1/2 -translate-y-1/2"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 bg-background/90 text-foreground backdrop-blur-sm shadow-md hover:bg-background"
                       onClick={nextPhoto}
                     >
                       <ChevronRight className="w-4 h-4" />
@@ -315,7 +314,7 @@ export function ListingDetailClient() {
                     <button
                       key={index}
                       onClick={() => setCurrentPhotoIndex(index)}
-                      className={`aspect-square rounded-md overflow-hidden border ${index === currentPhotoIndex ? "ring-2 ring-primary" : ""}`}
+                      className={`aspect-square rounded-lg overflow-hidden border ${index === currentPhotoIndex ? "ring-2 ring-primary border-transparent" : "border-border"}`}
                     >
                       <img
                         src={resolveStorageUrl(photo)}
@@ -347,8 +346,8 @@ export function ListingDetailClient() {
               <div>
                 <div className="flex items-start justify-between gap-3 mb-3">
                   <div className="flex-1 min-w-0">
-                    <h1 className="text-xl font-semibold mb-1 line-clamp-3 break-words">{annonce.title}</h1>
-                    {!annonce.is_job_listing && <p className="text-2xl font-bold">{formatPrice(annonce.price)}</p>}
+                    <h1 className="text-lg font-semibold mb-1 line-clamp-3 break-words text-foreground/90">{annonce.title}</h1>
+                    {!annonce.is_job_listing && <p className="text-3xl font-bold tracking-tight">{formatPrice(annonce.price)}</p>}
                     {annonce.negotiable && (
                       <Badge variant="secondary" className="mt-2">
                         {t("publish.negotiable")}
@@ -531,14 +530,14 @@ export function ListingDetailClient() {
           </div>
 
           {similarListings.length > 0 && (
-            <div className="mt-10">
-              <h2 className="text-base font-semibold mb-3">{t("detail.similar_listings")}</h2>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+            <Reveal className="mt-10">
+              <h2 className="text-xl md:text-2xl font-bold tracking-tight mb-4">{t("detail.similar_listings")}</h2>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-4">
                 {similarListings.map((item) => (
                   <ListingCard key={item.id} listing={item} />
                 ))}
               </div>
-            </div>
+            </Reveal>
           )}
         </div>
       </main>

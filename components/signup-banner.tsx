@@ -46,7 +46,7 @@ export function SignupBanner() {
   if (!visible) return null
 
   return (
-    <div className="fixed top-16 md:top-20 left-4 right-4 md:left-auto md:right-4 md:max-w-sm z-50 bg-secondary text-secondary-foreground border-2 border-ink radius-indie shadow-hard p-4 flex items-start gap-3">
+    <div className="fixed top-16 md:top-20 left-4 right-4 md:left-auto md:right-4 md:max-w-sm z-50 bg-secondary text-secondary-foreground rounded-xl shadow-lg p-4 flex items-start gap-3">
       <div className="w-10 h-10 rounded-lg bg-card flex items-center justify-center shrink-0">
         <Sparkles className="w-5 h-5" />
       </div>

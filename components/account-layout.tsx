@@ -19,7 +19,7 @@ export function AccountLayout({ children }: { children: React.ReactNode }) {
   ]
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-6 grid grid-cols-1 md:grid-cols-[220px_1fr] gap-6">
+    <div className="container-app py-6 grid grid-cols-1 md:grid-cols-[220px_1fr] gap-6">
       <aside className="md:sticky md:top-20 md:self-start">
         <nav className="flex md:flex-col gap-1 overflow-x-auto">
           {navItems.map((item) => {
@@ -35,8 +35,8 @@ export function AccountLayout({ children }: { children: React.ReactNode }) {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-2 px-3 py-2 rounded-md text-sm whitespace-nowrap",
-                  active ? "bg-muted font-medium text-foreground" : "text-muted-foreground hover:bg-muted"
+                  "flex items-center gap-2 px-3 py-2 rounded-lg text-sm whitespace-nowrap transition-colors",
+                  active ? "bg-accent font-semibold text-primary" : "text-muted-foreground hover:bg-muted"
                 )}
               >
                 <Icon className="w-4 h-4" />

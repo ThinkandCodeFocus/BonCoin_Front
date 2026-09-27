@@ -50,7 +50,7 @@ export default function SellerStorefrontPage() {
     <div className="min-h-screen flex flex-col">
       <Header />
       <main className="flex-1 pb-16 md:pb-4">
-        <div className="max-w-6xl mx-auto px-4 py-6">
+        <div className="container-app py-6">
           {isLoading ? (
             <div className="flex justify-center py-12">
               <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
@@ -85,7 +85,7 @@ export default function SellerStorefrontPage() {
                 </Button>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-4">
                 {listings.map((listing) => (
                   <ListingCard key={listing.id} listing={listing} />
                 ))}

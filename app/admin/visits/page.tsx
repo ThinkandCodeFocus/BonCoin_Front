@@ -82,8 +82,8 @@ export default function AdminVisitsPage() {
                           <XAxis dataKey="date" tickFormatter={formatDate} fontSize={12} />
                           <YAxis allowDecimals={false} fontSize={12} />
                           <Tooltip labelFormatter={(value) => formatDate(String(value))} />
-                          <Bar dataKey="total" name="Visites" fill="#2f4a3a" radius={[4, 4, 0, 0]} />
-                          <Bar dataKey="unique_visitors" name="Uniques" fill="#c17f3e" radius={[4, 4, 0, 0]} />
+                          <Bar dataKey="total" name="Visites" fill="#0e3944" radius={[4, 4, 0, 0]} />
+                          <Bar dataKey="unique_visitors" name="Uniques" fill="#e45b00" radius={[4, 4, 0, 0]} />
                         </BarChart>
                       </ResponsiveContainer>
                     </div>

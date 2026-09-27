@@ -61,7 +61,7 @@ export function PwaInstallPrompt() {
   if (!showBanner) return null
 
   return (
-    <div className="fixed bottom-20 md:bottom-4 left-4 right-4 md:left-auto md:right-4 md:max-w-sm z-50 bg-card border-2 border-ink radius-indie shadow-hard p-4 flex items-start gap-3">
+    <div className="fixed bottom-20 md:bottom-4 left-4 right-4 md:left-auto md:right-4 md:max-w-sm z-50 bg-card border border-border rounded-xl shadow-lg p-4 flex items-start gap-3">
       <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center shrink-0">
         <Download className="w-5 h-5" />
       </div>

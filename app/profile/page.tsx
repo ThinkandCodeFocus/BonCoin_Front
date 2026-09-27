@@ -179,28 +179,30 @@ export default function ProfilePage() {
       <Header />
 
       <main className="flex-1 pb-16 md:pb-4">
-        <div className="max-w-6xl mx-auto px-4 pt-6 flex items-center justify-between gap-3 flex-wrap">
-          <div className="flex items-center gap-3">
-            <Avatar className="w-12 h-12">
-              <AvatarImage src={user.photo ? resolveStorageUrl(user.photo) : undefined} />
-              <AvatarFallback>{user.name?.charAt(0).toUpperCase()}</AvatarFallback>
-            </Avatar>
-            <div>
-              <p className="font-semibold">{user.name}</p>
-              <p className="text-sm text-muted-foreground">{user.email}</p>
+        <div className="container-app pt-6">
+          <div className="flex items-center justify-between gap-3 flex-wrap rounded-xl border border-border bg-card shadow-sm p-4">
+            <div className="flex items-center gap-3">
+              <Avatar className="w-14 h-14">
+                <AvatarImage src={user.photo ? resolveStorageUrl(user.photo) : undefined} />
+                <AvatarFallback>{user.name?.charAt(0).toUpperCase()}</AvatarFallback>
+              </Avatar>
+              <div>
+                <p className="font-bold text-lg">{user.name}</p>
+                <p className="text-sm text-muted-foreground">{user.email}</p>
+              </div>
             </div>
+            <Link href={`/sellers/${user.id}`}>
+              <Button variant="outline" size="sm">
+                {t("profile.view_shop")}
+              </Button>
+            </Link>
           </div>
-          <Link href={`/sellers/${user.id}`}>
-            <Button variant="outline" size="sm">
-              {t("profile.view_shop")}
-            </Button>
-          </Link>
         </div>
 
         <AccountLayout>
           {activeTab === "searches" ? (
             <div className="space-y-3">
-              <h1 className="text-base font-semibold">{t("profile.saved_searches_title")} ({savedSearches.length})</h1>
+              <h1 className="text-xl font-bold tracking-tight">{t("profile.saved_searches_title")} ({savedSearches.length})</h1>
               {isLoadingSearches ? (
                 <div className="flex justify-center py-8">
                   <Loader2 className="w-6 h-6 animate-spin text-primary" />
@@ -230,7 +232,7 @@ export default function ProfilePage() {
             </div>
           ) : activeTab === "listings" ? (
             <div className="space-y-3">
-              <h1 className="text-base font-semibold">{t("my_listings")} ({userAnnonces.length})</h1>
+              <h1 className="text-xl font-bold tracking-tight">{t("my_listings")} ({userAnnonces.length})</h1>
               {isLoadingAnnonces ? (
                 <div className="flex justify-center py-8">
                   <Loader2 className="w-6 h-6 animate-spin text-primary" />
@@ -256,7 +258,7 @@ export default function ProfilePage() {
                           src={listing.photos?.[0] ? photoUrl : undefined}
                           alt={listing.title}
                           isJob={!!listing.is_job_listing}
-                          className="w-24 h-24 rounded-md border shrink-0"
+                          className="w-24 h-24 rounded-lg border border-border shrink-0"
                         />
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between gap-2 mb-1">
@@ -310,7 +312,7 @@ export default function ProfilePage() {
             </div>
           ) : (
             <div className="space-y-3">
-              <h1 className="text-base font-semibold">{t("favorites")} ({favorites.length})</h1>
+              <h1 className="text-xl font-bold tracking-tight">{t("favorites")} ({favorites.length})</h1>
               {isLoadingFavorites ? (
                 <div className="flex justify-center py-8">
                   <Loader2 className="w-6 h-6 animate-spin text-primary" />
@@ -318,13 +320,13 @@ export default function ProfilePage() {
               ) : favorites.length === 0 ? (
                 <EmptyState icon={Heart} title={t("profile.no_favorites_title")} />
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-4">
                   {favorites.map((item) => {
                     const annonce = item.annonce
                     const photoUrl = resolveStorageUrl(annonce.photos?.[0])
 
                     return (
-                      <Card key={item.id} className="overflow-hidden p-0">
+                      <Card key={item.id} className="overflow-hidden p-0 transition-shadow hover:shadow-md">
                         <Link href={`/listings/${annonce.id}`}>
                           <ListingThumbnail
                             src={annonce.photos?.[0] ? photoUrl : undefined}

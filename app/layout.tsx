@@ -1,6 +1,6 @@
 import type React from "react"
 import type { Metadata, Viewport } from "next"
-import { Fraunces, DM_Sans } from "next/font/google"
+import { DM_Sans } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import "./globals.css"
 import { Toaster } from "@/components/ui/toaster"
@@ -13,14 +13,6 @@ import { I18nProvider } from "@/components/I18nProvider"
 import { PwaInstallPrompt } from "@/components/pwa-install-prompt"
 import { VisitTracker } from "@/components/visit-tracker"
 import { SignupBanner } from "@/components/signup-banner"
-
-const fraunces = Fraunces({
-  subsets: ["latin"],
-  variable: "--font-fraunces",
-  weight: "variable",
-  axes: ["opsz", "SOFT", "WONK"],
-  style: ["normal", "italic"],
-})
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
@@ -55,7 +47,7 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: "#2f4a3a",
+  themeColor: "#e45b00",
 }
 
 export default function RootLayout({
@@ -65,7 +57,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr" className="overflow-x-hidden">
-      <body className={`${fraunces.variable} ${dmSans.variable} font-sans antialiased overflow-x-hidden`}>
+      <body className={`${dmSans.variable} font-sans antialiased overflow-x-hidden`}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
           <I18nProvider>
             <AuthProvider>
