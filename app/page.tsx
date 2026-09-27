@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Reveal } from "@/components/reveal"
 import { Plus } from "lucide-react"
 import Link from "next/link"
+import Image from "next/image"
 
 export default function HomePage() {
   return (
@@ -20,7 +21,7 @@ export default function HomePage() {
         <section className="pt-8 md:pt-12">
           <div className="container-app">
             <div className="relative overflow-hidden rounded-2xl md:rounded-3xl bg-secondary text-secondary-foreground px-6 py-12 md:py-16 lg:py-20 lg:px-16 flex flex-col items-start gap-4">
-              <h1 className="text-3xl md:text-5xl font-bold leading-[1.05] tracking-tight max-w-lg">
+              <h1 className="relative z-10 text-3xl md:text-5xl font-bold leading-[1.05] tracking-tight max-w-lg">
                 C&apos;est le moment de vendre
               </h1>
               <p className="text-secondary-foreground/75 max-w-md">
@@ -34,6 +35,21 @@ export default function HomePage() {
                   </Button>
                 </Link>
                 <span className="text-sm text-secondary-foreground/70">Gratuit · en 2 minutes</span>
+              </div>
+
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute bottom-0 right-6 xl:right-16 hidden lg:block h-[92%] aspect-[501/395]"
+              >
+                <div className="absolute left-1/2 bottom-[-18%] -translate-x-1/2 w-[78%] aspect-square rounded-full bg-primary/25 blur-2xl" />
+                <Image
+                  src="/hero-vendeuse.png"
+                  alt=""
+                  fill
+                  priority
+                  sizes="(min-width: 1024px) 480px, 0px"
+                  className="relative object-contain object-bottom"
+                />
               </div>
             </div>
           </div>
